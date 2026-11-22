@@ -22,6 +22,21 @@ export interface Save {
   album: Record<string, number[]>; // langue -> index des phrases trouvées
   stats: { played: number; won: number; totalMs: number; bestScore: number };
   lastChest: string | null;
+  xp: number;
+  /** langue -> clé de mode -> record */
+  records: Record<string, Record<string, ModeRecord>>;
+  achievements: string[];
+  league: { week: string | null; tier: number; xp: number; last: 'up' | 'down' | 'stay' | null; lastRank: number | null };
+  settings: { sound: boolean; haptics: boolean };
+  tutorialDone: boolean;
+  counters: { noHintWins: number; fails: number; bossWins: number };
+}
+
+export interface ModeRecord {
+  best: number;
+  bestMs: number | null;
+  played: number;
+  wins: number;
 }
 
 const KEY = 'lexicode.save.v1';
@@ -42,6 +57,13 @@ export function emptySave(): Save {
     album: {},
     stats: { played: 0, won: 0, totalMs: 0, bestScore: 0 },
     lastChest: null,
+    xp: 0,
+    records: {},
+    achievements: [],
+    league: { week: null, tier: 0, xp: 0, last: null, lastRank: null },
+    settings: { sound: true, haptics: true },
+    tutorialDone: false,
+    counters: { noHintWins: 0, fails: 0, bossWins: 0 },
   };
 }
 
@@ -49,7 +71,9 @@ export function loadSave(): Save {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return emptySave();
-    return { ...emptySave(), ...JSON.parse(raw) };
+    const d = emptySave();
+    const p = JSON.parse(raw);
+    return { ...d, ...p, settings: { ...d.settings, ...p.settings }, counters: { ...d.counters, ...p.counters }, league: { ...d.league, ...p.league } };
   } catch {
     return emptySave();
   }
@@ -106,6 +130,19 @@ export function liveStreak(s: Save, day: string): number {
   const gap = daysBetween(s.streak.lastDay, day);
   if (gap <= 1) return s.streak.count;
   return gap - 1 <= s.streak.freezes ? s.streak.count : 0;
+}
+
+export function bumpRecord(s: Save, lang: string, key: string, won: boolean, score: number, ms: number): Save {
+  const byLang = s.records[lang] ?? {};
+  const r = byLang[key] ?? { best: 0, bestMs: null, played: 0, wins: 0 };
+  const better = won && (score > r.best || (score === r.best && (r.bestMs === null || ms < r.bestMs)));
+  const next: ModeRecord = {
+    best: better ? score : r.best,
+    bestMs: better ? ms : r.bestMs,
+    played: r.played + 1,
+    wins: r.wins + (won ? 1 : 0),
+  };
+  return { ...s, records: { ...s.records, [lang]: { ...byLang, [key]: next } } };
 }
 
 /** Indice de réflexion façon Elo : gagner une grille difficile rapporte plus. */

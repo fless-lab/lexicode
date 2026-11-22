@@ -15,11 +15,15 @@ export interface GameState {
   startedAt: number;
   elapsedMs: number;
   finished: boolean;
+  /** Nombre d'erreurs autorisées avant l'échec (null = illimité). */
+  lives: number | null;
+  failed: boolean;
+  failReason: 'time' | 'mistakes' | null;
   /** Paires numéro|lettre déjà comptées comme erreur. */
   counted: Record<string, true>;
 }
 
-export function initGame(puzzle: Puzzle, now = Date.now()): GameState {
+export function initGame(puzzle: Puzzle, now = Date.now(), lives: number | null = null): GameState {
   const guesses: Record<number, string> = {};
   const locked: Record<number, true> = {};
   for (const c of puzzle.given) {
@@ -37,6 +41,9 @@ export function initGame(puzzle: Puzzle, now = Date.now()): GameState {
     startedAt: now,
     elapsedMs: 0,
     finished: false,
+    lives,
+    failed: false,
+    failReason: null,
     counted: {},
   };
   s.sel = firstEmpty(s);
@@ -113,12 +120,25 @@ function finish(s: GameState, now: number): GameState {
   return s;
 }
 
+export function isOver(s: GameState): boolean {
+  return s.finished || s.failed;
+}
+
 export function select(s: GameState, sel: Sel): GameState {
-  return s.finished ? s : { ...s, sel };
+  return isOver(s) ? s : { ...s, sel };
+}
+
+export function failGame(s: GameState, reason: 'time' | 'mistakes', now = Date.now()): GameState {
+  if (isOver(s)) return s;
+  return { ...s, failed: true, failReason: reason, sel: null, elapsedMs: now - s.startedAt };
+}
+
+export function livesLeft(s: GameState): number | null {
+  return s.lives === null ? null : Math.max(0, s.lives - s.mistakes);
 }
 
 export function typeLetter(s: GameState, letter: string, now = Date.now()): GameState {
-  if (s.finished || !s.sel) return s;
+  if (isOver(s) || !s.sel) return s;
   const code = codeAt(s.puzzle, s.sel);
   if (code === null || s.locked[code]) return { ...s, sel: advance(s, s.sel) };
   const guesses = { ...s.guesses, [code]: letter };
@@ -130,12 +150,13 @@ export function typeLetter(s: GameState, letter: string, now = Date.now()): Game
     counted[key] = true;
   }
   const next: GameState = { ...s, guesses, mistakes, counted };
+  if (s.lives !== null && mistakes >= s.lives) return failGame(next, 'mistakes', now);
   const sel = letter === s.puzzle.codeToLetter[code] ? advance(next, s.sel) : s.sel;
   return finish({ ...next, sel }, now);
 }
 
 export function erase(s: GameState): GameState {
-  if (s.finished || !s.sel) return s;
+  if (isOver(s) || !s.sel) return s;
   const code = codeAt(s.puzzle, s.sel);
   if (code === null || s.locked[code]) return s;
   const guesses = { ...s.guesses };
@@ -144,7 +165,7 @@ export function erase(s: GameState): GameState {
 }
 
 export function revealCode(s: GameState, code: number, now = Date.now()): GameState {
-  if (s.finished) return s;
+  if (isOver(s)) return s;
   const guesses = { ...s.guesses, [code]: s.puzzle.codeToLetter[code] };
   const locked = { ...s.locked, [code]: true as const };
   const next = { ...s, guesses, locked, hints: s.hints + 1 };
@@ -161,7 +182,7 @@ export function revealSelected(s: GameState, now = Date.now()): GameState {
 }
 
 export function revealWord(s: GameState, w: number, now = Date.now()): GameState {
-  if (s.finished) return s;
+  if (isOver(s)) return s;
   const guesses = { ...s.guesses };
   const locked = { ...s.locked };
   for (const c of s.puzzle.words[w].codes) {

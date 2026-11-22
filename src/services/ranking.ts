@@ -26,7 +26,8 @@ export interface MyResult {
 export interface RankingService {
   readonly demo: boolean;
   submit(lang: Lang, day: string, r: MyResult): Promise<void>;
-  board(lang: Lang, day: string, scope: Scope, me: MyResult | null, profile: { city: string; country: string }): Promise<RankRow[]>;
+  /** `key` : "daily:AAAA-MM-JJ" ou une clé de mode ("timeattack:3", "marathon"…). `count` : scores en nombre de grilles. */
+  board(lang: Lang, key: string, scope: Scope, me: MyResult | null, profile: { city: string; country: string }, count?: boolean): Promise<RankRow[]>;
 }
 
 const FIRST = ['Alex', 'Sam', 'Nina', 'Léo', 'Maya', 'Omar', 'Yuki', 'Ana', 'Kofi', 'Lina', 'Hugo', 'Zoé', 'Ravi', 'Ines', 'Tom', 'Aya', 'Max', 'Eva', 'Noah', 'Sara'];
@@ -36,12 +37,12 @@ const CITIES = ['Paris', 'Lyon', 'Montréal', 'Bruxelles', 'Lomé', 'Dakar', 'Ma
 export class DemoRanking implements RankingService {
   readonly demo = true;
   async submit(): Promise<void> {}
-  async board(lang: Lang, day: string, scope: Scope, me: MyResult | null, profile: { city: string; country: string }): Promise<RankRow[]> {
-    const rng = rngFromSeed(`board|${lang}|${day}|${scope}`);
+  async board(lang: Lang, key: string, scope: Scope, me: MyResult | null, profile: { city: string; country: string }, count = false): Promise<RankRow[]> {
+    const rng = rngFromSeed(`board|${lang}|${key}|${scope}`);
     const n = scope === 'friends' ? 6 : scope === 'city' ? 14 : 25;
     const rows: RankRow[] = [];
     for (let i = 0; i < n; i++) {
-      const score = Math.round(1000 - Math.pow(rng(), 0.7) * 650);
+      const score = count ? Math.max(1, Math.round(22 - Math.pow(rng(), 0.5) * 20)) : Math.round(1200 - Math.pow(rng(), 0.7) * 800);
       const place =
         scope === 'city' ? profile.city || CITIES[0] : scope === 'country' ? profile.country || 'France' : CITIES[Math.floor(rng() * CITIES.length)];
       rows.push({
