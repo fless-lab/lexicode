@@ -1,0 +1,214 @@
+import type { Puzzle } from './types';
+
+export type Sel = { kind: 'word'; w: number; i: number } | { kind: 'phrase'; i: number };
+
+export interface GameState {
+  puzzle: Puzzle;
+  /** Lettre proposée par le joueur pour chaque numéro. */
+  guesses: Record<number, string>;
+  /** Numéros verrouillés (donnés au départ ou révélés par un indice). */
+  locked: Record<number, true>;
+  sel: Sel | null;
+  mistakes: number;
+  hints: number;
+  oracle: number;
+  startedAt: number;
+  elapsedMs: number;
+  finished: boolean;
+  /** Paires numéro|lettre déjà comptées comme erreur. */
+  counted: Record<string, true>;
+}
+
+export function initGame(puzzle: Puzzle, now = Date.now()): GameState {
+  const guesses: Record<number, string> = {};
+  const locked: Record<number, true> = {};
+  for (const c of puzzle.given) {
+    guesses[c] = puzzle.codeToLetter[c];
+    locked[c] = true;
+  }
+  const s: GameState = {
+    puzzle,
+    guesses,
+    locked,
+    sel: null,
+    mistakes: 0,
+    hints: 0,
+    oracle: 0,
+    startedAt: now,
+    elapsedMs: 0,
+    finished: false,
+    counted: {},
+  };
+  s.sel = firstEmpty(s);
+  return s;
+}
+
+export function codeAt(p: Puzzle, sel: Sel): number | null {
+  if (sel.kind === 'word') return p.words[sel.w]?.codes[sel.i] ?? null;
+  const cell = p.phrase[sel.i];
+  return cell && cell.kind === 'letter' ? cell.code : null;
+}
+
+export function isCorrect(s: GameState, code: number): boolean {
+  return s.guesses[code] === s.puzzle.codeToLetter[code];
+}
+
+export function isWrong(s: GameState, code: number): boolean {
+  const g = s.guesses[code];
+  return !!g && g !== s.puzzle.codeToLetter[code];
+}
+
+export function wordSolved(s: GameState, w: number): boolean {
+  return s.puzzle.words[w].codes.every((c) => isCorrect(s, c));
+}
+
+export function phraseSolved(s: GameState): boolean {
+  return s.puzzle.phrase.every((c) => c.kind === 'sep' || isCorrect(s, c.code));
+}
+
+export function progress(s: GameState): number {
+  const cells = s.puzzle.phrase.filter((c) => c.kind === 'letter');
+  const ok = cells.filter((c) => c.kind === 'letter' && isCorrect(s, c.code)).length;
+  return cells.length ? ok / cells.length : 0;
+}
+
+function firstEmpty(s: GameState): Sel | null {
+  const p = s.puzzle;
+  for (let w = 0; w < p.words.length; w++) {
+    const i = p.words[w].codes.findIndex((c) => !isCorrect(s, c));
+    if (i >= 0) return { kind: 'word', w, i };
+  }
+  const i = p.phrase.findIndex((c) => c.kind === 'letter' && !isCorrect(s, c.code));
+  return i >= 0 ? { kind: 'phrase', i } : null;
+}
+
+/** Case suivante à remplir après une saisie. */
+function advance(s: GameState, from: Sel): Sel | null {
+  const p = s.puzzle;
+  if (from.kind === 'word') {
+    const codes = p.words[from.w].codes;
+    for (let k = from.i + 1; k < codes.length; k++) if (!isCorrect(s, codes[k])) return { kind: 'word', w: from.w, i: k };
+    for (let k = 0; k < from.i; k++) if (!isCorrect(s, codes[k])) return { kind: 'word', w: from.w, i: k };
+    for (let d = 1; d <= p.words.length; d++) {
+      const w = (from.w + d) % p.words.length;
+      const i = p.words[w].codes.findIndex((c) => !isCorrect(s, c));
+      if (i >= 0) return { kind: 'word', w, i };
+    }
+    return firstEmpty(s);
+  }
+  for (let k = from.i + 1; k < p.phrase.length; k++) {
+    const c = p.phrase[k];
+    if (c.kind === 'letter' && !isCorrect(s, c.code)) return { kind: 'phrase', i: k };
+  }
+  return firstEmpty(s);
+}
+
+function finish(s: GameState, now: number): GameState {
+  if (!s.finished && phraseSolved(s)) {
+    // La phrase est trouvée : on complète aussi les mots pour l'affichage final.
+    const guesses = { ...s.guesses };
+    for (const [c, l] of Object.entries(s.puzzle.codeToLetter)) guesses[Number(c)] = l;
+    return { ...s, guesses, finished: true, sel: null, elapsedMs: now - s.startedAt };
+  }
+  return s;
+}
+
+export function select(s: GameState, sel: Sel): GameState {
+  return s.finished ? s : { ...s, sel };
+}
+
+export function typeLetter(s: GameState, letter: string, now = Date.now()): GameState {
+  if (s.finished || !s.sel) return s;
+  const code = codeAt(s.puzzle, s.sel);
+  if (code === null || s.locked[code]) return { ...s, sel: advance(s, s.sel) };
+  const guesses = { ...s.guesses, [code]: letter };
+  let { mistakes } = s;
+  const counted = { ...s.counted };
+  const key = `${code}|${letter}`;
+  if (letter !== s.puzzle.codeToLetter[code] && !counted[key]) {
+    mistakes++;
+    counted[key] = true;
+  }
+  const next: GameState = { ...s, guesses, mistakes, counted };
+  const sel = letter === s.puzzle.codeToLetter[code] ? advance(next, s.sel) : s.sel;
+  return finish({ ...next, sel }, now);
+}
+
+export function erase(s: GameState): GameState {
+  if (s.finished || !s.sel) return s;
+  const code = codeAt(s.puzzle, s.sel);
+  if (code === null || s.locked[code]) return s;
+  const guesses = { ...s.guesses };
+  delete guesses[code];
+  return { ...s, guesses };
+}
+
+export function revealCode(s: GameState, code: number, now = Date.now()): GameState {
+  if (s.finished) return s;
+  const guesses = { ...s.guesses, [code]: s.puzzle.codeToLetter[code] };
+  const locked = { ...s.locked, [code]: true as const };
+  const next = { ...s, guesses, locked, hints: s.hints + 1 };
+  return finish({ ...next, sel: s.sel ? advance(next, s.sel) : null }, now);
+}
+
+/** Révèle la lettre de la case sélectionnée (ou la première manquante). */
+export function revealSelected(s: GameState, now = Date.now()): GameState {
+  const sel = s.sel ?? firstEmpty(s);
+  if (!sel) return s;
+  const code = codeAt(s.puzzle, sel);
+  if (code === null || isCorrect(s, code)) return s;
+  return revealCode({ ...s, sel }, code, now);
+}
+
+export function revealWord(s: GameState, w: number, now = Date.now()): GameState {
+  if (s.finished) return s;
+  const guesses = { ...s.guesses };
+  const locked = { ...s.locked };
+  for (const c of s.puzzle.words[w].codes) {
+    guesses[c] = s.puzzle.codeToLetter[c];
+    locked[c] = true;
+  }
+  const next = { ...s, guesses, locked, hints: s.hints + 3 };
+  return finish({ ...next, sel: advance(next, { kind: 'word', w, i: 0 }) }, now);
+}
+
+/** Lettres déjà utilisées pour un autre numéro (aide visuelle sur le clavier). */
+export function usedLetters(s: GameState): Set<string> {
+  const out = new Set<string>();
+  for (const [c, l] of Object.entries(s.guesses)) if (isCorrect(s, Number(c))) out.add(l);
+  return out;
+}
+
+/** Score sur 1000 : temps, erreurs et indices pénalisent. */
+export function computeScore(s: GameState): number {
+  const secs = s.elapsedMs / 1000;
+  const par = 40 + s.puzzle.words.length * 25;
+  const timePenalty = Math.max(0, secs - par) * 1.2;
+  const raw = 1000 - timePenalty - s.mistakes * 40 - s.hints * 60 - s.oracle * 30;
+  return Math.max(100, Math.round(raw));
+}
+
+export function stars(s: GameState): 1 | 2 | 3 {
+  const sc = computeScore(s);
+  if (sc >= 800 && s.hints === 0) return 3;
+  if (sc >= 550) return 2;
+  return 1;
+}
+
+/** Recherche par motif : "S_L_T" trouve SALUT dans le lexique. */
+export function oracleSearch(pattern: string, lexicon: string[], limit = 12): string[] {
+  const p = pattern.toUpperCase();
+  const out: string[] = [];
+  for (const w of lexicon) {
+    if (w.length !== p.length) continue;
+    let ok = true;
+    for (let i = 0; i < p.length; i++) if (p[i] !== '_' && p[i] !== w[i]) { ok = false; break; }
+    if (ok) out.push(w);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+export function wordPattern(s: GameState, w: number): string {
+  return s.puzzle.words[w].codes.map((c) => (isCorrect(s, c) ? s.guesses[c] : '_')).join('');
+}
