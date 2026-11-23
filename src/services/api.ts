@@ -9,6 +9,7 @@ const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/
 const KEY = 'lexicode.session';
 
 export const apiEnabled = BASE !== '';
+export const API_BASE = BASE;
 
 type Session = { id: string; token: string };
 type Log = [number, number, string][];
@@ -63,6 +64,11 @@ export async function ensureSession(profile: { name: string; city: string; count
   return pending;
 }
 
+/** Jeton de session pour les salles temps réel. */
+export function sessionToken(): string | null {
+  return session?.token ?? stored()?.token ?? null;
+}
+
 export function myId(): string | null {
   return session?.id ?? stored()?.id ?? null;
 }
@@ -102,3 +108,31 @@ export async function fetchBoard(lang: Lang, key: string, scope: 'world' | 'coun
   if (me) qs.set('me', me);
   return call(`/v1/boards/${lang}/${encodeURIComponent(key)}?${qs}`);
 }
+
+export type Ghost = { mode: Mode; ms: number; log: Log[]; name: string; city: string; country: string; look: Record<string, string>; rating: number };
+
+/** Partie enregistrée d'un joueur de niveau proche, pour une course contre son fantôme. */
+export async function fetchGhost(lang: Lang, key: string, rating: number): Promise<Ghost | null> {
+  try {
+    return await call<Ghost>(`/v1/ghosts/${lang}/${encodeURIComponent(key)}?rating=${Math.round(rating)}`);
+  } catch {
+    return null;
+  }
+}
+
+export type ChallengeInfo = {
+  code: string; lang: Lang; d: 1 | 2 | 3 | 4 | 5; nonce: string; score: number; ms: number; log: Log;
+  owner: { id: string; name: string; place: string; look: Record<string, string> };
+  attempts: { name: string; score: number; ms: number }[];
+};
+
+export const challenges = {
+  create: (lang: Lang, d: number) => call<{ code: string; lang: Lang; d: 1 | 2 | 3 | 4 | 5; nonce: string }>('/v1/challenges', { method: 'POST', body: JSON.stringify({ lang, d }) }),
+  finish: (code: string, log: Log) => call<{ code: string; score: number; ms: number }>(`/v1/challenges/${code}/finish`, { method: 'POST', body: JSON.stringify({ log }) }, 8000),
+  get: (code: string) => call<ChallengeInfo>(`/v1/challenges/${encodeURIComponent(code)}`),
+  start: (code: string) => call<{ attemptId: string }>(`/v1/challenges/${code}/start`, { method: 'POST' }),
+  answer: (id: string, log: Log) => call<{ score: number; ms: number; ownerScore: number; ownerMs: number; won: boolean }>(`/v1/challenges/attempts/${id}/finish`, { method: 'POST', body: JSON.stringify({ log }) }, 8000),
+};
+
+export const findRoomByCode = (code: string) => call<{ roomId: string; kind: 'party' | 'coop' }>(`/v1/rooms/${encodeURIComponent(code)}`);
+export const myMulti = () => call<{ duelRating: number; stats: Record<string, { played: number; wins: number }> }>('/v1/me/multi');

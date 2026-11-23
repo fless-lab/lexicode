@@ -4,7 +4,8 @@
 import { PACKS } from '../../src/content/index';
 import { puzzleFor, rulesFor, recordKey, RANKED, marathonDifficulty, MARATHON_START_MS, MARATHON_BONUS_MS, type Mode, type ModeKind } from '../../src/modes';
 import { replay, computeScore } from '../../src/engine/game';
-import type { Lang } from '../../src/engine/types';
+import type { Difficulty, Lang } from '../../src/engine/types';
+import { challengePuzzle } from '../../src/multi/match';
 
 export type Log = [number, number, string][];
 
@@ -38,7 +39,7 @@ export function checkMode(raw: unknown, today: string): Mode | null {
   return { kind: m.kind, d: d as Mode['d'], nonce: '' };
 }
 
-function gapsOk(log: Log): boolean {
+export function gapsOk(log: Log): boolean {
   let last = -Infinity;
   for (const [t, code, letter] of log) {
     if (!Number.isFinite(t) || !Number.isInteger(code) || typeof letter !== 'string' || letter.length !== 1) return false;
@@ -103,3 +104,13 @@ export function arenaNonce(): string {
 }
 
 export { marathonDifficulty };
+
+/** Défi entre amis : grille fixée par le serveur, journal rejoué, score recalculé. */
+export function judgeChallenge(lang: Lang, d: Difficulty, nonce: string, log: Log, wallMs: number): Verdict {
+  const fail = (reason: string): Verdict => ({ ok: false, reason, score: 0, ms: 0 });
+  if (!Array.isArray(log) || !gapsOk(log)) return fail('journal invalide');
+  const s = replay(challengePuzzle(lang, d, nonce), log, null);
+  if (!s.finished) return fail('grille non résolue');
+  if (s.elapsedMs > wallMs + CLOCK_SLACK_MS) return fail('temps impossible');
+  return { ok: true, score: computeScore(s), ms: s.elapsedMs };
+}

@@ -7,7 +7,7 @@ Jeu de mots-codes : chaque lettre porte un numéro, les mots trouvés grâce aux
 ```
 npm install
 npm run dev          # jouer dans le navigateur
-npm run verify       # génère et contrôle 3 909 grilles (aventure, expédition, tous les modes) (doit afficher 0 problème)
+npm run verify       # génère et contrôle 6 453 grilles, puis rejoue 90 parties (doit afficher 0 problème)
 npm run build        # version web pour Android
 npm run build:single # un seul fichier HTML, pratique pour faire tester
 ```
@@ -118,13 +118,31 @@ docker compose up -d --build
 
 Cela lance trois services : la base PostgreSQL, le serveur (port 2567) et une sauvegarde de la base chaque nuit, gardée 14 jours dans `server/backups/`. Les tables sont créées au démarrage (`server/migrations/`). Il faut ensuite placer un proxy HTTPS devant le port 2567 (Caddy le fait en deux lignes). Ces fichiers Docker n'ont pas pu être essayés dans l'environnement où ils ont été écrits : à vérifier au premier lancement.
 
-**Points d'entrée.** `POST /v1/auth/anon`, `PATCH /v1/me`, `POST /v1/games`, `POST /v1/games/:id/finish`, `GET /v1/boards/:lang/:key?scope=world|country|city&place=`, `GET /v1/ghosts/:lang/:key`, `GET /v1/events`, `GET /health`.
+**Points d'entrée.** `POST /v1/auth/anon`, `PATCH /v1/me`, `GET /v1/me/multi`, `POST /v1/games`, `POST /v1/games/:id/finish`, `GET /v1/boards/:lang/:key?scope=world|country|city&place=`, `GET /v1/ghosts/:lang/:key`, `GET /v1/events`, `GET /v1/online`, `GET /v1/rooms/:code`, les défis (`/v1/challenges…`) et `GET /health`.
 
-**Tests.** Avec un serveur lancé sur une base vide : `cd server && API_URL=http://localhost:2567 DATABASE_URL=postgres://... npm test` (21 tests de bout en bout).
+**Tests.** Lancer le serveur avec `NODE_ENV=test` (cela coupe la limite de créations de comptes par adresse) sur une base vide, puis `cd server && API_URL=http://localhost:2567 DATABASE_URL=postgres://... npm test`. Trois séries : l'arbitre multijoueur sans réseau (12 tests), l'API (21) et les salles temps réel avec de vrais clients (5).
+
+## Jeu à plusieurs
+
+Tout part de l'écran « À plusieurs » (tuile de l'accueil et lien en haut de l'arène). Aucun mode n'autorise d'aide ni de bonus, une partie dure au plus 5 minutes et une erreur coûte 3 secondes au lieu d'une vie.
+
+- **Duel classé.** Une file d'attente par langue apparie deux joueurs de cote proche ; l'écart toléré s'élargit avec l'attente. Après 15 secondes sans adversaire, l'écran propose une course contre un fantôme, présenté comme tel. La cote de duel (Elo) est tenue par le serveur, à part du niveau solo.
+- **Salon entre amis**, de 2 à 5 joueurs, rejoint par un code de 4 caractères ou un lien (`?salon=CODE`). L'hôte règle la difficulté et les pièges. Un piège se gagne tous les deux mots et vise le joueur juste devant : tache d'encre (deux indices cachés 8 s) ou clavier gelé (3 s). La victime est ensuite protégée 10 s. Les pièges ne s'achètent pas.
+- **Enquête à plusieurs**, de 2 à 4 joueurs : une seule grille, les indices sont répartis et chacun ne voit que les siens. Les lettres d'un coéquipier apparaissent avec sa couleur, l'équipe partage six cœurs.
+- **Défi entre amis.** Le créateur joue une grille tirée par le serveur, puis partage un lien (`?defi=CODE`). Son ami joue la même grille en voyant le fantôme du créateur avancer.
+- **Course contre un fantôme** : la partie d'arène enregistrée d'un vrai joueur de niveau proche, rejouée à sa vitesse. Jamais le défi du jour, pour ne rien dévoiler.
+
+**Comment c'est arbitré.** Le serveur tient l'état de chaque salle (`src/multi/match.ts`, partagé avec l'application). Les téléphones n'envoient que leurs frappes ; le serveur les rejoue avec le moteur du jeu et l'heure du serveur, refuse les frappes trop rapprochées et décide du classement. Les défis sont validés comme les parties classées, par rejeu du journal.
+
+**Récompenses.** De l'XP à chaque partie ; des jetons (15 pour une victoire, 5 sinon) sur les cinq premières parties du jour seulement, pour qu'on ne puisse pas en fabriquer à la chaîne.
+
+**Liens d'invitation.** Sur téléphone, l'adresse locale de l'application ne sert à rien dans un lien. Il faut indiquer l'adresse publique du jeu dans `.env` : `VITE_PUBLIC_URL=https://…`. Pour que ces liens ouvrent directement l'application Android, il faudra ajouter les « App Links » (fichier `assetlinks.json` sur le site et filtre d'intention dans le manifeste).
+
+**Maquettes.** `?preview=mp-hub`, `mp-search`, `mp-versus`, `mp-lobby`, `mp-duel`, `mp-party`, `mp-party-trap`, `mp-coop`, `mp-ghost`, `mp-res-duel`, `mp-res-party`, `mp-res-coop`, `mp-challenge`, `mp-invite` affichent chaque écran avec des joueurs simulés, sans serveur.
 
 ## Ce qu'il reste à brancher avant la publication
 
-1. **Serveur** : louer le VPS, remplir `server/.env`, lancer `docker compose up -d --build`, mettre un nom de domaine en HTTPS, puis `VITE_API_URL=...` dans le `.env` de l'application.
+1. **Serveur** : louer le VPS, remplir `server/.env`, lancer `docker compose up -d --build`, mettre un nom de domaine en HTTPS, puis `VITE_API_URL=...` et `VITE_PUBLIC_URL=...` dans le `.env` de l'application.
 2. **Pubs** : AdMob est branché (pub récompensée, formulaire de consentement RGPD). Il tourne avec les identifiants de test de Google : remplacer l'identifiant d'application dans `android/app/src/main/AndroidManifest.xml` et mettre `VITE_ADMOB_REWARDED_ID=...` dans `.env`.
 3. **Achats** : produits Play Console et clé RevenueCat (voir plus haut).
 4. **Nom définitif** : vérifier que « Lexicode » est libre sur le Play Store.

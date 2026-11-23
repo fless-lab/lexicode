@@ -1,6 +1,14 @@
 // Icônes : la bibliothèque Phosphor (licence MIT), en style duotone partout pour une famille homogène.
 // Les noms internes restent les mêmes ; seul le dessin vient de Phosphor.
 import type { ComponentType } from 'react';
+import { UsersThree } from '@phosphor-icons/react/dist/csr/UsersThree';
+import { Ghost } from '@phosphor-icons/react/dist/csr/Ghost';
+import { Copy } from '@phosphor-icons/react/dist/csr/Copy';
+import { PaperPlaneTilt } from '@phosphor-icons/react/dist/csr/PaperPlaneTilt';
+import { Handshake } from '@phosphor-icons/react/dist/csr/Handshake';
+import { ChatCircleDots } from '@phosphor-icons/react/dist/csr/ChatCircleDots';
+import { WifiSlash } from '@phosphor-icons/react/dist/csr/WifiSlash';
+import { HandWaving } from '@phosphor-icons/react/dist/csr/HandWaving';
 import { CaretLeft } from '@phosphor-icons/react/dist/csr/CaretLeft';
 import { X } from '@phosphor-icons/react/dist/csr/X';
 import { GearSix } from '@phosphor-icons/react/dist/csr/GearSix';
@@ -77,6 +85,7 @@ const P: Record<string, [PIcon, IconWeight?]> = {
   target: [Target], brain: [Brain], globe: [Globe], rotate: [ArrowCounterClockwise, 'bold'], list: [ListChecks],
   flag: [Flag], palette: [Palette], snow: [Snowflake], eye: [Eye], double: [Coins], arena: [Sword],
   chart: [ChartBar], user: [User], combo: [TrendUp], gift: [Gift],
+  users: [UsersThree], ghost: [Ghost], copy: [Copy], send: [PaperPlaneTilt], handshake: [Handshake], chat: [ChatCircleDots], offline: [WifiSlash], wave: [HandWaving],
   // Reliques et altérations : chaque objet a enfin son dessin.
   lantern: [Lamp], quill: [Feather], inkwell: [Drop], compass: [Compass], prism: [Diamond], seal: [Seal],
   fog: [CloudFog], chain: [LinkSimple], smudge: [Eraser], infinite: [InfinityIcon], detective: [Detective],

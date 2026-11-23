@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { Server } from 'colyseus';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import { createApp } from './app';
+import { LexiRoom, QueueRoom } from './rooms';
 import { migrate, pool } from './db';
 
 const PORT = Number(process.env.PORT ?? 2567);
@@ -14,7 +15,11 @@ async function main() {
   const app = createApp();
   const http = createServer(app);
   const game = new Server({ transport: new WebSocketTransport({ server: http }), greet: false } as ConstructorParameters<typeof Server>[0]);
-  // Les salons multijoueurs (duel, salon entre amis, coopération) seront déclarés ici avec game.define().
+  // Jeu à plusieurs : file d'attente par langue, puis duel ; salons et enquêtes rejoints par code.
+  game.define('queue', QueueRoom).filterBy(['lang']);
+  game.define('duel', LexiRoom, { kind: 'duel' });
+  game.define('party', LexiRoom, { kind: 'party' });
+  game.define('coop', LexiRoom, { kind: 'coop' });
 
   await game.listen(PORT);
   console.log(`Lexicode serveur prêt sur le port ${PORT}`);

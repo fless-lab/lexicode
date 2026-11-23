@@ -23,6 +23,9 @@ import { SHOP_STRINGS, fmtS } from './i18n-shop';
 import { EVENTS } from './events';
 import { RANKED } from './modes';
 import { apiEnabled, openGame, finishGame, syncProfile } from './services/api';
+import { MultiPreview } from './ui/multi-preview';
+import { MultiFlow, type FlowStart, type RewardInfo } from './ui/MultiFlow';
+import type { Gains } from './ui/multi';
 import { LangPicker, Home, Arena, Season, Ranking, Album, Profile, League, Settings, Premium, TabBar, type Screen } from './ui/screens';
 import { AdventureScreen, ChapterIntro, RelicPicker, themeOf, MOD_ICON, RELIC_ICON } from './ui/adventure';
 import { levelInfo, LEVELS_PER_CHAPTER } from './chapters';
@@ -64,7 +67,11 @@ const TAB_SCREENS: Screen[] = ['home', 'arena', 'season', 'ranking', 'profile'];
 export default function App() {
   const [save, setSave] = useState<Save>(loadSave);
   // ?preview=shop|wardrobe|event ouvre directement une maquette à valider.
-  const [screen, setScreen] = useState<Screen>(() => (new URLSearchParams(location.search).get('preview') as Screen) || 'home');
+  const [screen, setScreen] = useState<Screen>(() => {
+    const qp = new URLSearchParams(location.search);
+    if (qp.get('salon') || qp.get('defi')) return 'multi';
+    return (qp.get('preview') as Screen) || 'home';
+  });
   const [mode, setMode] = useState<Mode | null>(null);
   const [deadline, setDeadline] = useState<number | null>(null);
   const [end, setEnd] = useState<End | null>(null);
@@ -73,6 +80,13 @@ export default function App() {
   const [intro, setIntro] = useState<{ chapter: number; cycle: number; abs: number; mode: Mode } | null>(null);
   const [relicChoice, setRelicChoice] = useState<{ run: Run; offer: RelicId[]; next: Floor } | null>(null);
   const marathonStart = useRef(0);
+  /** Jeu à plusieurs : point d'entrée, y compris par un lien (?salon=CODE ou ?defi=CODE). */
+  const [multiStart, setMultiStart] = useState<FlowStart>(() => {
+    const qp = new URLSearchParams(location.search);
+    const room = qp.get('salon');
+    const ch = qp.get('defi');
+    return room ? { to: 'room', code: room } : ch ? { to: 'challenge', code: ch } : { to: 'hub' };
+  });
   /** Partie classée ouverte sur le serveur, et journaux des grilles déjà finies (marathon). */
   const serverGame = useRef<string | null>(null);
   const marathonLogs = useRef<[number, number, string][][]>([]);
@@ -215,6 +229,21 @@ export default function App() {
     done.forEach((q, i) => setTimeout(() => toast(t.quests, 'info', 'check', `${t[`q_${q.id}` as 'q_win3'].replace('{n}', String(q.target))}`), 700 + i * 600));
     n = celebrate(n, e);
     return { save: n, xp };
+  };
+
+  /** Récompense d'une partie à plusieurs : de l'XP toujours, des jetons sur quelques parties par jour. */
+  const multiReward = (r: RewardInfo): Gains => {
+    const s0 = saveRef.current;
+    const m = s0.multi?.day === day ? s0.multi : { day, paid: 0 };
+    const paid = m.paid < 5;
+    const tokens = paid ? (r.won ? 15 : 5) : 0;
+    const score = r.won ? 900 : Math.max(200, 700 - r.rank * 100);
+    const { save: n2, xp } = progressAfter(
+      { ...s0, tokens: s0.tokens + tokens, multi: { day, paid: m.paid + (paid ? 1 : 0) }, stats: { ...s0.stats, played: s0.stats.played + 1, won: s0.stats.won + (r.won ? 1 : 0) } },
+      { kind: 'practice', won: r.won, score, ms: r.ms, stars: r.won ? 3 : 1, hints: 0, mistakes: r.mistakes, d: r.d, words: r.words },
+    );
+    setSave(n2);
+    return { xp, tokens };
   };
 
   /** Envoie le journal au serveur, qui rejoue la partie. Le classement affiché vient de lui. */
@@ -360,6 +389,8 @@ export default function App() {
   };
 
   if (!save.lang) return <LangPicker onPick={(l) => setSave((s) => ({ ...s, lang: l }))} />;
+  const mpPreview = new URLSearchParams(location.search).get('preview');
+  if (mpPreview?.startsWith('mp-')) return <div className={`app kbs-${save.equip.keyboard}`}><MultiPreview which={mpPreview} lang={lang} save={save} /></div>;
 
   // ---------- Actions ----------
   const spend = (k: number) => {
@@ -617,6 +648,20 @@ export default function App() {
       {screen === 'event' && event && <EventScreen ev={event} ctx={shopCtx} day={day} back={() => setScreen('home')} play={(idx) => start({ kind: 'event', ref: event.id, idx, d: eventDifficulty(idx), nonce: String(idx) })} />}
       {screen === 'packs' && <PacksScreen ctx={shopCtx} back={() => setScreen('shop')} play={(ref, idx) => start({ kind: 'pack', ref, idx, d: 2, nonce: String(idx) })} openShop={() => setScreen('shop')} />}
       {screen === 'archive' && <ArchiveScreen ctx={shopCtx} day={day} back={() => setScreen('profile')} play={(date) => start({ kind: 'archive', date, d: 2, nonce: date })} openShop={() => setScreen('shop')} />}
+      {screen === 'multi' && (
+        <MultiFlow
+          lang={lang}
+          save={save}
+          start={multiStart}
+          toast={toast}
+          onReward={multiReward}
+          onExit={() => {
+            setMultiStart({ to: 'hub' });
+            if (location.search.includes('salon=') || location.search.includes('defi=')) history.replaceState(null, '', location.pathname);
+            setScreen('home');
+          }}
+        />
+      )}
       {screen === 'premium' && <Premium t={t} save={save} setSave={setSave} back={() => setScreen('home')} />}
       {TAB_SCREENS.includes(screen) && <TabBar t={t} screen={screen} go={setScreen} badges={{ home: questReady, season: tierReady }} />}
 

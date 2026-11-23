@@ -2,7 +2,10 @@
 import express, { type Request, type Response } from 'express';
 import { q } from './db';
 import { tokenFor, requireAuth, rateLimit, type Authed } from './auth';
-import { LANGS, boardKey, checkMode, judge, arenaNonce, type Log } from './validate';
+import { LANGS, boardKey, checkMode, judge, judgeChallenge, arenaNonce, type Log } from './validate';
+import { findRoom, roomCode } from './rooms';
+import { matchMaker } from 'colyseus';
+import type { Difficulty } from '../../src/engine/types';
 import type { Lang } from '../../src/engine/types';
 import type { Mode } from '../../src/modes';
 
@@ -124,7 +127,7 @@ export function createApp() {
     const { lang, key } = req.params;
     const rating = Number(req.query.rating ?? 1000);
     const { rows } = await q(
-      `select g.mode, g.ms, g.log, p.name, g.rating from ghosts g join players p on p.id = g.player_id
+      `select g.mode, g.ms, g.log, p.name, p.city, p.country, p.look, g.rating from ghosts g join players p on p.id = g.player_id
        where g.lang = $1 and g.board_key = $2 and g.player_id <> $3
        order by abs(g.rating - $4), random() limit 1`,
       [lang, key, (req as Authed).playerId, rating],
@@ -139,6 +142,123 @@ export function createApp() {
     const { rows } = await q('select data from events where enabled and ends >= current_date - 1 order by starts');
     res.setHeader('Cache-Control', 'public, max-age=600');
     res.json(rows.map((r) => r.data));
+  });
+
+  // ---------- Jeu à plusieurs ----------
+
+  app.get('/v1/online', async (_req, res) => {
+    const rooms = await matchMaker.query({});
+    res.setHeader('Cache-Control', 'public, max-age=15');
+    res.json({ online: rooms.reduce((n, r) => n + r.clients, 0) });
+  });
+
+  /** Salon ou enquête ouverts, retrouvés par leur code à 4 caractères. */
+  app.get('/v1/rooms/:code', rateLimit(120, 60_000), async (req, res) => {
+    const code = String(req.params.code).toUpperCase();
+    if (!/^[A-Z0-9]{4}$/.test(code)) return res.status(400).json({ error: 'code invalide' });
+    const r = await findRoom(code);
+    if (!r) return res.status(404).json({ error: 'salon introuvable' });
+    res.json(r);
+  });
+
+  /** Profil multijoueur : cote de duel et dernières parties. */
+  app.get('/v1/me/multi', requireAuth, async (req, res) => {
+    const id = (req as Authed).playerId;
+    const { rows } = await q<{ duel_rating: number }>('select duel_rating from players where id = $1', [id]);
+    const { rows: stats } = await q<{ kind: string; played: string; wins: string }>(
+      `select m.kind, count(*) as played, count(*) filter (where mp.rank = 1) as wins
+       from match_players mp join matches m on m.id = mp.match_id where mp.player_id = $1 group by m.kind`,
+      [id],
+    );
+    res.json({ duelRating: rows[0]?.duel_rating ?? 1000, stats: Object.fromEntries(stats.map((s) => [s.kind, { played: Number(s.played), wins: Number(s.wins) }])) });
+  });
+
+  // ---------- Défis entre amis ----------
+
+  /** Crée un défi : le serveur tire la grille et lance le chrono du créateur. */
+  app.post('/v1/challenges', requireAuth, rateLimit(60, 3_600_000), async (req, res) => {
+    const id = (req as Authed).playerId;
+    const lang = req.body?.lang;
+    const d = Number(req.body?.d);
+    if (!isLang(lang) || !(d >= 1 && d <= 5)) return res.status(400).json({ error: 'défi invalide' });
+    const nonce = arenaNonce();
+    for (let i = 0; i < 5; i++) {
+      const code = roomCode() + roomCode().slice(0, 2);
+      const r = await q('insert into challenges (code, owner_id, lang, d, nonce) values ($1, $2, $3, $4, $5) on conflict do nothing returning code', [code, id, lang, d, nonce]);
+      if (r.rowCount) return res.json({ code, lang, d, nonce });
+    }
+    res.status(503).json({ error: 'réessaie' });
+  });
+
+  /** Le créateur termine sa grille : elle devient le défi à battre. */
+  app.post('/v1/challenges/:code/finish', requireAuth, async (req, res) => {
+    const id = (req as Authed).playerId;
+    const { rows } = await q<{ lang: Lang; d: Difficulty; nonce: string; status: string; wall: number }>(
+      `select lang, d, nonce, status, extract(epoch from (now() - started_at)) * 1000 as wall from challenges where code = $1 and owner_id = $2`,
+      [req.params.code, id],
+    );
+    const c = rows[0];
+    if (!c) return res.status(404).json({ error: 'défi inconnu' });
+    if (c.status !== 'open') return res.status(409).json({ error: 'défi déjà joué' });
+    const log: Log = Array.isArray(req.body?.log) ? req.body.log.slice(0, 400) : [];
+    const v = judgeChallenge(c.lang, c.d, c.nonce, log, Number(c.wall));
+    if (!v.ok) {
+      await q("update challenges set status = 'rejected' where code = $1", [req.params.code]);
+      return res.status(422).json({ error: v.reason });
+    }
+    await q("update challenges set status = 'ready', score = $2, ms = $3, log = $4 where code = $1", [req.params.code, v.score, v.ms, JSON.stringify(log)]);
+    res.json({ code: req.params.code, score: v.score, ms: v.ms });
+  });
+
+  /** Ce que voit l'ami qui ouvre le lien : la grille, le créateur et son fantôme, les autres tentatives. */
+  app.get('/v1/challenges/:code', async (req, res) => {
+    const { rows } = await q(
+      `select c.code, c.lang, c.d, c.nonce, c.score, c.ms, c.log, p.id as owner_id, p.name, p.city, p.country, p.look
+       from challenges c join players p on p.id = c.owner_id where c.code = $1 and c.status = 'ready'`,
+      [req.params.code],
+    );
+    const c = rows[0];
+    if (!c) return res.status(404).json({ error: 'défi introuvable' });
+    const { rows: tries } = await q(
+      `select p.name, a.score, a.ms from challenge_attempts a join players p on p.id = a.player_id
+       where a.code = $1 and a.status = 'done' order by a.score desc, a.ms asc limit 20`,
+      [req.params.code],
+    );
+    res.json({
+      code: c.code, lang: c.lang, d: c.d, nonce: c.nonce, score: c.score, ms: c.ms, log: c.log,
+      owner: { id: c.owner_id, name: c.name || 'Anonyme', place: c.city || c.country, look: c.look },
+      attempts: tries,
+    });
+  });
+
+  app.post('/v1/challenges/:code/start', requireAuth, rateLimit(60, 3_600_000), async (req, res) => {
+    const id = (req as Authed).playerId;
+    const { rows } = await q<{ owner_id: string }>("select owner_id from challenges where code = $1 and status = 'ready'", [req.params.code]);
+    if (!rows[0]) return res.status(404).json({ error: 'défi introuvable' });
+    if (rows[0].owner_id === id) return res.status(409).json({ error: 'c\'est ton propre défi' });
+    const { rows: a } = await q<{ id: string }>('insert into challenge_attempts (code, player_id) values ($1, $2) returning id', [req.params.code, id]);
+    res.json({ attemptId: a[0].id });
+  });
+
+  app.post('/v1/challenges/attempts/:id/finish', requireAuth, async (req, res) => {
+    const id = (req as Authed).playerId;
+    const { rows } = await q<{ code: string; lang: Lang; d: Difficulty; nonce: string; status: string; wall: number; score: number; ms: number }>(
+      `select a.code, c.lang, c.d, c.nonce, a.status, extract(epoch from (now() - a.started_at)) * 1000 as wall, c.score, c.ms
+       from challenge_attempts a join challenges c on c.code = a.code where a.id = $1 and a.player_id = $2`,
+      [req.params.id, id],
+    );
+    const a = rows[0];
+    if (!a) return res.status(404).json({ error: 'tentative inconnue' });
+    if (a.status !== 'open') return res.status(409).json({ error: 'tentative déjà terminée' });
+    const log: Log = Array.isArray(req.body?.log) ? req.body.log.slice(0, 400) : [];
+    const v = judgeChallenge(a.lang, a.d, a.nonce, log, Number(a.wall));
+    if (!v.ok) {
+      await q("update challenge_attempts set status = 'rejected' where id = $1", [req.params.id]);
+      return res.status(422).json({ error: v.reason });
+    }
+    await q("update challenge_attempts set status = 'done', score = $2, ms = $3 where id = $1", [req.params.id, v.score, v.ms]);
+    const won = v.score > a.score || (v.score === a.score && v.ms < a.ms);
+    res.json({ score: v.score, ms: v.ms, ownerScore: a.score, ownerMs: a.ms, won });
   });
 
   return app;

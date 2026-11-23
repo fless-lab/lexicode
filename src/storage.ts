@@ -52,6 +52,8 @@ export interface Save {
   packs: Record<string, Record<number, number>>;
   /** Pack de démarrage déjà acheté (proposé une seule fois). */
   starterBought: boolean;
+  /** Jeu à plusieurs : jetons gagnés limités à quelques parties par jour (pas de ferme à jetons). */
+  multi: { day: string; paid: number };
 }
 
 export interface ModeRecord {
@@ -99,6 +101,7 @@ export function emptySave(): Save {
     events: {},
     packs: {},
     starterBought: false,
+    multi: { day: '', paid: 0 },
   };
 }
 

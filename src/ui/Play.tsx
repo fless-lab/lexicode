@@ -3,7 +3,7 @@ import type { Puzzle } from '../engine/types';
 import {
   initGame, select, typeLetter, erase, revealSelected, revealWord, codeAt, isCorrect, isWrong,
   wordSolved, progress, usedLetters, computeScore, stars, oracleSearch, wordPattern, failGame,
-  livesLeft, isOver, addShield, revealPhraseLetters, type GameState, type Sel,
+  livesLeft, isOver, addShield, revealPhraseLetters, selFor, type GameState, type Sel,
 } from '../engine/game';
 import { KEYBOARDS, type Strings } from '../i18n';
 import { PACKS } from '../content';
@@ -57,6 +57,20 @@ interface Props {
   overlay: React.ReactNode;
   showTutorial: boolean;
   onTutorialDone: () => void;
+  /** Jeu à plusieurs : bandeau des rivaux sous la jauge. */
+  rivals?: React.ReactNode;
+  /** Jeu à plusieurs : bouton ajouté au-dessus du clavier (pièges, aide). */
+  dockExtra?: React.ReactNode;
+  /** Coop : propriétaire de chaque indice ; null si c'est le sien. */
+  clueOwner?: (wi: number) => { name: string; color: string } | null;
+  /** Piège « tache d'encre » : indices masqués. */
+  blotted?: number[];
+  /** Piège « clavier gelé ». */
+  keysLocked?: boolean;
+  /** Chaque frappe est transmise (au serveur de la salle). */
+  onMove?: (code: number, letter: string) => void;
+  /** Coop : frappes des coéquipiers à appliquer, numérotées. */
+  incoming?: { n: number; code: number; letter: string; color: string }[];
 }
 
 export function fmt(ms: number): string {
@@ -83,6 +97,26 @@ export function Play(props: Props) {
   const [frozen, setFrozen] = useState<{ until: number; shown: number } | null>(null);
   const [bump, setBump] = useState(0);
   const reported = useRef<string | null>(null);
+  /** Coop : couleur du coéquipier qui a posé chaque lettre. */
+  const [marks, setMarks] = useState<Record<number, string>>({});
+  const applied = useRef(0);
+
+  useEffect(() => {
+    const fresh = (props.incoming ?? []).filter((m) => m.n > applied.current);
+    if (!fresh.length) return;
+    applied.current = fresh[fresh.length - 1].n;
+    setG((s) => {
+      let cur = s;
+      for (const m of fresh) {
+        const keep = cur.sel;
+        const target = selFor(cur.puzzle, m.code);
+        if (!target) continue;
+        cur = { ...typeLetter(select(cur, target), m.letter), sel: keep };
+      }
+      return cur;
+    });
+    setMarks((mk) => ({ ...mk, ...Object.fromEntries(fresh.map((m) => [m.code, m.color])) }));
+  }, [props.incoming]);
 
   useEffect(() => {
     if (location.search.includes('qa')) (window as unknown as { __lexi: () => Puzzle }).__lexi = () => puzzle;
@@ -143,8 +177,10 @@ export function Play(props: Props) {
   const lexicon = useMemo(() => PACKS[puzzle.lang].entries.map((e) => e.w), [puzzle.lang]);
 
   const press = (l: string) => {
-    if (tuto >= 0) return;
+    if (tuto >= 0 || props.keysLocked) return;
     sfx.key();
+    const mc = g.sel ? codeAt(puzzle, g.sel) : null;
+    if (props.onMove && mc !== null && !isOver(g)) props.onMove(mc, l);
     setG((s) => {
       const next = typeLetter(s, l);
       if (next.mistakes > s.mistakes) {
@@ -251,6 +287,7 @@ export function Play(props: Props) {
     if (puzzle.given.includes(code)) cls.push('given');
     if (isWrong(g, code)) cls.push('wrong');
     if (solvedWord) cls.push('ok');
+    if (marks[code]) cls.push('mate');
     return cls.join(' ');
   };
 
@@ -291,6 +328,8 @@ export function Play(props: Props) {
         <div className="gauge"><i style={{ width: `${pct}%` }} /></div>
       )}
 
+      {props.rivals}
+
       {props.chips && props.chips.length > 0 && (
         <div className="modchips">{props.chips.map((c) => <span key={c.label}><Icon name={c.icon} size={13} />{c.label}</span>)}</div>
       )}
@@ -313,7 +352,7 @@ export function Play(props: Props) {
               return (
                 <button
                   key={i}
-                  style={{ '--i': idx } as React.CSSProperties}
+                  style={{ '--i': idx, '--mate': marks[c.code] } as React.CSSProperties}
                   className={cellClass(c.code, isSel) + (good ? ' good' : '') + (g.failed && !good ? ' reveal' : '') + (fogged && !g.failed ? ' fogged' : '')}
                   onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}
                   aria-label={`${c.code}`}
@@ -344,11 +383,17 @@ export function Play(props: Props) {
           {puzzle.words.map((w, wi) => {
             const solved = wordSolved(g, wi);
             const sealed = !!puzzle.mods?.chain && wi > 0 && !solved && !wordSolved(g, wi - 1) && !g.failed;
+            const owner = !solved && !g.failed ? props.clueOwner?.(wi) ?? null : null;
+            const blot = !solved && !!props.blotted?.includes(wi);
             return (
-              <div key={wi} className={`wrow ${selWord === wi ? 'active' : ''} ${solved ? 'done' : ''} ${flashWord === wi ? 'pop' : ''} ${sealed ? 'sealed' : ''}`}>
+              <div key={wi} className={`wrow ${selWord === wi ? 'active' : ''} ${solved ? 'done' : ''} ${flashWord === wi ? 'pop' : ''} ${sealed ? 'sealed' : ''} ${blot ? 'blot' : ''}`}>
                 <div className="clue">
                   {sealed ? (
                     <span className="sealedclue"><Icon name="lock" size={14} />{t.chainLocked}</span>
+                  ) : owner ? (
+                    <span className="mateclue" style={{ '--mate': owner.color } as React.CSSProperties}><i />{owner.name}</span>
+                  ) : blot ? (
+                    <span className="blotclue"><Icon name="inkwell" size={16} /></span>
                   ) : (
                     <>
                       {w.shown ?? w.clue}
@@ -362,7 +407,7 @@ export function Play(props: Props) {
                     const isSel = g.sel?.kind === 'word' && g.sel.w === wi && g.sel.i === ci;
                     const inked = !!puzzle.mods?.ink?.includes(code) && !isCorrect(g, code) && !g.failed;
                     return (
-                      <button key={ci} style={{ '--j': ci } as React.CSSProperties} className={cellClass(code, isSel, solved) + (inked ? ' inked' : '')} onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}>
+                      <button key={ci} style={{ '--j': ci, '--mate': marks[code] } as React.CSSProperties} className={cellClass(code, isSel, solved) + (inked ? ' inked' : '')} onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}>
                         <span className="l">{g.failed ? w.answer[ci] : g.guesses[code] ?? ''}</span>
                         <span className="n">{inked ? '?' : code}</span>
                       </button>
@@ -376,8 +421,9 @@ export function Play(props: Props) {
       )}
 
       {!isOver(g) && (
-        <footer className="dock">
-          {rules.noHints ? (
+        <footer className={`dock ${props.keysLocked ? 'iced' : ''}`}>
+          {props.dockExtra}
+          {props.dockExtra ? null : rules.noHints ? (
             <p className="nohints"><Icon name="lock" size={15} />{t.hintsOff}</p>
           ) : (
             <div className="tools">

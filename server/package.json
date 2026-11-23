@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "test": "tsx test/api.test.ts"
+    "test": "tsx test/match.test.ts && tsx test/api.test.ts && tsx test/multi.test.ts"
   },
   "dependencies": {
     "colyseus": "^0.18.12",
@@ -13,6 +13,7 @@
     "pg": "^8.23.1"
   },
   "devDependencies": {
+    "@colyseus/sdk": "^0.18.10",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.6",
     "@types/pg": "^8.23.1",

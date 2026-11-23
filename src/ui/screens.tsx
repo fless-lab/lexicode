@@ -20,9 +20,10 @@ import { Scene } from './scenes';
 import { Loupi, type Mood, type Outfit } from './mascot';
 import { EventBanner } from './shop';
 import { SHOP_STRINGS } from '../i18n-shop';
+import { MULTI_STRINGS } from '../i18n-multi';
 import type { SeasonalEvent } from '../events';
 
-export type Screen = 'home' | 'play' | 'arena' | 'season' | 'ranking' | 'profile' | 'album' | 'league' | 'settings' | 'premium' | 'adventure' | 'shop' | 'wardrobe' | 'event' | 'packs' | 'archive';
+export type Screen = 'home' | 'play' | 'arena' | 'season' | 'ranking' | 'profile' | 'album' | 'league' | 'settings' | 'premium' | 'adventure' | 'shop' | 'wardrobe' | 'event' | 'packs' | 'archive' | 'multi';
 type SetSave = React.Dispatch<React.SetStateAction<Save>>;
 
 const fill = (s: string, n: number | string) => s.replace('{n}', String(n));
@@ -260,6 +261,10 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
           <b>{t.leagueNames[save.league.tier]}</b>
           <small className={myRank <= PROMOTE ? 'zone-up' : myRank > LEAGUE_SIZE - DEMOTE ? 'zone-down' : ''}>{t.rank} {myRank} / {LEAGUE_SIZE}</small>
         </button>
+        <button className="tile t-wide t-red mp-tile" onClick={() => go('multi')}>
+          <Icon name="users" size={30} />
+          <span><b>{MULTI_STRINGS[lang].hub}</b><small>{[MULTI_STRINGS[lang].duel, MULTI_STRINGS[lang].party, MULTI_STRINGS[lang].coop].join(', ')}</small></span>
+        </button>
         <button className="tile t-wide t-blue" onClick={() => onStart({ kind: 'practice', d: 2, nonce: String(Date.now()) })}>
           <Icon name="target" size={30} />
           <span><b>{t.practice}</b><small>{t.d[2]}</small></span>
@@ -323,6 +328,11 @@ export function Arena({ t, save, lang, day, onStart, setSave, go, onExpedition }
         <h2>{t.arena}</h2>
         <p className="muted">{t.arenaSub}</p>
       </div>
+      <button className="rowlink mp-row" onClick={() => go('multi')}>
+        <span className="rl-icon"><Icon name="users" size={22} /></span>
+        <span className="rl-main"><b>{MULTI_STRINGS[lang].hub}</b><small>{MULTI_STRINGS[lang].duelSub}</small></span>
+        <span className="btn primary claim">{t.play}</span>
+      </button>
       <ExpeditionCard t={t} save={save} lang={lang} day={day} onDaily={() => onExpedition(true)} onFree={() => onExpedition(false)} />
       {ARENA.map((a) => {
         const [name, desc] = modeLabel(t, a.kind);
