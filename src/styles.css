@@ -704,3 +704,59 @@ button.cell:focus-visible { outline: none; }
 
 /* Grain : papier des tuiles, fond du bureau */
 body::before { content: ''; position: fixed; inset: 0; background-image: var(--grain); opacity: .09; pointer-events: none; z-index: 50; mix-blend-mode: overlay; }
+
+/* ---------- Loupi ---------- */
+.loupi { display: block; overflow: visible; flex: none; }
+.loupi .m-blink { animation: blink 5.2s infinite; }
+@keyframes blink { 0%, 93%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.08); } }
+.loupi .m-tail { animation: tail 2.8s ease-in-out infinite alternate; }
+@keyframes tail { from { transform: rotate(-5deg); } to { transform: rotate(7deg); } }
+.loupi .m-body { animation: breathe 3.2s ease-in-out infinite; }
+@keyframes breathe { 50% { transform: scale(1.025, .985); } }
+.loupi .m-head { animation: tilt 6s ease-in-out infinite; }
+@keyframes tilt { 0%, 60%, 100% { transform: rotate(0); } 70%, 85% { transform: rotate(-6deg); } }
+.loupi .m-glint { animation: glint 3.6s ease-in-out infinite; }
+@keyframes glint { 0%, 70%, 100% { opacity: .2; } 80% { opacity: 1; } }
+.loupi.m-happy .m-all { animation: hop .7s cubic-bezier(.3,.7,.4,1) infinite alternate; }
+@keyframes hop { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+.loupi.m-happy .m-raise { animation: wave .35s ease-in-out infinite alternate; }
+@keyframes wave { to { transform: rotate(-10deg); } }
+.loupi.m-happy .m-shadow, .loupi.m-happy .m-head { animation: none; }
+.loupi.m-sad .m-head { animation: none; transform: rotate(6deg) translateY(4px); }
+.loupi.m-sad .m-tail { animation: none; transform: rotate(18deg); }
+.loupi .m-tear { animation: tear 1.6s ease-in infinite; }
+@keyframes tear { from { transform: translateY(0); opacity: 1; } to { transform: translateY(16px); opacity: 0; } }
+.loupi.m-think .m-head { animation: thinkTilt 3s ease-in-out infinite alternate; }
+@keyframes thinkTilt { from { transform: rotate(-3deg); } to { transform: rotate(4deg); } }
+.loupi.m-think .m-arm { animation: thinkTilt 3s ease-in-out infinite alternate; transform-origin: 100px 120px; }
+.loupi.m-wow .m-all { animation: jolt .4s cubic-bezier(.3,1.8,.5,1); }
+@keyframes jolt { from { transform: scale(.85) translateY(6px); } }
+.loupi.pop-in { animation: popIn .6s cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes popIn { from { transform: translateY(30px) scale(.6); opacity: 0; } }
+.stage { position: relative; align-self: center; display: flex; justify-content: center; align-items: flex-end; width: 170px; height: 140px; margin-bottom: -6px; }
+.stage::before { content: ''; position: absolute; left: 50%; top: 50%; width: 220px; height: 220px; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--brass) 24%, transparent), transparent); z-index: 0; }
+.stage.win::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 260px; height: 260px; margin: -130px 0 0 -130px; border-radius: 50%; z-index: 0;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--brass) 30%, transparent) 0 8deg, transparent 8deg 22deg);
+  -webkit-mask: radial-gradient(circle, #000 25%, transparent 68%); mask: radial-gradient(circle, #000 25%, transparent 68%);
+  animation: rays 14s linear infinite;
+}
+.stage.fail::before { background: radial-gradient(closest-side, color-mix(in srgb, var(--cinnabar) 18%, transparent), transparent); }
+.stage .loupi { position: relative; z-index: 1; }
+.stage .badge { position: absolute; z-index: 2; right: 14px; bottom: 8px; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--abyss); color: var(--brass-hi); box-shadow: 0 0 0 3px var(--deep); }
+.stage.fail .badge { color: var(--cinnabar); }
+.sheet.chapter .stage { margin-top: -40px; z-index: 1; }
+.sheet.chapter .stage::before { background: radial-gradient(closest-side, var(--deep), transparent); }
+
+.trail { padding-top: 34px; row-gap: 26px; }
+.stop { position: relative; }
+.pawn { position: absolute; left: 50%; top: -30px; margin-left: -25px; pointer-events: none; z-index: 2; animation: pawn 1.6s ease-in-out infinite; filter: drop-shadow(0 4px 4px rgba(0,0,0,.4)); }
+@keyframes pawn { 50% { transform: translateY(-4px); } }
+
+.meter { position: relative; min-height: 46px; }
+.meter .buddy { position: absolute; left: 14px; top: 0; }
+
+.hero-loupi { position: absolute; right: 12px; top: 34px; z-index: 2; }
+.hero-loupi:active { transform: scale(.96); }
+.intro-scene .intro-loupi { position: absolute; right: 10px; bottom: 58px; z-index: 2; }
+.tuto-loupi { align-self: center; margin: -4px 0 -6px; }

@@ -9,6 +9,7 @@ import { RELICS, type RelicId, type Run, type Floor, floorName, START_HEARTS } f
 import { Icon } from './Icon';
 import { sfx } from '../sound';
 import { Scene, type SceneKind } from './scenes';
+import { Loupi } from './mascot';
 
 const fill = (s: string, n: number | string) => s.replace('{n}', String(n));
 const roman = (n: number) => ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][n] ?? String(n + 1);
@@ -56,6 +57,7 @@ function Trail({ t, save, lang, chapterAbs, onStart }: { t: Strings; save: Save;
         return (
           <button key={n} className={`stop ${n === reached ? 'cur' : ''} ${st ? 'cleared' : ''} ${info.boss ? 'boss' : ''}`} disabled={n > reached} onClick={() => onStart(levelMode(n))} aria-label={`${t.level} ${n}`}>
             {info.finale ? <Icon name="key" size={19} /> : info.boss ? <Icon name="crown" size={19} /> : n > reached ? <Icon name="lock" size={15} /> : i + 1}
+            {n === reached && <Loupi bust mood="think" size={50} className="pawn" />}
             <span className="st">{Array.from({ length: st }, (_, k) => <Icon key={k} name="starFill" size={8} />)}</span>
           </button>
         );
@@ -167,7 +169,7 @@ export function ChapterIntro({ t, lang, chapter, cycle, onBegin }: { t: Strings;
     <div className="modal center">
       <div className={`sheet chapter theme-${CHAPTERS[chapter].theme}`}>
         <Scene kind={CHAPTERS[chapter].theme as SceneKind} />
-        <span className="seal run"><Icon name={CHAPTERS[chapter].icon} size={32} /></span>
+        <div className="stage chap"><Loupi mood="think" size={120} className="pop-in" /><span className="badge"><Icon name={CHAPTERS[chapter].icon} size={18} /></span></div>
         <p className="chapnum">{fill(t.chapterN, chapter + 1)}{cycle ? `, ${story.cycle} ${roman(cycle)}` : ''}</p>
         <h2>{ch.name}</h2>
         {chapter === 0 && cycle === 0 && <p className="lead">{story.prologue}</p>}

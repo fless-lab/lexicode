@@ -13,6 +13,7 @@ import { applyQuests, freshQuests, freshSeason, questsFor, QUEST_BONUS, tierRewa
 import { sfx, setSound } from './sound';
 import { Icon, MODE_ICON, achIcon } from './ui/Icon';
 import { WinFx, CountUp } from './ui/fx';
+import { Loupi } from './ui/mascot';
 import { LangPicker, Home, Arena, Season, Ranking, Album, Profile, League, Settings, Premium, TabBar, type Screen } from './ui/screens';
 import { AdventureScreen, ChapterIntro, RelicPicker, campaignLevel, themeOf, MOD_ICON, RELIC_ICON } from './ui/adventure';
 import { levelInfo, LEVELS_PER_CHAPTER } from './chapters';
@@ -410,28 +411,28 @@ export default function App() {
       <div className={`sheet result ${end.type}`} role="dialog" aria-label={end.type === 'win' ? t.solved : t.failTitle}>
         {end.type === 'win' && (
           <>
-            <span className="seal win"><Icon name={MODE_ICON[mode.kind] ?? 'check'} size={34} /></span>
+            <div className="stage win" title={MODE_ICON[mode.kind]}><Loupi mood="happy" size={136} className="pop-in" /></div>
             <div className="stars">{[1, 2, 3].map((i) => <Icon key={i} name="starFill" size={28} className={i <= end.stars ? 'on' : ''} />)}</div>
             <h2>{t.solved}</h2>
           </>
         )}
         {end.type === 'fail' && (
           <>
-            <span className="seal fail"><Icon name={end.reason === 'time' ? 'hourglass' : 'heart'} size={34} /></span>
+            <div className="stage fail"><Loupi mood="sad" size={124} className="pop-in" /><span className="badge"><Icon name={end.reason === 'time' ? 'hourglass' : 'heart'} size={18} /></span></div>
             <h2>{t.failTitle}</h2>
             <p className="lead">{end.reason === 'time' ? t.failTime : t.failMistakes}</p>
           </>
         )}
         {end.type === 'marathon' && end.depth === undefined && (
           <>
-            <span className="seal run"><Icon name="run" size={34} /></span>
+            <div className="stage"><Loupi mood="wow" size={124} className="pop-in" /></div>
             <h2>{t.marathonOver}</h2>
             <div className="bignum">{end.run} <small>{t.grids}</small></div>
           </>
         )}
         {end.depth !== undefined && (
           <>
-            <span className="seal run"><Icon name="flag" size={34} /></span>
+            <div className="stage"><Loupi mood="think" size={124} className="pop-in" /></div>
             <h2>{t.expOver}</h2>
             <p className="lead">{end.floor}</p>
             <div className="bignum">{end.depth} <small>{t.depth}</small></div>

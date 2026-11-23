@@ -17,6 +17,7 @@ import { sfx } from '../sound';
 import { Icon, MODE_ICON, BOOSTER_ICON, achIcon } from './Icon';
 import { AdventureCard, ExpeditionCard } from './adventure';
 import { Scene } from './scenes';
+import { Loupi, type Mood } from './mascot';
 
 export type Screen = 'home' | 'play' | 'arena' | 'season' | 'ranking' | 'profile' | 'album' | 'league' | 'settings' | 'premium' | 'adventure';
 type SetSave = React.Dispatch<React.SetStateAction<Save>>;
@@ -48,6 +49,16 @@ export function RewardView({ r, t }: { r: Reward; t: Strings }) {
   return <span className="reward"><Icon name="token" size={15} />{r.tokens}</span>;
 }
 
+/** Loupi sur les toits de l'accueil : on le touche, il saute de joie. */
+function HeroLoupi() {
+  const [mood, setMood] = useState<Mood>('idle');
+  return (
+    <button className="hero-loupi" aria-label="Loupi" onClick={() => { sfx.star(mood === 'happy' ? 2 : 0); setMood('happy'); setTimeout(() => setMood('idle'), 1400); }}>
+      <Loupi mood={mood} size={96} />
+    </button>
+  );
+}
+
 // ---------------- Choix de la langue ----------------
 
 export function LangPicker({ onPick }: { onPick: (l: Lang) => void }) {
@@ -58,6 +69,7 @@ export function LangPicker({ onPick }: { onPick: (l: Lang) => void }) {
       <div className="intro">
         <div className="intro-scene">
           <Scene kind="home" />
+          <Loupi mood="happy" size={118} className="intro-loupi pop-in" title="Loupi" />
           <Wordmark />
         </div>
         <h1>{t.tagline}</h1>
@@ -172,6 +184,7 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
 
       <section className="hero" aria-label={t.dailyHero}>
         <Scene kind="home" />
+        <HeroLoupi />
         <div className="top">
           <h2>{done ? t.dailyDone : t.dailyHero}</h2>
           <span className="date">{new Date().toLocaleDateString(lang, { day: 'numeric', month: 'long' })}</span>

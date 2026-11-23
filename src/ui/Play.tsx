@@ -11,6 +11,7 @@ import { COST } from '../services/monetization';
 import type { Rules } from '../modes';
 import { FREEZE_MS, REVEAL_N, type BoosterId } from '../meta';
 import { sfx } from '../sound';
+import { Loupi } from './mascot';
 import { Icon, BOOSTER_ICON } from './Icon';
 
 export interface FinishInfo {
@@ -324,6 +325,7 @@ export function Play(props: Props) {
       </section>
 
       <div className="meter" aria-live="polite">
+        <Loupi bust size={44} className="buddy" mood={g.finished ? 'happy' : shake ? 'sad' : g.combo >= 5 ? 'wow' : g.combo >= 3 ? 'think' : 'idle'} />
         {g.combo >= 3 && (
           <span className={`combo ${bump % 2 ? 'bump' : ''}`} key={bump}>
             <Icon name="combo" size={18} /> {t.combo} {g.combo}
@@ -432,6 +434,7 @@ export function Play(props: Props) {
       {tuto >= 0 && (
         <div className="modal center">
           <div className="sheet tuto">
+            <Loupi mood="think" size={96} className="pop-in tuto-loupi" />
             <div className="tutostep">{t.tutorial.map((_, i) => <i key={i} className={i <= tuto ? 'on' : ''} />)}</div>
             <div className="tutodemo">
               {tuto === 0 && (
