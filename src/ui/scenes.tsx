@@ -4,7 +4,8 @@ import { useId, type CSSProperties, type ReactNode } from 'react';
 
 export type SceneKind =
   | 'home' | 'atelier' | 'library' | 'train' | 'archives'
-  | 'observatory' | 'machines' | 'tower' | 'cabinet' | 'expedition';
+  | 'observatory' | 'machines' | 'tower' | 'cabinet' | 'expedition' | 'xmas';
+export type SceneDecor = 'xmas';
 
 const W = 400;
 const H = 180;
@@ -392,12 +393,81 @@ function Expedition({ id }: { id: string }) {
   );
 }
 
+
+function Pine({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${s})`}>
+      <rect x={-2.5} y={-4} width={5} height={10} fill="#3a2a22" />
+      <path d="M0,-46 L16,-18 L8,-18 L20,-2 L-20,-2 L-8,-18 L-16,-18 Z" fill="#1f5a4a" />
+      <path d="M0,-46 L7,-33 L-7,-33 Z M-10,-18 L-6,-22 L6,-22 L10,-18 Z" fill="#f4f7ff" />
+    </g>
+  );
+}
+
+function Gift({ x, y, w, h, c, r }: { x: number; y: number; w: number; h: number; c: string; r: string }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} rx={1.5} fill={c} />
+      <rect x={x + w / 2 - 1.5} y={y} width={3} height={h} fill={r} />
+      <rect x={x} y={y + h / 2 - 1.5} width={w} height={3} fill={r} />
+      <path d={`M${x + w / 2},${y} q-6,-7 -8,-1 q4,3 8,1 q6,-7 8,-1 q-4,3 -8,1 Z`} fill={r} />
+    </g>
+  );
+}
+
+function Xmas({ id }: { id: string }) {
+  return (
+    <>
+      <rect width={W} height={H} fill={`url(#${id}-sky)`} />
+      <Stars seed={81} n={40} maxY={90} />
+      <path className="sc-aurora" d="M-20,60 Q60,20 140,52 T300,40 T420,50 L420,74 Q330,62 300,66 T140,76 T-20,84 Z" fill="#46e0a8" opacity=".22" />
+      <path className="sc-aurora" d="M-20,74 Q80,44 160,70 T320,58 T420,66 L420,80 Q320,74 300,78 T160,86 T-20,92 Z" fill="#7ad8ff" opacity=".16" />
+      <Moon x={344} y={30} r={10} id={id} />
+      <path d="M0,150 Q90,118 190,138 T400,126 L400,180 L0,180 Z" fill="#cfd8f2" />
+      <path d="M0,164 Q120,140 240,158 T400,150 L400,180 L0,180 Z" fill="#eef2ff" />
+      <Pine x={40} y={150} s={1.1} /><Pine x={74} y={146} s={0.8} /><Pine x={356} y={142} s={1.05} /><Pine x={384} y={150} s={0.75} />
+      <g transform="translate(176 118) rotate(-8)">
+        <path d="M-8,26 Q-14,26 -14,20 L-14,4 L40,4 Q52,4 52,16 L52,26 Z" fill="#d8323a" />
+        <path d="M-14,4 L40,4 Q46,4 48,10 L-14,10 Z" fill="#f2b23a" />
+        <path d="M-20,30 L60,30 Q66,30 66,24" fill="none" stroke="#f2b23a" strokeWidth="3" strokeLinecap="round" />
+        <Gift x={-4} y={-12} w={14} h={16} c="#2fae5a" r="#ffd27a" />
+        <Gift x={12} y={-18} w={16} h={22} c="#4c6ef0" r="#ff6b6b" />
+        <Gift x={30} y={-8} w={12} h={12} c="#ffd27a" r="#d8323a" />
+      </g>
+      <Gift x={262} y={150} w={14} h={12} c="#d8323a" r="#ffd27a" />
+      <Gift x={110} y={156} w={12} h={10} c="#4c6ef0" r="#ffd27a" />
+    </>
+  );
+}
+
+/** Décor d'événement posé par-dessus une scène : neige, guirlande, flocons. */
+function DecorXmas() {
+  const r = rng(91);
+  const bulbs = Array.from({ length: 15 }, (_, i) => i);
+  return (
+    <g>
+      <path d="M-10,22 Q30,40 70,24 Q110,40 150,24 Q190,40 230,24 Q270,40 310,24 Q350,40 410,22" fill="none" stroke="#1f5a4a" strokeWidth="2" />
+      {bulbs.map((i) => {
+        const x = -10 + i * 28.6;
+        const y = 24 + Math.abs(Math.sin((i * Math.PI) / 1.4)) * 10;
+        const c = ['#ff5d62', '#ffd27a', '#46e0a8', '#7ad8ff'][i % 4];
+        return <circle key={i} className="sc-bulb" cx={x} cy={y + 4} r={3.4} fill={c} style={{ animationDelay: `${(i % 4) * 0.35}s` }} />;
+      })}
+      <path d="M0,172 Q100,164 200,170 T400,166 L400,180 L0,180 Z" fill="#eef2ff" />
+      {Array.from({ length: 34 }, (_, i) => (
+        <circle key={i} className="sc-snow" cx={r() * W} cy={-6} r={0.9 + r() * 1.8} fill="#fff"
+          style={{ animationDelay: `${(r() * 6).toFixed(2)}s`, animationDuration: `${(5 + r() * 5).toFixed(2)}s`, opacity: 0.6 + r() * 0.4 }} />
+      ))}
+    </g>
+  );
+}
+
 const DRAW: Record<SceneKind, (p: { id: string }) => ReactNode> = {
   home: Home, atelier: Atelier, library: Library, train: Train, archives: Archives,
-  observatory: Observatory, machines: Machines, tower: Tower, cabinet: Cabinet, expedition: Expedition,
+  observatory: Observatory, machines: Machines, tower: Tower, cabinet: Cabinet, expedition: Expedition, xmas: Xmas,
 };
 
-export function Scene({ kind, className = '', height }: { kind: SceneKind; className?: string; height?: number }) {
+export function Scene({ kind, className = '', height, decor }: { kind: SceneKind; className?: string; height?: number; decor?: SceneDecor | null }) {
   const raw = useId();
   const id = `s${raw.replace(/[^a-zA-Z0-9]/g, '')}`;
   const Draw = DRAW[kind];
@@ -405,6 +475,7 @@ export function Scene({ kind, className = '', height }: { kind: SceneKind; class
     <svg className={`scene ${className}`} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" style={height ? { height } : undefined} aria-hidden="true">
       <Defs id={id} />
       <Draw id={id} />
+      {decor === 'xmas' && <DecorXmas />}
       <rect width={W} height={H} fill={`url(#${id}-vig)`} />
     </svg>
   );

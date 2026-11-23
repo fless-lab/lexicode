@@ -42,6 +42,16 @@ export interface Save {
   seenChapters: number[];
   /** Expédition du jour : profondeur atteinte par date. */
   expDaily: Record<string, number>;
+  /** Objets de la boutique possédés (hors tuiles, rangées dans skins). */
+  owned: string[];
+  /** Ce qui est équipé : tenue de Loupi et habillages. */
+  equip: { hat?: string; neck: string; loupe: string; back?: string; keyboard: string; effect: string; frame?: string; decor: string; title?: string };
+  /** Progression des événements : messages déchiffrés et monnaie gagnée. */
+  events: Record<string, { done: number; currency: number; claimed: number[] }>;
+  /** Packs de grilles : étoiles par grille. */
+  packs: Record<string, Record<number, number>>;
+  /** Pack de démarrage déjà acheté (proposé une seule fois). */
+  starterBought: boolean;
 }
 
 export interface ModeRecord {
@@ -84,6 +94,11 @@ export function emptySave(): Save {
     skin: 'ivory',
     seenChapters: [],
     expDaily: {},
+    owned: [],
+    equip: { neck: 'scarf', loupe: 'gold', keyboard: 'classic', effect: 'letters', decor: 'home' },
+    events: {},
+    packs: {},
+    starterBought: false,
   };
 }
 
@@ -93,7 +108,7 @@ export function loadSave(): Save {
     if (!raw) return emptySave();
     const d = emptySave();
     const p = JSON.parse(raw);
-    return { ...d, ...p, settings: { ...d.settings, ...p.settings }, counters: { ...d.counters, ...p.counters }, league: { ...d.league, ...p.league }, boosters: { ...d.boosters, ...p.boosters } };
+    return { ...d, ...p, settings: { ...d.settings, ...p.settings }, counters: { ...d.counters, ...p.counters }, league: { ...d.league, ...p.league }, boosters: { ...d.boosters, ...p.boosters }, equip: { ...d.equip, ...p.equip } };
   } catch {
     return emptySave();
   }

@@ -5,7 +5,7 @@ import { sfx } from '../sound';
 const reduced = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** Les lettres de la phrase tombent comme des tuiles, avec le tampon et une note par étoile. */
-export function WinFx({ text, stars }: { text: string; stars: number }) {
+export function WinFx({ text, stars, variant = 'letters' }: { text: string; stars: number; variant?: string }) {
   const pieces = useMemo(() => {
     const letters = text.normalize('NFD').replace(/[^\p{L}]/gu, '').toUpperCase().split('');
     if (!letters.length || reduced()) return [];
@@ -32,6 +32,7 @@ export function WinFx({ text, stars }: { text: string; stars: number }) {
   }, [stars]);
 
   if (!pieces.length) return null;
+  if (variant === 'ink' || variant === 'fireworks' || variant === 'snow') return <AltFx kind={variant} />;
   return (
     <div className="confetti" aria-hidden="true">
       {pieces.map((p, i) => <span key={i} className={p.kind} style={p.style}>{p.ch}</span>)}
@@ -55,4 +56,37 @@ export function CountUp({ to, ms = 900, delay = 350 }: { to: number; ms?: number
     return () => cancelAnimationFrame(raf);
   }, [to, ms, delay]);
   return <>{n}</>;
+}
+
+/** Effets de victoire achetables ou gagnés : encre, feu d'artifice, neige. */
+function AltFx({ kind }: { kind: 'ink' | 'fireworks' | 'snow' }) {
+  const r = (i: number, n: number) => { const x = Math.sin((i + 1) * 7919 + n * 104729) * 43758.5453; return x - Math.floor(x); };
+  if (kind === 'snow')
+    return (
+      <div className="fx-snow" aria-hidden="true">
+        {Array.from({ length: 60 }, (_, i) => (
+          <i key={i} style={{ left: `${r(i, 1) * 100}%`, '--s': `${4 + r(i, 2) * 8}px`, '--d': `${2.4 + r(i, 3) * 2.4}s`, '--delay': `${r(i, 4) * 1.4}s`, '--dx': `${(r(i, 5) - 0.5) * 80}px` } as CSSProperties} />
+        ))}
+      </div>
+    );
+  if (kind === 'ink')
+    return (
+      <div className="fx-ink" aria-hidden="true">
+        {Array.from({ length: 16 }, (_, i) => (
+          <i key={i} style={{ left: `${10 + r(i, 1) * 80}%`, top: `${8 + r(i, 2) * 70}%`, '--s': `${30 + r(i, 3) * 90}px`, '--delay': `${0.2 + r(i, 4) * 0.9}s`, '--c': ['#151a5a', '#3c64e6', '#7a5af5'][i % 3] } as CSSProperties} />
+        ))}
+      </div>
+    );
+  const colors = ['#ffc531', '#5bcf3b', '#ff4d5e', '#6ff0ff', '#b9a6ff'];
+  return (
+    <div className="fx-fireworks" aria-hidden="true">
+      {Array.from({ length: 6 }, (_, b) => (
+        <span key={b} className="burst" style={{ left: `${15 + r(b, 1) * 70}%`, top: `${10 + r(b, 2) * 45}%`, animationDelay: `${0.25 + b * 0.32}s` } as CSSProperties}>
+          {Array.from({ length: 14 }, (_, k) => (
+            <i key={k} style={{ '--a': `${(k / 14) * 360}deg`, '--c': colors[(b + k) % colors.length], animationDelay: `${0.25 + b * 0.32}s` } as CSSProperties} />
+          ))}
+        </span>
+      ))}
+    </div>
+  );
 }

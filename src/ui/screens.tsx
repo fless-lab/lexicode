@@ -17,9 +17,12 @@ import { sfx } from '../sound';
 import { Icon, MODE_ICON, BOOSTER_ICON, achIcon } from './Icon';
 import { AdventureCard, ExpeditionCard } from './adventure';
 import { Scene } from './scenes';
-import { Loupi, type Mood } from './mascot';
+import { Loupi, type Mood, type Outfit } from './mascot';
+import { EventBanner } from './shop';
+import { SHOP_STRINGS } from '../i18n-shop';
+import type { SeasonalEvent } from '../events';
 
-export type Screen = 'home' | 'play' | 'arena' | 'season' | 'ranking' | 'profile' | 'album' | 'league' | 'settings' | 'premium' | 'adventure';
+export type Screen = 'home' | 'play' | 'arena' | 'season' | 'ranking' | 'profile' | 'album' | 'league' | 'settings' | 'premium' | 'adventure' | 'shop' | 'wardrobe' | 'event' | 'packs' | 'archive';
 type SetSave = React.Dispatch<React.SetStateAction<Save>>;
 
 const fill = (s: string, n: number | string) => s.replace('{n}', String(n));
@@ -50,11 +53,11 @@ export function RewardView({ r, t }: { r: Reward; t: Strings }) {
 }
 
 /** Loupi sur les toits de l'accueil : on le touche, il saute de joie. */
-function HeroLoupi() {
+function HeroLoupi({ outfit }: { outfit?: Outfit }) {
   const [mood, setMood] = useState<Mood>('idle');
   return (
     <button className="hero-loupi" aria-label="Loupi" onClick={() => { sfx.star(mood === 'happy' ? 2 : 0); setMood('happy'); setTimeout(() => setMood('idle'), 1400); }}>
-      <Loupi mood={mood} size={96} />
+      <Loupi mood={mood} size={96} outfit={outfit} />
     </button>
   );
 }
@@ -116,7 +119,7 @@ function StatusBar({ t, save, day, go }: { t: Strings; save: Save; day: string; 
   return (
     <header className="status">
       <button className="me" onClick={() => go('profile')}>
-        <span className="lvbadge">{lp.level}</span>
+        <span className={`lvbadge ${save.equip.frame ? `framed fr-${save.equip.frame}` : ''}`}>{lp.level}</span>
         <span className="who">
           <b>{save.name || t.titles[titleIndex(lp.level)]}</b>
           <span className="xpbar"><i style={{ width: `${(lp.cur / lp.need) * 100}%` }} /></span>
@@ -124,7 +127,7 @@ function StatusBar({ t, save, day, go }: { t: Strings; save: Save; day: string; 
       </button>
       <div className="counters">
         <span className="counter fire" title={t.streak}><Icon name="flame" size={16} />{liveStreak(save, day)}</span>
-        <button className="counter gold" onClick={() => go('premium')} title={t.tokens}><Icon name="token" size={16} />{save.premium ? '∞' : save.tokens}</button>
+        <button className="counter gold" onClick={() => go('shop')} title={t.tokens}><Icon name="token" size={16} />{save.premium ? '∞' : save.tokens}</button>
         <button className="iconbtn" onClick={() => go('settings')} aria-label={t.settings}><Icon name="gear" /></button>
       </div>
     </header>
@@ -151,9 +154,11 @@ interface HomeProps {
   claimQuest: (id: string) => void;
   claimQuestBonus: () => void;
   toast: (m: string, kind?: 'ach' | 'lvl' | 'info', icon?: string) => void;
+  event?: SeasonalEvent | null;
+  openArchive?: () => void;
 }
 
-export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQuest, claimQuestBonus, toast }: HomeProps) {
+export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQuest, claimQuestBonus, toast, event }: HomeProps) {
   const done = save.daily[lang]?.[day];
   const plv = playerLevel(save.xp);
   const quests = questsFor(day);
@@ -182,8 +187,10 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
     <div className="screen">
       <StatusBar t={t} save={save} day={day} go={go} />
 
+      {event && <EventBanner ev={event} lang={lang} day={day} save={save} open={() => go('event')} />}
+
       <section className="hero" aria-label={t.dailyHero}>
-        <Scene kind="home" />
+        <Scene kind={(save.equip.decor as 'home') ?? 'home'} decor={event?.decor === 'xmas' ? 'xmas' : null} />
         <HeroLoupi />
         <div className="top">
           <h2>{done ? t.dailyDone : t.dailyHero}</h2>
@@ -432,7 +439,7 @@ export function Season({ t, save, day, go, claimTier, setSave }: { t: Strings; s
                   {ok && !gotF && <Icon name="gift" size={15} />}
                 </button>
                 <span className="tn">{tier}</span>
-                <button className={`${cls(gotP, ok && save.premium)} prem right`} disabled={(save.premium && (!ok || gotP))} onClick={() => (save.premium ? claimTier(tier, true) : go('premium'))}>
+                <button className={`${cls(gotP, ok && save.premium)} prem right`} disabled={(save.premium && (!ok || gotP))} onClick={() => (save.premium ? claimTier(tier, true) : go('shop'))}>
                   <RewardView t={t} r={tierReward(tier, true)} />
                   {!save.premium && <Icon name="lock" size={14} />}
                 </button>
@@ -601,9 +608,19 @@ export function Profile({ t, save, lang, day, go }: { t: Strings; save: Save; la
           <span className="rl-icon"><Icon name="book" size={22} /></span>
           <span className="rl-main"><b>{t.album}</b><small>{(save.album[lang] ?? []).length} / {PACKS[lang].phrases.length}</small></span>
         </button>
-        <button className="rowlink" onClick={() => go('premium')}>
+        <button className="rowlink" onClick={() => go('shop')}>
           <span className="rl-icon"><Icon name="crown" size={22} /></span>
-          <span className="rl-main"><b>{t.premium}</b><small>{save.premium ? t.premiumActive : t.premiumTrial}</small></span>
+          <span className="rl-main"><b>{SHOP_STRINGS[lang].plusTitle}</b><small>{save.premium ? t.premiumActive : t.premiumTrial}</small></span>
+        </button>
+      </div>
+      <div className="pair">
+        <button className="rowlink" onClick={() => go('wardrobe')}>
+          <span className="rl-icon loupi-ico"><Loupi bust size={40} /></span>
+          <span className="rl-main"><b>{SHOP_STRINGS[lang].wardrobe}</b><small>{save.equip.title === 'elf' ? SHOP_STRINGS[lang].title : SHOP_STRINGS[lang].shop}</small></span>
+        </button>
+        <button className="rowlink" onClick={() => go('archive')}>
+          <span className="rl-icon"><Icon name="calendar" size={22} /></span>
+          <span className="rl-main"><b>{SHOP_STRINGS[lang].archives}</b><small>{save.premium ? '60' : SHOP_STRINGS[lang].plusTitle}</small></span>
         </button>
       </div>
 

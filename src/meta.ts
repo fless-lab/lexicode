@@ -92,8 +92,8 @@ export function seasonDaysLeft(day: string): number {
   return SEASON_DAYS - (seasonDay(day) % SEASON_DAYS);
 }
 
-export type SkinId = 'ivory' | 'slate' | 'brass' | 'jade' | 'pearl' | 'obsidian' | 'ruby';
-export const SKINS: SkinId[] = ['ivory', 'slate', 'brass', 'jade', 'pearl', 'obsidian', 'ruby'];
+export type SkinId = 'ivory' | 'slate' | 'brass' | 'jade' | 'pearl' | 'obsidian' | 'ruby' | 'frost' | 'gingerbread';
+export const SKINS: SkinId[] = ['ivory', 'slate', 'brass', 'jade', 'pearl', 'obsidian', 'ruby', 'frost', 'gingerbread'];
 
 export type Reward = { tokens?: number; booster?: BoosterId; skin?: SkinId };
 

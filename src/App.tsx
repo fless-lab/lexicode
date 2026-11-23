@@ -14,6 +14,14 @@ import { sfx, setSound } from './sound';
 import { Icon, MODE_ICON, achIcon } from './ui/Icon';
 import { WinFx, CountUp } from './ui/fx';
 import { Loupi } from './ui/mascot';
+import { Shop, Wardrobe, EventScreen, Snowfall, PacksScreen, ArchiveScreen, type ShopCtx } from './ui/shop';
+import { activeEvent, eventDifficulty } from './events';
+import { OutfitCtx } from './ui/mascot';
+import { grant as grantItems, grantUnlocks, outfitOf, item as catItem } from './catalog';
+import { loadPrices, entitlements } from './services/billing';
+import { SHOP_STRINGS, fmtS } from './i18n-shop';
+import { EVENTS } from './events';
+import { RANKED } from './modes';
 import { LangPicker, Home, Arena, Season, Ranking, Album, Profile, League, Settings, Premium, TabBar, type Screen } from './ui/screens';
 import { AdventureScreen, ChapterIntro, RelicPicker, themeOf, MOD_ICON, RELIC_ICON } from './ui/adventure';
 import { levelInfo, LEVELS_PER_CHAPTER } from './chapters';
@@ -33,6 +41,8 @@ interface End {
   record: boolean;
   xp: number;
   maxCombo: number;
+  /** Partie classée terminée avec des aides : hors classement. */
+  assisted?: boolean;
   reason?: 'time' | 'mistakes';
   run?: number;
   /** Fin d'expédition. */
@@ -52,7 +62,8 @@ const TAB_SCREENS: Screen[] = ['home', 'arena', 'season', 'ranking', 'profile'];
 
 export default function App() {
   const [save, setSave] = useState<Save>(loadSave);
-  const [screen, setScreen] = useState<Screen>('home');
+  // ?preview=shop|wardrobe|event ouvre directement une maquette à valider.
+  const [screen, setScreen] = useState<Screen>(() => (new URLSearchParams(location.search).get('preview') as Screen) || 'home');
   const [mode, setMode] = useState<Mode | null>(null);
   const [deadline, setDeadline] = useState<number | null>(null);
   const [end, setEnd] = useState<End | null>(null);
@@ -84,6 +95,25 @@ export default function App() {
   const t = STRINGS[lang];
   const pack = PACKS[lang];
   const day = today();
+  const event = activeEvent(day);
+  const shopCtx: ShopCtx = { save, setSave, lang: save.lang ?? 'en', t: STRINGS[save.lang ?? 'en'], toast };
+  // Tenue de Loupi partout dans le jeu. Pendant un événement, il porte le chapeau de la fête s'il n'en a pas choisi.
+  const outfit = { ...outfitOf(save), ...(event && !save.equip.hat ? { hat: event.outfit.hat } : {}), ...(event && save.equip.neck === 'scarf' ? { neck: event.outfit.neck } : {}) };
+  const [, setPricesTick] = useState(0);
+  useEffect(() => {
+    loadPrices().then(() => setPricesTick((x) => x + 1));
+    entitlements().then((e) => { if (e) setSave((s) => ({ ...s, premium: e.plus })); });
+  }, []);
+  // Les objets gagnés en jouant (chapitres, ligues) arrivent tout seuls dans la garde-robe.
+  useEffect(() => {
+    if (!save.lang) return;
+    const n = grantUnlocks(save, save.lang);
+    if (n !== save) {
+      const fresh = n.owned.filter((id) => !save.owned.includes(id));
+      setSave(n);
+      fresh.forEach((id, k) => setTimeout(() => toast(fmtS(SHOP_STRINGS[save.lang!].newItem, { x: catItem(id)?.name[save.lang!] ?? id }), 'lvl', 'gift'), 800 + k * 700));
+    }
+  }, [save.campaign, save.league.tier, save.lang]);
   const daily = useMemo(() => dailyPuzzle(pack, day), [pack, day]);
 
   // À l'ouverture : clôture de la ligue, nouvelle saison, nouvelles quêtes.
@@ -214,11 +244,28 @@ export default function App() {
     n.album = { ...n.album, [lang]: [...al] };
     let record = false;
 
+    const assisted = RANKED.includes(mode.kind) && info.hints > 0;
+    if (mode.kind === 'event') {
+      const ev = EVENTS.find((e) => e.id === mode.ref)!;
+      const st = n.events[ev.id] ?? { done: 0, currency: 0, claimed: [] };
+      const first = mode.idx! >= st.done;
+      const currency = st.currency + (first ? ev.perLevel : 0);
+      const reached = ev.rewards.map((r, k) => [r, k] as const).filter(([r, k]) => currency >= r.at && !st.claimed.includes(k));
+      n.events = { ...n.events, [ev.id]: { done: Math.max(st.done, mode.idx! + 1), currency, claimed: [...st.claimed, ...reached.map(([, k]) => k)] } };
+      n = grantItems(n, reached.filter(([r]) => r.item).map(([r]) => r.item!));
+      for (const [r] of reached) {
+        if (r.title) n.equip = { ...n.equip, title: r.title };
+        setTimeout(() => toast(fmtS(SHOP_STRINGS[lang].eventReward, { x: r.label[lang] }), 'lvl', 'gift'), 1200);
+      }
+    } else if (mode.kind === 'pack') {
+      const p = n.packs[mode.ref!] ?? {};
+      n.packs = { ...n.packs, [mode.ref!]: { ...p, [mode.idx!]: Math.max(p[mode.idx!] ?? 0, info.stars) } };
+    }
     if (mode.kind === 'daily' && !s0.daily[lang]?.[mode.date!]) {
       n.daily = { ...n.daily, [lang]: { ...(n.daily[lang] ?? {}), [mode.date!]: { score, ms: info.ms, mistakes: info.mistakes, hints: info.hints } } };
       n.tokens += REWARD.daily;
       if (mode.date === day) n = bumpStreak(n, day);
-      ranking.submit(lang, mode.date!, { name: n.name, city: n.city, country: n.country, score, ms: info.ms });
+      if (!assisted) ranking.submit(lang, mode.date!, { name: n.name, city: n.city, country: n.country, score, ms: info.ms });
     } else if (mode.kind === 'level') {
       const c = n.campaign[lang] ?? { level: 1, stars: {} };
       const firstClear = !c.stars[mode.level!];
@@ -229,7 +276,7 @@ export default function App() {
       if (firstClear) n.tokens += (info.stars === 3 ? REWARD.levelPerfect : REWARD.level) + (boss ? 5 : 0);
     }
     const key = recordKey(mode);
-    if (key) {
+    if (key && !assisted) {
       const prev = n.records[lang]?.[key]?.best ?? 0;
       record = score > prev && prev > 0;
       n = bumpRecord(n, lang, key, true, score, info.ms);
@@ -237,7 +284,7 @@ export default function App() {
     const ev: GameEvent = { kind: mode.kind, won: true, score, ms: info.ms, stars: info.stars, hints: info.hints, mistakes: info.mistakes, d: puzzle.difficulty, boss, maxCombo: info.maxCombo, words: info.words };
     const { save: n2, xp } = progressAfter(n, ev);
     setSave(n2);
-    setEnd({ type: 'win', score, stars: info.stars, ms: info.ms, mistakes: info.mistakes, hints: info.hints, timeBonus, ratingDelta: newRating - s0.rating, record, xp, maxCombo: info.maxCombo });
+    setEnd({ type: 'win', score, stars: info.stars, ms: info.ms, mistakes: info.mistakes, hints: info.hints, timeBonus, ratingDelta: newRating - s0.rating, record, xp, maxCombo: info.maxCombo, assisted });
   };
 
   const onFail = (reason: 'time' | 'mistakes', info: FinishInfo) => {
@@ -355,6 +402,9 @@ export default function App() {
       return i.finale ? t.finaleLabel : `${i.boss ? t.boss + ', ' : ''}${t.level} ${i.step + 1}`;
     }
     if (m.kind === 'practice') return t.practice;
+    if (m.kind === 'event') { const ev = EVENTS.find((e) => e.id === m.ref); return fmtS(SHOP_STRINGS[lang].message, { n: (m.idx ?? 0) + 1 }) + (ev ? `, ${ev.title[lang]}` : ''); }
+    if (m.kind === 'pack') return `${catItem(`pack:${m.ref}`)?.name[lang] ?? ''} ${(m.idx ?? 0) + 1}`;
+    if (m.kind === 'archive') return `${SHOP_STRINGS[lang].archives}, ${new Date(m.date!).toLocaleDateString(lang, { day: 'numeric', month: 'long' })}`;
     if (m.kind === 'expedition') return floorName(lang, makeFloor(m.exp!.seed, m.exp!.depth));
     return (t[`mode_${m.kind}` as 'mode_zen'] as string[])[0];
   };
@@ -407,7 +457,7 @@ export default function App() {
 
   const overlay = end && puzzle && mode && (
     <div className="modal">
-      {end.type === 'win' && <WinFx text={puzzle.phraseText} stars={end.stars} />}
+      {end.type === 'win' && <WinFx text={puzzle.phraseText} stars={end.stars} variant={save.equip.effect} />}
       <div className={`sheet result ${end.type}`} role="dialog" aria-label={end.type === 'win' ? t.solved : t.failTitle}>
         {end.type === 'win' && (
           <>
@@ -456,10 +506,19 @@ export default function App() {
             <span className={`gain ${end.ratingDelta >= 0 ? 'up' : 'down'}`}><Icon name="brain" size={14} />{save.rating} ({end.ratingDelta >= 0 ? '+' : ''}{end.ratingDelta})</span>
           )}
           {end.record && <span className="gain rec"><Icon name="trophy" size={14} />{t.newRecord}</span>}
+          {end.assisted && <span className="gain"><Icon name="bulb" size={14} />{SHOP_STRINGS[lang].assisted}</span>}
         </div>
         <div className="row">
           <button className="btn" onClick={shareResult}><Icon name="share" size={18} />{t.share}</button>
-          {end.type === 'win' && mode.kind === 'level' ? (
+          {end.type === 'win' && (mode.kind === 'event' || mode.kind === 'pack') ? (
+            <button className="btn primary" onClick={() => {
+              const ev = EVENTS.find((e) => e.id === mode.ref);
+              const max = mode.kind === 'event' ? ev?.levels ?? 0 : 40;
+              const idx = (mode.idx ?? 0) + 1;
+              if (idx >= max) { setEnd(null); setMode(null); setScreen(mode.kind === 'event' ? 'event' : 'packs'); return; }
+              start({ ...mode, idx, d: mode.kind === 'event' ? eventDifficulty(idx) : mode.d, nonce: String(idx) });
+            }}>{t.next}</button>
+          ) : end.type === 'win' && mode.kind === 'level' ? (
             <button className="btn primary" onClick={nextLevel}>{levelI?.finale ? t.nextChapter : t.next}</button>
           ) : end.depth !== undefined ? (
             <button className="btn primary" onClick={() => startExpedition(false)}>{t.expFree}</button>
@@ -502,8 +561,10 @@ export default function App() {
   const tierReady = Array.from({ length: seasonTier(se.xp) }, (_, i) => i + 1).some((tier) => !se.claimed.includes(tier));
 
   return (
-    <div className={`app skin-${save.skin} ${worldTheme}`}>
-      {screen === 'home' && <Home t={t} save={save} day={day} lang={lang} daily={daily} onStart={start} go={setScreen} setSave={setSave} claimQuest={claimQuest} claimQuestBonus={claimQuestBonus} toast={toast} />}
+    <OutfitCtx.Provider value={outfit}>
+    <div className={`app skin-${save.skin} ${worldTheme} ${event?.theme ?? ''} kbs-${save.equip.keyboard}`}>
+      {event?.decor === 'xmas' && screen !== 'play' && <Snowfall />}
+      {screen === 'home' && <Home t={t} save={save} day={day} lang={lang} daily={daily} onStart={start} go={setScreen} setSave={setSave} claimQuest={claimQuest} claimQuestBonus={claimQuestBonus} toast={toast} event={event} openArchive={() => setScreen('archive')} />}
       {screen === 'arena' && <Arena t={t} save={save} lang={lang} day={day} onStart={start} setSave={setSave} go={setScreen} onExpedition={startExpedition} />}
       {screen === 'adventure' && <AdventureScreen t={t} save={save} lang={lang} onStart={start} back={() => setScreen('home')} />}
       {screen === 'season' && <Season t={t} save={save} day={day} go={setScreen} claimTier={claimTier} setSave={setSave} />}
@@ -512,6 +573,11 @@ export default function App() {
       {screen === 'album' && <Album t={t} save={save} lang={lang} back={() => setScreen('profile')} />}
       {screen === 'league' && <League t={t} save={save} back={() => setScreen('home')} />}
       {screen === 'settings' && <Settings t={t} save={save} setSave={setSave} back={() => setScreen('home')} />}
+      {screen === 'shop' && <Shop ctx={shopCtx} back={() => setScreen('home')} openWardrobe={() => setScreen('wardrobe')} openPacks={() => setScreen('packs')} />}
+      {screen === 'wardrobe' && <Wardrobe ctx={shopCtx} back={() => setScreen('shop')} />}
+      {screen === 'event' && event && <EventScreen ev={event} ctx={shopCtx} day={day} back={() => setScreen('home')} play={(idx) => start({ kind: 'event', ref: event.id, idx, d: eventDifficulty(idx), nonce: String(idx) })} />}
+      {screen === 'packs' && <PacksScreen ctx={shopCtx} back={() => setScreen('shop')} play={(ref, idx) => start({ kind: 'pack', ref, idx, d: 2, nonce: String(idx) })} openShop={() => setScreen('shop')} />}
+      {screen === 'archive' && <ArchiveScreen ctx={shopCtx} day={day} back={() => setScreen('profile')} play={(date) => start({ kind: 'archive', date, d: 2, nonce: date })} openShop={() => setScreen('shop')} />}
       {screen === 'premium' && <Premium t={t} save={save} setSave={setSave} back={() => setScreen('home')} />}
       {TAB_SCREENS.includes(screen) && <TabBar t={t} screen={screen} go={setScreen} badges={{ home: questReady, season: tierReady }} />}
 
@@ -577,7 +643,7 @@ export default function App() {
               <>
                 <h2>{t.notEnoughTokens}</h2>
                 <button className="btn primary block lg" onClick={watchAd}><Icon name="play" size={16} />{t.watchAd}</button>
-                <button className="btn block" onClick={() => { setAdOpen(null); setScreen('premium'); }}><Icon name="crown" size={18} />{t.premium}</button>
+                <button className="btn block" onClick={() => { setAdOpen(null); setScreen('shop'); }}><Icon name="crown" size={18} />{t.premium}</button>
               </>
             ) : (
               <div className="adplaying"><div className="spinner" />{t.adPlaying}</div>
@@ -594,5 +660,6 @@ export default function App() {
         ))}
       </div>
     </div>
+    </OutfitCtx.Provider>
   );
 }

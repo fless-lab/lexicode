@@ -7,6 +7,7 @@ import { LEX_FR } from './lex-fr';
 import { LEX_EN } from './lex-en';
 import { LEX_ES } from './lex-es';
 import { STORY } from './story';
+import { EVENT_PHRASES, PACK_PHRASES } from './extra';
 import { LEX_FR_MORE, EXTRA_FR } from './lex-fr-2';
 import { LEX_EN_MORE, EXTRA_EN } from './lex-en-2';
 import { LEX_ES_MORE, EXTRA_ES } from './lex-es-2';
@@ -59,8 +60,11 @@ function build(base: LangPack, lex: string, extras = ''): LangPack {
   const usedClues = new Set(rich.flatMap((e) => allClues(e)));
   const legacy = base.entries.filter((e) => !have.has(e.w) && !usedClues.has(e.c));
   const story = STORY[base.lang].chapters.map((c) => ({ t: c.phrase, k: 'story' }));
+  // Messages d'événements et packs : réservés, jamais tirés au hasard ailleurs.
+  const events = Object.entries(EVENT_PHRASES).flatMap(([id, m]) => m[base.lang].map((t) => ({ t, k: `event:${id}` })));
+  const packs = Object.entries(PACK_PHRASES).flatMap(([id, m]) => m[base.lang].map((t) => ({ t, k: `pack:${id}` })));
   // Seuls les indices validés (ou corrigés) arrivent en jeu.
-  return { ...base, entries: applyReview(base.lang, [...rich, ...legacy]), phrases: [...base.phrases, ...story] };
+  return { ...base, entries: applyReview(base.lang, [...rich, ...legacy]), phrases: [...base.phrases, ...story, ...events, ...packs] };
 }
 
 export const PACKS: Record<Lang, LangPack> = {
@@ -85,4 +89,9 @@ export function detectLang(): Lang {
 export function storyPhraseIndex(pack: LangPack, chapter: number): number {
   const text = STORY[pack.lang].chapters[chapter % STORY[pack.lang].chapters.length].phrase;
   return pack.phrases.findIndex((p) => p.k === 'story' && p.t === text);
+}
+
+/** Index des phrases réservées à un événement ou à un pack, dans l'ordre. */
+export function reservedIndices(pack: LangPack, key: string): number[] {
+  return pack.phrases.map((p, i) => (p.k === key ? i : -1)).filter((i) => i >= 0);
 }

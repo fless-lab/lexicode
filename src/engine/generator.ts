@@ -92,7 +92,9 @@ export function pickClue(e: Entry, choice: TierChoice, rng: Rng): { clue: string
   return { clue: e.c, tier: 1 };
 }
 
-const isStory = (pack: LangPack, i: number) => pack.phrases[i].k === 'story';
+/** Phrases réservées (histoire, événements, packs) : jamais tirées au hasard. */
+export const isReservedCat = (k: string) => k === 'story' || k.startsWith('event:') || k.startsWith('pack:');
+const isStory = (pack: LangPack, i: number) => isReservedCat(pack.phrases[i].k);
 
 export interface GenOptions {
   /** Niveau des indices (par défaut selon la difficulté). */
@@ -258,7 +260,7 @@ export function levelDifficulty(level: number): Difficulty {
 }
 
 export function worldCategory(pack: LangPack, level: number): string {
-  const cats = [...new Set(pack.phrases.filter((p) => p.k !== 'story').map((p) => p.k))];
+  const cats = [...new Set(pack.phrases.filter((p) => !isReservedCat(p.k)).map((p) => p.k))];
   const w = Math.floor((level - 1) / LEVELS_PER_WORLD);
   return cats[w % cats.length];
 }
@@ -356,4 +358,9 @@ export function smudge(text: string, rng: Rng): string {
     start = !letter;
   }
   return out;
+}
+
+/** Grille d'un niveau d'événement ou d'un pack : phrase imposée, graine propre. */
+export function reservedPuzzle(pack: LangPack, key: string, phraseIndex: number, i: number, d: Difficulty): Puzzle {
+  return generatePuzzle(pack, `${key}-${i}`, d, { phraseIndex });
 }

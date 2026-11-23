@@ -1,5 +1,6 @@
 import type { Difficulty, LangPack, Puzzle } from './engine/types';
-import { dailyPuzzle, practicePuzzle, generatePuzzle, cryptogramPuzzle } from './engine/generator';
+import { dailyPuzzle, practicePuzzle, generatePuzzle, cryptogramPuzzle, reservedPuzzle } from './engine/generator';
+import { reservedIndices } from './content/index';
 import { levelInfo, adventurePuzzle, adventureLimits } from './chapters';
 import { makeFloor, floorPuzzle, count, type Run } from './expedition';
 
@@ -14,7 +15,10 @@ export type ModeKind =
   | 'hardcore'
   | 'zen'
   | 'cryptogram'
-  | 'expedition';
+  | 'expedition'
+  | 'event'
+  | 'pack'
+  | 'archive';
 
 export interface Mode {
   kind: ModeKind;
@@ -26,7 +30,13 @@ export interface Mode {
   run?: number;
   /** État de l'expédition en cours. */
   exp?: Run;
+  /** Événement ou pack joué, et rang de la grille. */
+  ref?: string;
+  idx?: number;
 }
+
+/** Modes classés : aucune aide payante n'y compte, une partie aidée sort du classement. */
+export const RANKED: ModeKind[] = ['daily', 'timeattack', 'sudden', 'survival', 'marathon', 'hardcore', 'cryptogram'];
 
 export interface Rules {
   /** Temps imparti en ms (null = pas de chrono). */
@@ -114,6 +124,14 @@ export function puzzleFor(pack: LangPack, m: Mode): Puzzle {
       return generatePuzzle(pack, `hardcore-${m.nonce}`, 5);
     case 'cryptogram':
       return cryptogramPuzzle(pack, m.nonce, m.d);
+    case 'archive':
+      return dailyPuzzle(pack, m.date!);
+    case 'event':
+    case 'pack': {
+      const key = `${m.kind}:${m.ref}`;
+      const idx = reservedIndices(pack, key);
+      return reservedPuzzle(pack, key, idx[m.idx! % idx.length], m.idx!, m.d);
+    }
     case 'marathon':
       return generatePuzzle(pack, `marathon-${m.nonce}-${m.run ?? 0}`, marathonDifficulty(m.run ?? 0));
     default:

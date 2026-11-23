@@ -80,13 +80,33 @@ Première passe (novembre 2026) sur 5 072 indices : 4 311 validés tels quels, 7
 - Rétention : série avec protections, coffre du jour, étoiles, album de phrases par catégorie, indice de réflexion (type Elo), classements par mode (ville, pays, monde, amis), partage du résultat, tutoriel au premier lancement, sons et vibrations.
 - Monétisation : jetons (lettre, mot, moteur de recherche), pub récompensée, écran Premium.
 
+## Boutique, garde-robe et achats
+
+Règle de base : l'argent achète du style et du confort, jamais du score. Aucune aide payante ne compte dans les modes classés (défi du jour, arène) : une partie terminée avec une aide y est marquée « hors classement » et n'entre ni au record ni au classement.
+
+- **Catalogue** (`src/catalog.ts`) : tenues de Loupi (chapeau, cou, loupe, dos), tuiles, claviers, effets de victoire, cadres de profil, décors de l'accueil, packs de grilles. Chaque objet a un prix en jetons, un produit du magasin ou une condition pour être gagné en jouant (chapitre, ligue, événement, fin de l'aventure). Les objets gagnés arrivent tout seuls dans la garde-robe.
+- **Vitrine** : trois objets mis en avant, renouvelés chaque lundi. Pack de démarrage proposé une seule fois. Abonnement Lexicode+ (sans pub, archives des défis passés, un gel de série par semaine).
+- **Garde-robe** : on essaie tout gratuitement, il faut posséder une pièce pour la garder. La tenue choisie est portée par Loupi partout dans le jeu.
+- **Achats** (`src/services/billing.ts`) : RevenueCat par-dessus Google Play Billing, avec vérification des reçus côté serveur et restauration sur un nouveau téléphone. Dans la version web, les achats sont simulés.
+
+Pour activer les vrais achats :
+1. Dans la Play Console, créer les produits avec les identifiants de `SKUS` (abonnements `lexicode_plus_monthly` et `lexicode_plus_yearly`, produits uniques et consommables pour le reste).
+2. Dans RevenueCat, créer le projet, relier la Play Console, importer les produits et créer un droit nommé `plus` relié aux deux abonnements.
+3. Mettre la clé publique Android dans `.env` : `VITE_RC_ANDROID_KEY=...`, puis `npm run build && npx cap sync android`.
+
+## Événements saisonniers
+
+Un événement est une fiche de données dans `src/events.ts` : dates, thème de l'application, décor ajouté aux scènes, tenue de Loupi, titre et histoire en trois langues, monnaie propre (jamais achetable), nombre de messages et récompenses. Les messages à déchiffrer sont dans `src/content/extra.ts` et passent par le vérificateur. Le premier, « À la rescousse du Père Noël », démarre seul le 1er décembre. Pour l'essayer avant : ajouter `?event=xmas` à l'adresse.
+
+En production, la liste des événements viendra du serveur pour lancer, prolonger ou corriger un événement sans mise à jour du Play Store. Les dessins d'un nouvel événement doivent être livrés dans une mise à jour quelques semaines avant.
+
 ## Ce qu'il reste à brancher avant la publication
 
 1. **Classements réels** : créer un projet Supabase, exécuter `backend/schema.sql`, puis remplacer `DemoRanking` dans `src/services/ranking.ts`. Les classements actuels sont simulés et signalés comme tels.
 2. **Pubs** : plugin `@capacitor-community/admob`, à brancher dans `src/services/monetization.ts` (`ads.showRewarded`).
-3. **Abonnement** : Google Play Billing via un plugin d'achats intégrés (RevenueCat est le plus simple), dans `billing.purchase`. Aujourd'hui Premium s'active localement.
-4. **Contenu** : environ 180 mots et 113 phrases par langue (proverbes, expressions, faits). Il en faut plusieurs centaines pour des mois de défis sans répétition. Ajouter dans `src/content/<langue>.ts`, puis `npm run verify`.
-5. **Icône, écran de démarrage, nom définitif** (vérifier que « Lexicode » est libre sur le Play Store).
+3. **Achats** : produits Play Console et clé RevenueCat (voir plus haut).
+4. **Packs de grilles** : « Proverbes » est prêt (40 grilles par langue). Cinéma, football, géographie et contes d'Afrique sont affichés « bientôt » et attendent leurs phrases.
+5. **Nom définitif** : vérifier que « Lexicode » est libre sur le Play Store.
 
 ## Construire l'APK / AAB
 

@@ -1,7 +1,9 @@
 // Génère et vérifie des milliers de grilles pour chaque langue.
 // Usage : npm run verify
 import { PACKS } from '../src/content/index';
-import { dailyPuzzle, practicePuzzle } from '../src/engine/generator';
+import { dailyPuzzle, practicePuzzle, reservedPuzzle, isReservedCat } from '../src/engine/generator';
+import { reservedIndices } from '../src/content/index';
+import { EVENT_PHRASES, PACK_PHRASES } from '../src/content/extra';
 import { verifyPuzzle, verifyPack } from '../src/engine/verify';
 import { allClues, type Difficulty, type Puzzle } from '../src/engine/types';
 import { REVIEWS, hasReview } from '../src/content/review';
@@ -44,6 +46,14 @@ for (const pack of Object.values(PACKS)) {
     puzzles.push({ label: `daily ${date}`, make: () => dailyPuzzle(pack, date) });
   }
   for (let l = 1; l <= 200; l++) puzzles.push({ label: `level ${l}`, make: () => puzzleFor(pack, { kind: 'level', d: 1, nonce: '', level: l }) });
+  // Événements et packs : chaque phrase réservée doit donner une grille valide à chaque difficulté prévue.
+  for (const [key, n] of [...Object.keys(EVENT_PHRASES).map((id) => [`event:${id}`, 12] as const), ...Object.keys(PACK_PHRASES).map((id) => [`pack:${id}`, 40] as const)]) {
+    const idx = reservedIndices(pack, key);
+    if (idx.length !== n) { failures++; console.log(`[${pack.lang}] ${key} : ${idx.length} phrases au lieu de ${n}`); }
+    idx.forEach((pi, i) => {
+      for (const d of [1, 2, 3, 4] as Difficulty[]) puzzles.push({ label: `${key} ${i} d${d}`, make: () => reservedPuzzle(pack, key, pi, i, d) });
+    });
+  }
   for (let d = 1; d <= 5; d++)
     for (let k = 0; k < 60; k++)
       puzzles.push({ label: `practice d${d} #${k}`, make: () => practicePuzzle(pack, d as Difficulty, String(k)) });
@@ -107,7 +117,7 @@ for (const pack of Object.values(PACKS)) {
   }
 
   // Les défis du jour ne répètent pas une phrase avant d'avoir épuisé le pack.
-  const n = pack.phrases.filter((ph) => ph.k !== 'story').length;
+  const n = pack.phrases.filter((ph) => !isReservedCat(ph.k)).length;
   const seen = new Set<number>();
   for (let d = 0; d < n; d++) {
     const date = new Date(Date.UTC(2026, 0, 1) + d * 86400000).toISOString().slice(0, 10);
