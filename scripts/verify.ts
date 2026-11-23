@@ -1,6 +1,7 @@
 // Génère et vérifie des milliers de grilles pour chaque langue.
 // Usage : npm run verify
 import { PACKS } from '../src/content/index';
+import { buildPacks } from '../src/content/build';
 import { dailyPuzzle, practicePuzzle, reservedPuzzle, isReservedCat } from '../src/engine/generator';
 import { reservedIndices } from '../src/content/index';
 import { EVENT_PHRASES, PACK_PHRASES } from '../src/content/extra';
@@ -12,6 +13,15 @@ import { initGame, select, typeLetter, failGame, addShield } from '../src/engine
 
 let failures = 0;
 let total = 0;
+
+// Les paquets chargés par le jeu doivent être exactement ceux que produisent les sources.
+const built = buildPacks();
+for (const lang of Object.keys(built) as (keyof typeof built)[]) {
+  if (JSON.stringify(built[lang]) !== JSON.stringify(PACKS[lang])) {
+    failures++;
+    console.log(`[${lang}] paquet périmé : lancer npm run packs`);
+  }
+}
 
 for (const pack of Object.values(PACKS)) {
   const packErrs = verifyPack(pack);

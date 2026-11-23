@@ -4,7 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "packs": "tsx scripts/build-packs.ts",
+    "predev": "npm run packs",
     "dev": "vite",
+    "prebuild": "npm run packs",
+    "prebuild:single": "npm run packs",
     "build": "tsc --noEmit && vite build",
     "build:single": "SINGLE=1 vite build",
     "verify": "tsx scripts/verify.ts",
