@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 /**
  * Monétisation. Dans l'application Android, ces fonctions appellent :
  *  - AdMob (pub récompensée, bannière) via le plugin Capacitor @capacitor-community/admob ;
@@ -15,8 +16,46 @@ export interface BillingService {
   restore(): Promise<boolean>;
 }
 
+// Identifiants de test publiés par Google : ils affichent de vraies pubs de démonstration, sans revenu.
+// Remplacés par les tiens via .env (VITE_ADMOB_REWARDED_ID) et AndroidManifest.xml (identifiant d'application).
+const TEST_REWARDED = 'ca-app-pub-3940256099942544/5224354917';
+const ENV = (import.meta as unknown as { env: Record<string, string | undefined> }).env;
+const REWARDED_ID = ENV.VITE_ADMOB_REWARDED_ID || TEST_REWARDED;
+
+type AM = typeof import('@capacitor-community/admob');
+let admob: Promise<AM | null> | null = null;
+
+/** Démarre AdMob une seule fois, avec le formulaire de consentement (RGPD) quand la loi l'exige. */
+function getAdMob(): Promise<AM | null> {
+  if (!Capacitor.isNativePlatform()) return Promise.resolve(null);
+  if (!admob) {
+    admob = (async () => {
+      try {
+        const m = await import('@capacitor-community/admob');
+        await m.AdMob.initialize();
+        const info = await m.AdMob.requestConsentInfo();
+        if (info.isConsentFormAvailable && info.status === m.AdmobConsentStatus.REQUIRED) await m.AdMob.showConsentForm();
+        return m;
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return admob;
+}
+
 export const ads: AdsService = {
-  showRewarded: () => new Promise((resolve) => setTimeout(() => resolve(true), 2500)),
+  async showRewarded() {
+    const m = await getAdMob();
+    if (!m) return new Promise((resolve) => setTimeout(() => resolve(true), 2500));
+    try {
+      await m.AdMob.prepareRewardVideoAd({ adId: REWARDED_ID, isTesting: REWARDED_ID === TEST_REWARDED });
+      const reward = await m.AdMob.showRewardVideoAd();
+      return !!reward && reward.amount > 0;
+    } catch {
+      return false;
+    }
+  },
 };
 
 export const billing: BillingService = {

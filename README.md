@@ -103,7 +103,7 @@ En production, la liste des événements viendra du serveur pour lancer, prolong
 ## Ce qu'il reste à brancher avant la publication
 
 1. **Classements réels** : créer un projet Supabase, exécuter `backend/schema.sql`, puis remplacer `DemoRanking` dans `src/services/ranking.ts`. Les classements actuels sont simulés et signalés comme tels.
-2. **Pubs** : plugin `@capacitor-community/admob`, à brancher dans `src/services/monetization.ts` (`ads.showRewarded`).
+2. **Pubs** : AdMob est branché (pub récompensée, formulaire de consentement RGPD). Il tourne avec les identifiants de test de Google : remplacer l'identifiant d'application dans `android/app/src/main/AndroidManifest.xml` et mettre `VITE_ADMOB_REWARDED_ID=...` dans `.env`.
 3. **Achats** : produits Play Console et clé RevenueCat (voir plus haut).
 4. **Packs de grilles** : « Proverbes » est prêt (40 grilles par langue). Cinéma, football, géographie et contes d'Afrique sont affichés « bientôt » et attendent leurs phrases.
 5. **Nom définitif** : vérifier que « Lexicode » est libre sur le Play Store.
