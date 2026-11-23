@@ -41,7 +41,7 @@ Descente infinie (`src/expedition.ts`) : chaque étage est généré à partir d
 
 ## Indices à trois niveaux
 
-Environ 300 mots par langue avec un indice facile, moyen et malin (`src/content/lex-*.ts`, format `MOT|facile|moyen|malin`). La difficulté choisit le niveau ; le vérificateur refuse les doublons, les réponses présentes dans l'indice et les tirets cadratins.
+Environ 380 mots par langue (plus de 5 000 indices) : un indice facile, un moyen et deux ou trois malins qui tournent (`src/content/lex-*.ts`, format `MOT|facile|moyen|malin`). La difficulté choisit le niveau ; le vérificateur refuse les doublons, les réponses présentes dans l'indice et les tirets cadratins.
 
 ## Ce qui est en place
 

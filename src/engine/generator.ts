@@ -80,8 +80,15 @@ export function tierFor(d: Difficulty): TierChoice {
 /** Choisit l'indice d'un mot au niveau voulu, en redescendant si ce niveau manque. */
 export function pickClue(e: Entry, choice: TierChoice, rng: Rng): { clue: string; tier: Tier } {
   const want: Tier = choice === 'mix' ? (rng() < 0.5 ? 2 : 3) : choice;
-  const by: Record<Tier, string | undefined> = { 1: e.c, 2: e.c2, 3: e.c3 };
-  for (let t = want; t >= 1; t--) if (by[t as Tier]) return { clue: by[t as Tier]!, tier: t as Tier };
+  const by: Record<Tier, string[]> = {
+    1: [e.c],
+    2: [e.c2, ...(e.more2 ?? [])].filter((x): x is string => !!x),
+    3: [e.c3, ...(e.more3 ?? [])].filter((x): x is string => !!x),
+  };
+  for (let t = want; t >= 1; t--) {
+    const list = by[t as Tier];
+    if (list.length) return { clue: list[Math.floor(rng() * list.length)], tier: t as Tier };
+  }
   return { clue: e.c, tier: 1 };
 }
 

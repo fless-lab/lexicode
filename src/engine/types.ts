@@ -9,6 +9,14 @@ export interface Entry {
   c2?: string;
   /** Indice malin (jeu de mots, expression, double sens). */
   c3?: string;
+  /** Indices supplémentaires du même niveau, tirés au hasard avec le principal. */
+  more2?: string[];
+  more3?: string[];
+}
+
+/** Tous les indices d'un mot. */
+export function allClues(e: Entry): string[] {
+  return [e.c, e.c2, e.c3, ...(e.more2 ?? []), ...(e.more3 ?? [])].filter((c): c is string => !!c);
 }
 
 export type Tier = 1 | 2 | 3;
