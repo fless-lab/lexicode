@@ -353,11 +353,14 @@ export function Wardrobe({ ctx, back }: { ctx: ShopCtx; back: () => void }) {
             const on = shownVal(tab) === val(i);
             const isEq = equipped[tab] === val(i);
             return (
-              <button key={i.id} className={`icard sm ${on ? 'on' : ''} ${i.unlock && !mine(i) ? 'locked' : ''}`} onClick={() => tryOn(i)}>
-                <Loupi bust={tab === 'hat' || tab === 'loupe'} size={tab === 'hat' || tab === 'loupe' ? 64 : 76} mood={tab === 'loupe' ? 'think' : 'idle'} outfit={{ [tab]: val(i) } as Outfit} />
-                <b>{i.name[lang]}</b>
-                {mine(i) ? (isEq ? <span className="ptag eq"><Icon name="check" size={14} />{S.equipped}</span> : <span className="ptag own">{S.owned}</span>) : <Action ctx={ctx} i={i} shop={shop} />}
-              </button>
+              <div key={i.id} className={`icard sm ${on ? 'on' : ''} ${i.unlock && !mine(i) ? 'locked' : ''}`}>
+                {/* L'essayage et l'achat sont deux boutons distincts : un bouton ne peut pas en contenir un autre. */}
+                <button className="icard-try" onClick={() => tryOn(i)} aria-pressed={on}>
+                  <Loupi bust={tab === 'hat' || tab === 'loupe'} size={tab === 'hat' || tab === 'loupe' ? 64 : 76} mood={tab === 'loupe' ? 'think' : 'idle'} outfit={{ [tab]: val(i) } as Outfit} />
+                  <b>{i.name[lang]}</b>
+                </button>
+                {mine(i) ? (isEq ? <span className="ptag eq"><Icon name="check" size={14} />{S.equipped}</span> : <button className="ptag own" onClick={() => tryOn(i)}>{S.owned}</button>) : <Action ctx={ctx} i={i} shop={shop} />}
+              </div>
             );
           })}
         </div>

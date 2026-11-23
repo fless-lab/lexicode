@@ -60,8 +60,11 @@ export const EVENTS: SeasonalEvent[] = [
 
 /** L'événement en cours à cette date, ou celui forcé par ?event= pour l'aperçu. */
 export function activeEvent(day: string): SeasonalEvent | null {
-  const forced = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('event') : null;
+  const qp = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null;
+  const forced = qp?.get('event');
   if (forced) return EVENTS.find((e) => e.id.startsWith(forced)) ?? null;
+  // ?preview=event sans événement en cours : on montre le premier, plutôt qu'un écran vide.
+  if (qp?.get('preview') === 'event') return EVENTS.find((e) => day >= e.start && day <= e.end) ?? EVENTS[0] ?? null;
   return EVENTS.find((e) => day >= e.start && day <= e.end) ?? null;
 }
 

@@ -78,11 +78,13 @@ h3 { font-size: 20px; line-height: 1.2; }
   text-shadow: 0 1px 0 rgba(255, 255, 255, .35);
 }
 .btn.primary::after {
-  content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%;
+  content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: 0;
   background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .45), transparent);
+  transform: translateX(-150%); will-change: transform;
   animation: sheen 4.8s ease-in-out infinite 1.2s; pointer-events: none;
 }
-@keyframes sheen { 0%, 70% { left: -60%; } 100% { left: 130%; } }
+/* Le reflet glisse en transform (composé par le GPU) : animer left recalculait la mise en page à chaque image. */
+@keyframes sheen { 0%, 70% { transform: translateX(-150%); } 100% { transform: translateX(325%); } }
 .btn.primary:active { box-shadow: 0 1px 0 var(--brass-lo), inset 0 1px 0 rgba(255, 255, 255, .5); transform: translateY(3px); }
 .btn.ghost { background: transparent; border: 1px solid var(--line); box-shadow: none; }
 .btn.block { width: 100%; }
@@ -384,8 +386,8 @@ h3 { font-size: 20px; line-height: 1.2; }
 .playbar .t2 { font-size: 12.5px; color: var(--mist); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gauge { height: 3px; margin: 0 14px; border-radius: 3px; background: var(--deep); overflow: hidden; }
 .gauge i { display: block; height: 100%; background: var(--brass); transition: width .3s var(--ease); }
-.gauge.time i { background: var(--verdigris); transition: width .25s linear; }
-.gauge.time.hot i { background: var(--cinnabar); }
+.gauge.time i { background: var(--verdigris); transition: width 1s linear; }
+.gauge.time.hot i { background: var(--cinnabar); transition-duration: .25s; }
 .counter.timer { font-variant-numeric: tabular-nums; }
 .counter.timer.hot { background: var(--cinnabar); color: #fff; animation: beat 1s infinite; }
 .counter.timer.frozen { background: #24566b; color: #cfeeff; }
@@ -538,8 +540,10 @@ h3 { font-size: 20px; line-height: 1.2; }
   .stats { grid-template-columns: repeat(2, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
+/* Décors et mascotte hors de l'écran, ou application en arrière-plan : animations en pause. */
+.anim-off, .anim-off *, html.app-hidden * { animation-play-state: paused !important; }
 .reward .sw { display: inline-flex; gap: 2px; }
 .reward .sw span { width: 10px; height: 13px; border-radius: 3px; background: var(--tile); box-shadow: inset 0 -2px 0 var(--tile-edge); }
 .rw .reward { color: inherit; }
@@ -611,6 +615,9 @@ h3 { font-size: 20px; line-height: 1.2; }
 /* ---------- Décors illustrés ---------- */
 .scene { display: block; width: 100%; height: 140px; }
 .sc-tw { animation: twinkle 3s ease-in-out infinite; }
+.tw-0 { animation-duration: 3.4s; }
+.tw-1 { animation-duration: 4.6s; animation-delay: -1.7s; }
+.tw-2 { animation-duration: 2.9s; animation-delay: -2.3s; }
 @keyframes twinkle { 50% { opacity: .25; } }
 .sc-flick { animation: flicker 5s ease-in-out infinite; }
 @keyframes flicker { 0%, 100% { opacity: 1; } 42% { opacity: .82; } 44% { opacity: .95; } 46% { opacity: .78; } 60% { opacity: .92; } }
@@ -774,7 +781,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: var(--g
 .tile::after { content: ''; position: absolute; right: -26px; top: -26px; width: 96px; height: 96px; border-radius: 50%; background: rgba(255,255,255,.1); }
 .tile:active { transform: translateY(2px); box-shadow: inset 0 -3px 0 rgba(0,0,0,.22), 0 2px 0 rgba(0,0,0,.35); }
 .t-wide { grid-column: 1 / -1; flex-direction: row; align-items: center; min-height: 76px; gap: 14px; }
-.t-wide span { display: flex; flex-direction: column; }
+.t-wide span { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .t-wide b { margin-top: 0; }
 .t-violet { --tc: #7a5af5; } .t-coral { --tc: #f2664b; } .t-gold { --tc: #e6a417; } .t-teal { --tc: #16a88f; } .t-blue { --tc: #3c64e6; }
 
@@ -823,6 +830,10 @@ h1, h2, h3 { font-weight: 400; letter-spacing: .01em; text-shadow: 0 2px 0 rgba(
 .cell.sel .l { animation: none; background: #fff3c4; box-shadow: 0 0 0 3px var(--brass), 0 3px 0 3px var(--brass-lo); }
 .cell.same .l { box-shadow: inset 0 0 0 2.5px color-mix(in srgb, var(--brass) 70%, transparent); }
 .cell.ok .l { background: var(--go); color: #fff; box-shadow: inset 0 -4px 0 var(--go-lo), 0 0 0 2px var(--outline); }
+/* Mauvaise lettre : tuile rouge franche et petite secousse, lisible d'un coup d'œil (l'ancien liseré rose passait inaperçu). */
+.cell.wrong .l { background: var(--cinnabar); color: #fff; text-shadow: 0 1px 0 #a3222b; box-shadow: inset 0 -4px 0 #b8323a, 0 0 0 2px var(--outline), 0 3px 0 2px var(--outline); animation: wrongpop .34s var(--ease) both; }
+.cell.sel.wrong .l { box-shadow: inset 0 -4px 0 #b8323a, 0 0 0 3px var(--brass), 0 3px 0 3px var(--brass-lo); }
+@keyframes wrongpop { 0% { transform: scale(1.12); } 30% { transform: translateX(-3px); } 60% { transform: translateX(3px); } 100% { transform: none; } }
 .key {
   border-radius: 12px; background: #fff; color: var(--tile-ink); font-weight: 400; font-size: 21px;
   box-shadow: inset 0 -4px 0 var(--tile-edge), 0 0 0 2px var(--outline), 0 4px 0 2px var(--outline);
@@ -864,6 +875,10 @@ h1, h2, h3 { font-weight: 400; letter-spacing: .01em; text-shadow: 0 2px 0 rgba(
 .tools { gap: 6px; padding: 0 4px; }
 .tool { min-width: 0; font-size: 12.5px; gap: 4px; }
 .tool.boost { flex: 0 0 42px; }
+/* Avec les bonus, six boutons sur une ligne : les aides passent en colonne (icône, nom, prix) pour que rien ne se chevauche. */
+.tools.compact .tool:not(.boost) { flex-direction: column; gap: 1px; height: 48px; font-size: 11.5px; line-height: 1.05; }
+.tools.compact .tool:not(.boost) small { font-size: 11px; }
+.tools.compact .tool.boost { height: 48px; }
 
 /* ---------- Finitions arcade ---------- */
 .btn.primary { box-shadow: inset 0 -5px 0 var(--go-lo), inset 0 3px 0 rgba(255,255,255,.2), 0 4px 0 var(--outline); }
@@ -997,6 +1012,7 @@ h1, h2, h3 { font-weight: 400; letter-spacing: .01em; text-shadow: 0 2px 0 rgba(
 .icard { flex: none; width: 132px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px 12px; border-radius: 18px; background: var(--deep); border: 2.5px solid var(--outline); box-shadow: 0 4px 0 var(--outline); text-align: center; }
 .icard b { font-family: var(--serif); font-weight: 400; font-size: 15px; line-height: 1.1; }
 .icard.sm { width: auto; }
+.icard-try { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
 .icard.locked .loupi, .icard.locked .mini-tiles { filter: saturate(.25) brightness(.7); }
 .icard.on { box-shadow: inset 0 0 0 2.5px var(--brass), 0 4px 0 var(--outline); }
 .icard.row { width: auto; flex-direction: row; text-align: left; align-items: center; gap: 10px; padding: 12px; }
@@ -1325,9 +1341,12 @@ button.ptag { cursor: pointer; }
 .dr-meta { display: inline-flex; gap: 10px; } .dr-meta span { display: inline-flex; gap: 3px; align-items: center; }
 .vs-mid { justify-content: center; align-items: center; }
 .t-red { --tc: #e8475a; }
-.mp-tile small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.mp-tile small { display: block; line-height: 1.3; } /* Le sous-titre passe à la ligne au lieu de sortir de la carte (espagnol surtout). */
 .mp-row .rl-icon { background: #e8475a; color: #fff; }
 .modal.countdown { flex-direction: column; gap: 10px; background: rgba(6,7,24,.55); }
 .modal.countdown .vs-count { width: 110px; height: 110px; font-size: 72px; }
 .modal.countdown p { font-family: var(--serif); font-size: 22px; color: #fff; text-shadow: 0 2px 0 var(--outline); }
 .app-dim { min-height: 100vh; }
+
+/* En partie, Loupi reste immobile tant qu'il n'a rien à exprimer : ses animations de repos coûtaient à chaque image. */
+.loupi.buddy.m-idle, .loupi.buddy.m-idle * { animation: none; }

@@ -1,6 +1,7 @@
 // Loupi, le raton laveur d'Ada. Personnage original, dessiné en pièces séparées
 // (queue, corps, tête, oreilles, yeux, bras, loupe) pour être animé par humeur.
-import { createContext, useContext, useId } from 'react';
+import { createContext, useContext, useId, useRef } from 'react';
+import { useOffscreenPause } from './useOffscreenPause';
 
 export type Mood = 'idle' | 'happy' | 'sad' | 'think' | 'wow';
 export type HatId = 'deerstalker' | 'beret' | 'conductor' | 'tophat' | 'santa';
@@ -164,8 +165,10 @@ export function Loupi({ mood = 'idle', size = 120, bust = false, className = '',
   const vb = bust ? '22 14 156 128' : '0 0 200 200';
   const lens = mood === 'think';
   const earTilt = mood === 'sad' ? 16 : mood === 'wow' ? -6 : 0;
+  const ref = useRef<SVGSVGElement>(null);
+  useOffscreenPause(ref);
   return (
-    <svg className={`loupi m-${mood} ${className}`} viewBox={vb} width={size} height={bust ? size * (128 / 156) : size} role={title ? 'img' : undefined} aria-label={title} aria-hidden={title ? undefined : true}>
+    <svg ref={ref} className={`loupi m-${mood} ${className}`} viewBox={vb} width={size} height={bust ? size * (128 / 156) : size} role={title ? 'img' : undefined} aria-label={title} aria-hidden={title ? undefined : true}>
       <defs>
         <radialGradient id={`${id}-lens`} cx=".35" cy=".35" r=".8">
           <stop offset="0" stopColor="#ffffff" stopOpacity=".55" />

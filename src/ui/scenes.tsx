@@ -1,6 +1,7 @@
 // Décors illustrés, dessinés en SVG. Ils prennent les couleurs du thème courant
 // (variables CSS), donc chaque chapitre repeint sa scène sans asset supplémentaire.
-import { useId, type CSSProperties, type ReactNode } from 'react';
+import { useId, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useOffscreenPause } from './useOffscreenPause';
 
 export type SceneKind =
   | 'home' | 'atelier' | 'library' | 'train' | 'archives'
@@ -60,16 +61,18 @@ function gear(cx: number, cy: number, r: number, teeth: number, depth = 0.18): s
 }
 
 function Stars({ seed, n, maxY = 110, big = false }: { seed: number; n: number; maxY?: number; big?: boolean }) {
+  // Trois cohortes qui scintillent chacune à son rythme : trois animations au lieu d'une par étoile.
   const r = rng(seed);
+  const groups: ReactNode[][] = [[], [], []];
+  for (let i = 0; i < n; i++) {
+    const size = r() < (big ? 0.25 : 0.12) ? 1.6 : 0.9;
+    const cx = r() * W, cy = r() * maxY;
+    r(); r(); // anciens délai et durée propres à chaque étoile : on garde le tirage pour que les étoiles restent à leur place
+    groups[i % 3].push(<circle key={i} cx={cx} cy={cy} r={size} />);
+  }
   return (
-    <g>
-      {Array.from({ length: n }, (_, i) => {
-        const size = r() < (big ? 0.25 : 0.12) ? 1.6 : 0.9;
-        return (
-          <circle key={i} className="sc-tw" cx={r() * W} cy={r() * maxY} r={size}
-            style={{ ...fill(v('bone')), animationDelay: `${(r() * 5).toFixed(2)}s`, animationDuration: `${(2.6 + r() * 3).toFixed(2)}s` }} />
-        );
-      })}
+    <g style={fill(v('bone'))}>
+      {groups.map((g, k) => <g key={k} className={`sc-tw tw-${k}`}>{g}</g>)}
     </g>
   );
 }
@@ -471,8 +474,10 @@ export function Scene({ kind, className = '', height, decor }: { kind: SceneKind
   const raw = useId();
   const id = `s${raw.replace(/[^a-zA-Z0-9]/g, '')}`;
   const Draw = DRAW[kind];
+  const ref = useRef<SVGSVGElement>(null);
+  useOffscreenPause(ref);
   return (
-    <svg className={`scene ${className}`} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" style={height ? { height } : undefined} aria-hidden="true">
+    <svg ref={ref} className={`scene ${className}`} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" style={height ? { height } : undefined} aria-hidden="true">
       <Defs id={id} />
       <Draw id={id} />
       {decor === 'xmas' && <DecorXmas />}

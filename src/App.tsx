@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Lang } from './engine/types';
 import { PACKS } from './content';
 import { STRINGS } from './i18n';
@@ -23,11 +23,16 @@ import { SHOP_STRINGS, fmtS } from './i18n-shop';
 import { EVENTS } from './events';
 import { RANKED } from './modes';
 import { apiEnabled, openGame, finishGame, syncProfile } from './services/api';
-import { MultiPreview } from './ui/multi-preview';
-import { MultiFlow, type FlowStart, type RewardInfo } from './ui/MultiFlow';
+import { installHiddenPause } from './ui/useOffscreenPause';
+import type { FlowStart, RewardInfo } from './ui/MultiFlow';
 import type { Gains } from './ui/multi';
 import { LangPicker, Home, Arena, Season, Ranking, Album, Profile, League, Settings, Premium, TabBar, type Screen } from './ui/screens';
 import { AdventureScreen, ChapterIntro, RelicPicker, themeOf, MOD_ICON, RELIC_ICON } from './ui/adventure';
+
+// Le jeu à plusieurs (Colyseus et ses écrans) n'est chargé qu'à la demande : il ne pèse plus sur le démarrage.
+const loadMulti = () => import('./ui/MultiFlow');
+const MultiFlow = lazy(() => loadMulti().then((m) => ({ default: m.MultiFlow })));
+const MultiPreview = lazy(() => import('./ui/multi-preview').then((m) => ({ default: m.MultiPreview })));
 import { levelInfo, LEVELS_PER_CHAPTER } from './chapters';
 import { STORY } from './content/story';
 import { makeFloor, floorName, floorPalette, relicOffer, count, START_HEARTS, MAX_HEARTS, type Run, type RelicId, type Floor } from './expedition';
@@ -63,6 +68,7 @@ interface Toast {
 }
 
 const TAB_SCREENS: Screen[] = ['home', 'arena', 'season', 'ranking', 'profile'];
+const PREVIEWS: Screen[] = [...TAB_SCREENS, 'album', 'league', 'settings', 'premium', 'adventure', 'shop', 'wardrobe', 'event', 'packs', 'archive'];
 
 export default function App() {
   const [save, setSave] = useState<Save>(loadSave);
@@ -70,7 +76,9 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>(() => {
     const qp = new URLSearchParams(location.search);
     if (qp.get('salon') || qp.get('defi')) return 'multi';
-    return (qp.get('preview') as Screen) || 'home';
+    // Seules les maquettes connues sont acceptées ; une valeur inconnue ramène à l'accueil.
+    const preview = qp.get('preview') as Screen | null;
+    return preview && PREVIEWS.includes(preview) ? preview : 'home';
   });
   const [mode, setMode] = useState<Mode | null>(null);
   const [deadline, setDeadline] = useState<number | null>(null);
@@ -139,14 +147,31 @@ export default function App() {
   }, [save.campaign, save.league.tier, save.lang]);
   const daily = useMemo(() => dailyPuzzle(pack, day), [pack, day]);
 
-  // À l'ouverture : clôture de la ligue, nouvelle saison, nouvelles quêtes.
+  // Au retour de l'arrière-plan : animations relancées et nouveau rendu, pour que le changement de jour soit vu
+  // même si Android a gardé l'application en mémoire plusieurs jours.
+  const [, wake] = useState(0);
+  useEffect(() => {
+    const off = installHiddenPause();
+    const onVis = () => { if (!document.hidden) wake((x) => x + 1); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => { off(); document.removeEventListener('visibilitychange', onVis); };
+  }, []);
+
+  // Préchargement discret du jeu à plusieurs une fois l'accueil affiché, pour qu'il s'ouvre sans attente.
+  useEffect(() => {
+    if (screen !== 'home') return;
+    const id = setTimeout(() => { void loadMulti().catch(() => undefined); }, 2500);
+    return () => clearTimeout(id);
+  }, [screen]);
+
+  // À l'ouverture, puis à chaque nouveau jour : clôture de la ligue, nouvelle saison, nouvelles quêtes.
   useEffect(() => {
     const { save: n0, result } = rollLeague(saveRef.current);
     const n = { ...n0, season: freshSeason(day, n0.season), quests: freshQuests(day, n0.quests) };
     setSave(n);
     if (result === 'up') setTimeout(() => toast(`${t.leagueUp} : ${t.leagueNames[n.league.tier]}`, 'lvl', 'medal'), 600);
     if (result === 'down') setTimeout(() => toast(`${t.leagueDown} : ${t.leagueNames[n.league.tier]}`, 'info', 'medal'), 600);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [day]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const puzzle = useMemo(() => (mode ? puzzleFor(pack, mode) : null), [mode, pack]);
   const rules = useMemo(() => (mode ? rulesFor(mode) : null), [mode]);
@@ -390,7 +415,7 @@ export default function App() {
 
   if (!save.lang) return <LangPicker onPick={(l) => setSave((s) => ({ ...s, lang: l }))} />;
   const mpPreview = new URLSearchParams(location.search).get('preview');
-  if (mpPreview?.startsWith('mp-')) return <div className={`app kbs-${save.equip.keyboard}`}><MultiPreview which={mpPreview} lang={lang} save={save} /></div>;
+  if (mpPreview?.startsWith('mp-')) return <div className={`app kbs-${save.equip.keyboard}`}><Suspense fallback={null}><MultiPreview which={mpPreview} lang={lang} save={save} /></Suspense></div>;
 
   // ---------- Actions ----------
   const spend = (k: number) => {
@@ -649,6 +674,7 @@ export default function App() {
       {screen === 'packs' && <PacksScreen ctx={shopCtx} back={() => setScreen('shop')} play={(ref, idx) => start({ kind: 'pack', ref, idx, d: 2, nonce: String(idx) })} openShop={() => setScreen('shop')} />}
       {screen === 'archive' && <ArchiveScreen ctx={shopCtx} day={day} back={() => setScreen('profile')} play={(date) => start({ kind: 'archive', date, d: 2, nonce: date })} openShop={() => setScreen('shop')} />}
       {screen === 'multi' && (
+        <Suspense fallback={<div className="lazy-wait" />}>
         <MultiFlow
           lang={lang}
           save={save}
@@ -661,6 +687,7 @@ export default function App() {
             setScreen('home');
           }}
         />
+        </Suspense>
       )}
       {screen === 'premium' && <Premium t={t} save={save} setSave={setSave} back={() => setScreen('home')} />}
       {TAB_SCREENS.includes(screen) && <TabBar t={t} screen={screen} go={setScreen} badges={{ home: questReady, season: tierReady }} />}

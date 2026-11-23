@@ -122,11 +122,14 @@ export function Play(props: Props) {
     if (location.search.includes('qa')) (window as unknown as { __lexi: () => Puzzle }).__lexi = () => puzzle;
   }, [puzzle]);
 
+  // Une horloge à la seconde suffit à l'affichage ; on passe au quart de seconde dans les quinze dernières secondes
+  // d'un chrono, pour le décompte sonore. Avant, l'écran entier se redessinait cinq fois par seconde.
+  const lastSeconds = deadline !== null && deadline - now < 16000;
   useEffect(() => {
     if (isOver(g)) return;
-    const id = setInterval(() => setNow(Date.now()), 200);
+    const id = setInterval(() => setNow(Date.now()), lastSeconds ? 250 : 1000);
     return () => clearInterval(id);
-  }, [g.finished, g.failed]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [g.finished, g.failed, lastSeconds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isFrozen = frozen !== null && now < frozen.until;
   const remaining = deadline !== null ? deadline - (isOver(g) ? g.startedAt + g.elapsedMs : now) : null;
@@ -136,6 +139,7 @@ export function Play(props: Props) {
   }, [remaining, g, tuto]);
 
   const lastTick = useRef(-1);
+  const endTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
     if (remaining === null || isOver(g) || isFrozen) return;
     const sec = Math.ceil(remaining / 1000);
@@ -163,13 +167,25 @@ export function Play(props: Props) {
       reported.current = key;
       sfx.win();
       // La phrase s'illumine avant l'écran de résultat.
-      setTimeout(() => onFinish(info()), 900);
+      endTimer.current = setTimeout(() => onFinish(info()), 900);
     } else if (g.failed && g.failReason) {
       reported.current = key;
       sfx.fail();
-      setTimeout(() => onFail(g.failReason!, info()), 500);
+      endTimer.current = setTimeout(() => onFail(g.failReason!, info()), 500);
     }
   }, [g, puzzle, onFinish, onFail, deadline]);
+  // Quitter la partie pendant l'illumination finale ne doit pas ouvrir l'écran de résultat.
+  useEffect(() => () => clearTimeout(endTimer.current), []);
+
+  // Exemple du tutoriel : un vrai mot de la grille où un numéro revient, et seule cette lettre est dévoilée,
+  // pour montrer que le même numéro cache toujours la même lettre.
+  const tutoExample = useMemo(() => {
+    const words = puzzle.words.filter((w) => w.answer.length <= 8);
+    const withRepeat = words.find((w) => new Set(w.codes).size < w.codes.length) ?? words[0] ?? puzzle.words[0];
+    const codes = withRepeat?.codes ?? [];
+    const shown = codes.find((c, i) => codes.indexOf(c) !== i) ?? codes[0];
+    return { letters: [...(withRepeat?.answer ?? '')], codes, shown };
+  }, [puzzle]);
 
   const selCode = g.sel ? codeAt(puzzle, g.sel) : null;
   const selWord = g.sel?.kind === 'word' ? g.sel.w : null;
@@ -204,16 +220,21 @@ export function Play(props: Props) {
     });
   };
 
+  // Écouteur posé une seule fois ; il lit la dernière version de press par une référence.
+  const pressRef = useRef(press);
+  pressRef.current = press;
+  const oracleRef = useRef(oracle);
+  oracleRef.current = oracle;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (oracle || e.metaKey || e.ctrlKey) return;
+      if (oracleRef.current || e.metaKey || e.ctrlKey) return;
       const k = e.key.toUpperCase();
-      if (/^[A-Z]$/.test(k)) press(k);
+      if (/^[A-Z]$/.test(k)) pressRef.current(k);
       else if (e.key === 'Backspace') setG((s) => erase(s));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  });
+  }, []);
 
   const price = (n: number) => (rules.cheapHints ? Math.ceil(n / 2) : n);
   const pay = (n: number): boolean => {
@@ -426,7 +447,7 @@ export function Play(props: Props) {
           {props.dockExtra ? null : rules.noHints ? (
             <p className="nohints"><Icon name="lock" size={15} />{t.hintsOff}</p>
           ) : (
-            <div className="tools">
+            <div className={`tools ${showBoosters ? 'compact' : ''}`}>
               <button className="tool" onClick={hintLetter}><Icon name="bulb" size={17} />{t.hint}{freeLeft > 0 ? <small>{t.free} x{freeLeft}</small> : !premium && <small><Icon name="token" size={12} />{price(COST.letter)}</small>}</button>
               {!puzzle.cryptogram && <button className="tool" onClick={openOracle}><Icon name="search" size={17} />{t.oracle}{!premium && <small><Icon name="token" size={12} />{price(COST.oracle)}</small>}</button>}
               {!puzzle.cryptogram && <button className="tool" onClick={hintWord}><Icon name="sparkle" size={17} />{t.hintWord}{!premium && <small><Icon name="token" size={12} />{price(COST.word)}</small>}</button>}
@@ -488,8 +509,8 @@ export function Play(props: Props) {
             <div className="tutodemo">
               {tuto === 0 && (
                 <div className="wcells">
-                  {['S', 'A', 'L', 'U', 'T'].map((l, i) => (
-                    <span className={`cell ${i === 1 || i === 4 ? 'good' : ''}`} key={i}><span className="l">{i === 1 || i === 4 ? l : ''}</span><span className="n">{[10, 3, 9, 4, 5][i]}</span></span>
+                  {tutoExample.letters.map((l, i) => (
+                    <span className={`cell ${tutoExample.codes[i] === tutoExample.shown ? 'good' : ''}`} key={i}><span className="l">{tutoExample.codes[i] === tutoExample.shown ? l : ''}</span><span className="n">{tutoExample.codes[i]}</span></span>
                   ))}
                 </div>
               )}
