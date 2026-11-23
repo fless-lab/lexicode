@@ -7,7 +7,7 @@ Jeu de mots-codes : chaque lettre porte un numéro, les mots trouvés grâce aux
 ```
 npm install
 npm run dev          # jouer dans le navigateur
-npm run verify       # génère et contrôle 3 270 grilles et les règles d'échec (doit afficher 0 problème)
+npm run verify       # génère et contrôle 3 909 grilles (aventure, expédition, tous les modes) (doit afficher 0 problème)
 npm run build        # version web pour Android
 npm run build:single # un seul fichier HTML, pratique pour faire tester
 ```
@@ -19,6 +19,29 @@ Chaque push sur `master` vérifie les grilles, compile et publie le jeu sur GitH
 ## Direction artistique
 
 Salle de chiffrement : sarcelle profonde, laiton, tuiles ivoire façon touches de machine. Polices embarquées Zilla Slab (tuiles, titres, chiffres) et Figtree (interface). Icônes dessinées en SVG (`src/ui/Icon.tsx`), aucun emoji. Sons entièrement synthétisés (`src/sound.ts`) : clic de touche, notes de marimba qui montent avec le combo, cloches de victoire, réverbération générée.
+
+## Aventure : Le Cabinet noir
+
+Un récit en 8 chapitres de 12 niveaux (`src/chapters.ts`, textes dans `src/content/story.ts`). Ada, une vieille cryptographe, a disparu ; le dernier niveau de chaque chapitre est son message chiffré, qui mène au lieu suivant. Chaque chapitre a son décor (palette) et ajoute une mécanique :
+
+1. L'Atelier : les bases.
+2. La Bibliothèque : indices subtils, moins de lettres données.
+3. Le Train de nuit : chrono.
+4. Les Archives brûlées : taches d'encre (numéros cachés).
+5. L'Observatoire : indices enchaînés et malins.
+6. La Salle des machines : trois vies, encre, indices délavés.
+7. La Tour du chiffre : cryptogrammes purs.
+8. Le Cabinet noir : tout à la fois, avec la brume sur la phrase.
+
+Après le chapitre 8, un nouveau cycle recommence, plus dur (difficulté, encre, indices délavés, brume).
+
+## Expédition (procédurale)
+
+Descente infinie (`src/expedition.ts`) : chaque étage est généré à partir de la graine et de la profondeur (nom du lieu, palette, altérations qui se cumulent). Trois cœurs pour toute la descente, une relique à choisir entre les étages, un sanctuaire tous les cinq étages. Expédition du jour identique pour tous, une tentative par jour.
+
+## Indices à trois niveaux
+
+Environ 300 mots par langue avec un indice facile, moyen et malin (`src/content/lex-*.ts`, format `MOT|facile|moyen|malin`). La difficulté choisit le niveau ; le vérificateur refuse les doublons, les réponses présentes dans l'indice et les tirets cadratins.
 
 ## Ce qui est en place
 

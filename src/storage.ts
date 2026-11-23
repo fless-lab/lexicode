@@ -38,6 +38,10 @@ export interface Save {
   season: SeasonState;
   skins: SkinId[];
   skin: SkinId;
+  /** Chapitres dont l'ouverture a été lue. */
+  seenChapters: number[];
+  /** Expédition du jour : profondeur atteinte par date. */
+  expDaily: Record<string, number>;
 }
 
 export interface ModeRecord {
@@ -78,6 +82,8 @@ export function emptySave(): Save {
     season: { id: 0, xp: 0, claimed: [], claimedPremium: [] },
     skins: ['ivory'],
     skin: 'ivory',
+    seenChapters: [],
+    expDaily: {},
   };
 }
 

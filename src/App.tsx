@@ -13,6 +13,11 @@ import { applyQuests, freshQuests, freshSeason, questsFor, QUEST_BONUS, tierRewa
 import { sfx, setSound } from './sound';
 import { Icon, MODE_ICON, achIcon } from './ui/Icon';
 import { LangPicker, Home, Arena, Season, Ranking, Album, Profile, League, Settings, Premium, TabBar, type Screen } from './ui/screens';
+import { AdventureScreen, ChapterIntro, RelicPicker, campaignLevel, themeOf, MOD_ICON, RELIC_ICON } from './ui/adventure';
+import { levelInfo, LEVELS_PER_CHAPTER } from './chapters';
+import { STORY } from './content/story';
+import { makeFloor, floorName, floorPalette, relicOffer, count, START_HEARTS, MAX_HEARTS, type Run, type RelicId, type Floor } from './expedition';
+import type { Perks } from './ui/Play';
 
 interface End {
   type: 'win' | 'fail' | 'marathon';
@@ -28,6 +33,9 @@ interface End {
   maxCombo: number;
   reason?: 'time' | 'mistakes';
   run?: number;
+  /** Fin d'expédition. */
+  depth?: number;
+  floor?: string;
 }
 
 interface Toast {
@@ -48,6 +56,8 @@ export default function App() {
   const [end, setEnd] = useState<End | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [adOpen, setAdOpen] = useState<'offer' | 'playing' | null>(null);
+  const [intro, setIntro] = useState<{ chapter: number; cycle: number; abs: number; mode: Mode } | null>(null);
+  const [relicChoice, setRelicChoice] = useState<{ run: Run; offer: RelicId[]; next: Floor } | null>(null);
   const marathonStart = useRef(0);
   const saveRef = useRef(save);
   saveRef.current = save;
@@ -80,7 +90,16 @@ export default function App() {
   const puzzle = useMemo(() => (mode ? puzzleFor(pack, mode) : null), [mode, pack]);
   const rules = useMemo(() => (mode ? rulesFor(mode) : null), [mode]);
 
-  const start = (m: Mode) => {
+  const start = (m: Mode, skipIntro = false) => {
+    // Ouverture de chapitre, une seule fois par chapitre.
+    if (m.kind === 'level' && !skipIntro) {
+      const info = levelInfo(m.level!);
+      const abs = Math.floor((m.level! - 1) / LEVELS_PER_CHAPTER);
+      if (info.step === 0 && !saveRef.current.seenChapters.includes(abs)) {
+        setIntro({ chapter: info.chapter, cycle: info.cycle, abs, mode: m });
+        return;
+      }
+    }
     const r = rulesFor(m);
     sfx.open();
     setMode(m);
@@ -153,6 +172,21 @@ export default function App() {
       return;
     }
 
+    if (mode.kind === 'expedition') {
+      const run = mode.exp!;
+      const cleared = run.depth;
+      let hearts = run.hearts - info.mistakes;
+      // Après un sanctuaire, on récupère un cœur.
+      if (cleared % 5 === 4) hearts = Math.min(MAX_HEARTS, hearts + 1);
+      const next: Run = { ...run, depth: run.depth + 1, hearts };
+      const al = new Set(s0.album[lang] ?? []);
+      al.add(puzzle.phraseIndex);
+      const { save: n2 } = progressAfter({ ...s0, album: { ...s0.album, [lang]: [...al] } }, { kind: 'expedition', won: true, score: info.score, ms: info.ms, stars: info.stars, hints: info.hints, mistakes: info.mistakes, d: puzzle.difficulty, maxCombo: info.maxCombo, words: info.words });
+      setSave(n2);
+      setRelicChoice({ run: next, offer: relicOffer(next), next: makeFloor(next.seed, next.depth) });
+      return;
+    }
+
     const boss = mode.kind === 'level' && isBossLevel(mode.level!);
     const timeBonus = info.remainingMs !== null ? Math.round((info.remainingMs / 1000) * 4) : 0;
     const score = Math.round(info.score * rules.mult) + timeBonus;
@@ -201,6 +235,17 @@ export default function App() {
   const onFail = (reason: 'time' | 'mistakes', info: FinishInfo) => {
     if (!mode || !puzzle) return;
     const s0 = saveRef.current;
+    if (mode.kind === 'expedition') {
+      const run = mode.exp!;
+      const depth = run.depth;
+      const prev = s0.records[lang]?.expedition?.best ?? 0;
+      let n = bumpRecord({ ...s0, stats: { ...s0.stats, played: s0.stats.played + 1 } }, lang, 'expedition', depth > 0, depth, Date.now() - marathonStart.current);
+      if (run.daily) n = { ...n, expDaily: { ...n.expDaily, [`${lang}:${day}`]: depth } };
+      const { save: n2, xp } = progressAfter(n, { kind: 'expedition', won: false, score: depth, ms: info.ms, stars: 0, hints: info.hints, mistakes: info.mistakes, d: puzzle.difficulty, run: depth, maxCombo: info.maxCombo, words: info.words });
+      setSave(n2);
+      setEnd({ type: 'marathon', score: depth, stars: 0, ms: Date.now() - marathonStart.current, mistakes: info.mistakes, hints: 0, timeBonus: 0, ratingDelta: 0, record: depth > prev && prev > 0, xp, maxCombo: info.maxCombo, reason, depth, floor: floorName(lang, makeFloor(run.seed, run.depth)) });
+      return;
+    }
     if (mode.kind === 'marathon') {
       const run = mode.run ?? 0;
       const total = Date.now() - marathonStart.current;
@@ -268,6 +313,23 @@ export default function App() {
     });
     toast(t.gotReward, 'info', r.skin ? 'palette' : r.booster ? 'sparkle' : 'token');
   };
+  const startExpedition = (daily: boolean) => {
+    const seed = daily ? `${lang}-${day}` : `${lang}-${Date.now().toString(36)}`;
+    const run: Run = { seed, daily, depth: 0, hearts: START_HEARTS, relics: [] };
+    marathonStart.current = Date.now();
+    start({ kind: 'expedition', d: 1, nonce: seed, exp: run });
+    marathonStart.current = Date.now();
+  };
+  const pickRelic = (r: RelicId) => {
+    if (!relicChoice) return;
+    const run: Run = { ...relicChoice.run, relics: [...relicChoice.run.relics, r], hearts: r === 'heart' ? Math.min(MAX_HEARTS, relicChoice.run.hearts + 1) : relicChoice.run.hearts };
+    setRelicChoice(null);
+    const r0 = rulesFor({ kind: 'expedition', d: 1, nonce: run.seed, exp: run });
+    setMode({ kind: 'expedition', d: makeFloor(run.seed, run.depth).d, nonce: run.seed, exp: run });
+    setEnd(null);
+    setDeadline(r0.timeMs !== null ? Date.now() + r0.timeMs : null);
+  };
+
   const watchAd = async () => {
     setAdOpen('playing');
     const ok = await ads.showRewarded();
@@ -280,14 +342,24 @@ export default function App() {
 
   const modeName = (m: Mode): string => {
     if (m.kind === 'daily') return t.daily;
-    if (m.kind === 'level') return `${isBossLevel(m.level!) ? t.boss + ', ' : ''}${t.level} ${m.level}`;
+    if (m.kind === 'level') {
+      const i = levelInfo(m.level!);
+      return i.finale ? t.finaleLabel : `${i.boss ? t.boss + ', ' : ''}${t.level} ${i.step + 1}`;
+    }
     if (m.kind === 'practice') return t.practice;
+    if (m.kind === 'expedition') return floorName(lang, makeFloor(m.exp!.seed, m.exp!.depth));
     return (t[`mode_${m.kind}` as 'mode_zen'] as string[])[0];
   };
   const title = mode ? modeName(mode) : '';
+  const floor = mode?.kind === 'expedition' ? makeFloor(mode.exp!.seed, mode.exp!.depth) : null;
+  const levelI = mode?.kind === 'level' ? levelInfo(mode.level!) : null;
   const subtitle = !puzzle
     ? []
-    : mode?.kind === 'marathon'
+    : floor
+      ? [t.floorN.replace('{n}', String(floor.depth + 1)), t.d[floor.d]]
+      : levelI
+        ? [STORY[lang].chapters[levelI.chapter].name, t.d[puzzle.difficulty]]
+        : mode?.kind === 'marathon'
       ? [t.d[marathonDifficulty(mode.run ?? 0)], `${mode.run ?? 0} ${t.grids}`]
       : [t.d[puzzle.difficulty], (t[`cat_${puzzle.category}` as 'cat_fact'] as string) ?? puzzle.category];
 
@@ -301,7 +373,7 @@ export default function App() {
   const nextLevel = () => {
     if (!mode?.level) return;
     const level = mode.level + 1;
-    start({ kind: 'level', level, d: puzzleFor(pack, { ...mode, level }).difficulty, nonce: '' });
+    start({ kind: 'level', level, d: levelInfo(level).d, nonce: '' });
   };
 
   const shareResult = async () => {
@@ -342,14 +414,24 @@ export default function App() {
             <p className="lead">{end.reason === 'time' ? t.failTime : t.failMistakes}</p>
           </>
         )}
-        {end.type === 'marathon' && (
+        {end.type === 'marathon' && end.depth === undefined && (
           <>
             <span className="seal run"><Icon name="run" size={34} /></span>
             <h2>{t.marathonOver}</h2>
             <div className="bignum">{end.run} <small>{t.grids}</small></div>
           </>
         )}
+        {end.depth !== undefined && (
+          <>
+            <span className="seal run"><Icon name="flag" size={34} /></span>
+            <h2>{t.expOver}</h2>
+            <p className="lead">{end.floor}</p>
+            <div className="bignum">{end.depth} <small>{t.depth}</small></div>
+          </>
+        )}
+        {end.type === 'win' && levelI?.finale && <p className="chapnum">{t.storyUnlocked}</p>}
         <p className="quote">{puzzle.phraseText}</p>
+        {end.type === 'win' && levelI?.finale && <p className="story" style={{ fontSize: 16 }}>{STORY[lang].chapters[levelI.chapter].outro}</p>}
         {end.type !== 'marathon' && (
           <div className="kpis">
             <div><b>{end.score}</b><small>{t.score}</small></div>
@@ -369,7 +451,9 @@ export default function App() {
         <div className="row">
           <button className="btn" onClick={shareResult}><Icon name="share" size={18} />{t.share}</button>
           {end.type === 'win' && mode.kind === 'level' ? (
-            <button className="btn primary" onClick={nextLevel}>{t.next}</button>
+            <button className="btn primary" onClick={nextLevel}>{levelI?.finale ? t.nextChapter : t.next}</button>
+          ) : end.depth !== undefined ? (
+            <button className="btn primary" onClick={() => startExpedition(false)}>{t.expFree}</button>
           ) : end.type === 'win' && mode.kind === 'daily' ? (
             <button className="btn primary" onClick={() => { setEnd(null); setMode(null); setScreen('ranking'); }}>{t.ranking}</button>
           ) : end.type === 'fail' && (mode.kind === 'level' || mode.kind === 'daily') ? (
@@ -383,15 +467,36 @@ export default function App() {
     </div>
   );
 
+  const worldTheme =
+    screen === 'play'
+      ? mode?.kind === 'level' ? `theme-${themeOf(mode.level!)}` : ''
+      : `theme-${themeOf(campaignLevel(save, lang))}`;
+
+  function chapterChips(i: ReturnType<typeof levelInfo>) {
+    const chips: { icon: string; label: string }[] = [];
+    const p = puzzle!;
+    if (p.mods?.ink) chips.push({ icon: MOD_ICON.ink, label: t.m_ink });
+    if (p.mods?.fog) chips.push({ icon: MOD_ICON.fog, label: t.m_fog });
+    if (p.mods?.chain) chips.push({ icon: MOD_ICON.chain, label: t.m_chain });
+    if (p.mods?.smudge) chips.push({ icon: MOD_ICON.smudge, label: t.m_smudge });
+    if (p.words.some((w) => w.tier === 3) && !p.cryptogram) chips.push({ icon: MOD_ICON.cryptic, label: t.m_cryptic });
+    if (p.cryptogram) chips.push({ icon: MOD_ICON.cipher, label: t.m_cipher });
+    return i.chapter === 0 && i.cycle === 0 ? [] : chips;
+  }
+  function expPerks(run: Run): Perks {
+    return { shield: count(run, 'seal'), reveal: 2 * count(run, 'lantern'), freeLetters: count(run, 'quill') };
+  }
+
   const qs = freshQuests(day, save.quests);
   const questReady = questsFor(day).some((q) => (qs.progress[q.id] ?? 0) >= q.target && !qs.claimed.includes(q.id));
   const se = freshSeason(day, save.season);
   const tierReady = Array.from({ length: seasonTier(se.xp) }, (_, i) => i + 1).some((tier) => !se.claimed.includes(tier));
 
   return (
-    <div className={`app skin-${save.skin}`}>
+    <div className={`app skin-${save.skin} ${worldTheme}`}>
       {screen === 'home' && <Home t={t} save={save} day={day} lang={lang} daily={daily} onStart={start} go={setScreen} setSave={setSave} claimQuest={claimQuest} claimQuestBonus={claimQuestBonus} toast={toast} />}
-      {screen === 'arena' && <Arena t={t} save={save} lang={lang} day={day} onStart={start} setSave={setSave} go={setScreen} />}
+      {screen === 'arena' && <Arena t={t} save={save} lang={lang} day={day} onStart={start} setSave={setSave} go={setScreen} onExpedition={startExpedition} />}
+      {screen === 'adventure' && <AdventureScreen t={t} save={save} lang={lang} onStart={start} back={() => setScreen('home')} />}
       {screen === 'season' && <Season t={t} save={save} day={day} go={setScreen} claimTier={claimTier} setSave={setSave} />}
       {screen === 'ranking' && <Ranking t={t} save={save} lang={lang} day={day} go={setScreen} />}
       {screen === 'profile' && <Profile t={t} save={save} lang={lang} day={day} go={setScreen} />}
@@ -403,8 +508,11 @@ export default function App() {
 
       {screen === 'play' && puzzle && rules && mode && (
         <Play
-          key={mode.kind === 'marathon' ? `m-${mode.nonce}-${mode.run ?? 0}` : `${mode.kind}-${mode.nonce}-${mode.level ?? ''}-${mode.d}`}
+          key={mode.kind === 'marathon' ? `m-${mode.nonce}-${mode.run ?? 0}` : mode.kind === 'expedition' ? `x-${mode.nonce}-${mode.exp!.depth}` : `${mode.kind}-${mode.nonce}-${mode.level ?? ''}-${mode.d}`}
           puzzle={puzzle}
+          palette={floor ? floorPalette(floor.hue) : undefined}
+          chips={floor ? [...floor.mods.map((m) => ({ icon: MOD_ICON[m], label: t[`m_${m}` as 'm_ink'] as string })), ...[...new Set(mode.exp!.relics)].map((r) => ({ icon: RELIC_ICON[r], label: `${(t[`r_${r}` as 'r_heart'] as string[])[0]}${count(mode.exp!, r) > 1 ? ` x${count(mode.exp!, r)}` : ''}` }))] : levelI ? chapterChips(levelI) : undefined}
+          perks={mode.kind === 'expedition' ? expPerks(mode.exp!) : undefined}
           title={title}
           subtitle={subtitle}
           t={t}
@@ -436,6 +544,22 @@ export default function App() {
           }}
         />
       )}
+
+      {intro && (
+        <ChapterIntro
+          t={t}
+          lang={lang}
+          chapter={intro.chapter}
+          cycle={intro.cycle}
+          onBegin={() => {
+            setSave((s) => ({ ...s, seenChapters: [...s.seenChapters, intro.abs] }));
+            const m = intro.mode;
+            setIntro(null);
+            start(m, true);
+          }}
+        />
+      )}
+      {relicChoice && <RelicPicker t={t} lang={lang} run={relicChoice.run} offer={relicChoice.offer} next={relicChoice.next} onPick={pickRelic} />}
 
       {adOpen && (
         <div className="modal" onClick={() => adOpen === 'offer' && setAdOpen(null)}>

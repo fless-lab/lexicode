@@ -173,6 +173,7 @@ export const MODE_ICON: Record<string, string> = {
   hardcore: 'volcano',
   zen: 'leaf',
   cryptogram: 'key',
+  expedition: 'flag',
 };
 
 export const BOOSTER_ICON: Record<string, string> = { freeze: 'snow', shield: 'shield', reveal: 'eye', double: 'double' };
@@ -183,7 +184,7 @@ export function achIcon(id: string): string {
     ['streak', 'flame'], ['ta_', 'hourglass'], ['survival', 'heart'], ['sudden', 'skull'], ['marathon', 'run'],
     ['hardcore', 'volcano'], ['boss', 'crown'], ['world', 'map'], ['album', 'book'], ['polyglot', 'globe'],
     ['rating', 'brain'], ['league', 'medal'], ['no_hint', 'target'], ['comeback', 'rotate'], ['combo', 'combo'],
-    ['crypto', 'key'], ['quests', 'list'], ['season', 'flag'], ['skins', 'palette'],
+    ['crypto', 'key'], ['quests', 'list'], ['season', 'flag'], ['skins', 'palette'], ['chapter', 'book'], ['depth', 'flag'], ['cycle', 'rotate'],
   ];
   return map.find(([p]) => id.startsWith(p))?.[1] ?? 'sparkle';
 }

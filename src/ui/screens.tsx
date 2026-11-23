@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Difficulty, Lang, PhraseCell, Puzzle } from '../engine/types';
-import { worldCategory, LEVELS_PER_WORLD, levelDifficulty } from '../engine/generator';
 import { PACKS, LANGS, detectLang } from '../content';
 import { STRINGS, COUNTRIES, type Strings } from '../i18n';
 import { liveStreak, emptySave, today, type Save } from '../storage';
 import { ranking, type RankRow, type Scope } from '../services/ranking';
 import { billing, REWARD } from '../services/monetization';
 import { rngFromSeed } from '../engine/rng';
-import { ARENA, isBossLevel, levelMode, TIME_LIMIT, rulesFor, type Mode, type ModeKind } from '../modes';
+import { ARENA, TIME_LIMIT, rulesFor, type Mode, type ModeKind } from '../modes';
 import { levelProgress, titleIndex, LEAGUE_SIZE, PROMOTE, DEMOTE, leagueRows, weekKey, weekFraction, ACHIEVEMENTS, playerLevel } from '../progress';
 import {
   questsFor, freshQuests, QUEST_BONUS, BOOSTERS, SKINS, SEASON_TIERS, TIER_XP, seasonOf, seasonDaysLeft, seasonTier,
@@ -16,13 +15,14 @@ import {
 import { fmt } from './Play';
 import { sfx } from '../sound';
 import { Icon, MODE_ICON, BOOSTER_ICON, achIcon } from './Icon';
+import { AdventureCard, ExpeditionCard } from './adventure';
 
-export type Screen = 'home' | 'play' | 'arena' | 'season' | 'ranking' | 'profile' | 'album' | 'league' | 'settings' | 'premium';
+export type Screen = 'home' | 'play' | 'arena' | 'season' | 'ranking' | 'profile' | 'album' | 'league' | 'settings' | 'premium' | 'adventure';
 type SetSave = React.Dispatch<React.SetStateAction<Save>>;
 
 const fill = (s: string, n: number | string) => s.replace('{n}', String(n));
 const modeLabel = (t: Strings, k: ModeKind): string[] =>
-  k === 'daily' ? [t.daily, t.dailySub] : k === 'level' ? [t.campaign, ''] : k === 'practice' ? [t.practice, ''] : (t[`mode_${k}` as 'mode_zen'] as string[]);
+  k === 'daily' ? [t.daily, t.dailySub] : k === 'level' ? [t.adventure, ''] : k === 'practice' ? [t.practice, ''] : k === 'expedition' ? [t.expedition, t.expeditionSub] : ((t[`mode_${k}` as 'mode_zen'] as string[] | undefined) ?? [k, '']);
 
 function untilSunday(): string {
   const now = new Date();
@@ -139,12 +139,6 @@ interface HomeProps {
 
 export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQuest, claimQuestBonus, toast }: HomeProps) {
   const done = save.daily[lang]?.[day];
-  const camp = save.campaign[lang] ?? { level: 1, stars: {} };
-  const level = camp.level;
-  const curWorld = Math.floor((level - 1) / LEVELS_PER_WORLD) + 1;
-  const [world, setWorld] = useState(curWorld);
-  const cat = worldCategory(PACKS[lang], (world - 1) * LEVELS_PER_WORLD + 1);
-  const worldStars = Array.from({ length: LEVELS_PER_WORLD }, (_, i) => camp.stars[(world - 1) * LEVELS_PER_WORLD + i + 1] ?? 0).reduce((a, b) => a + b, 0);
   const plv = playerLevel(save.xp);
   const quests = questsFor(day);
   const qs = freshQuests(day, save.quests);
@@ -154,7 +148,6 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
   const season = freshSeason(day, save.season);
   const sTier = seasonTier(season.xp);
   const chestReady = save.lastChest !== day;
-  const bossD = isBossLevel(level) ? Math.min(5, levelDifficulty(level) + 1) : levelDifficulty(level);
 
   const openChest = () => {
     const r = REWARD.chest[Math.floor(rngFromSeed(`chest|${day}`)() * REWARD.chest.length)];
@@ -281,35 +274,7 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
         </div>
       </section>
 
-      <section className="sec">
-        <div className="sechead">
-          <h3>{t.campaign}</h3>
-          <span className="aside"><Icon name="star" size={14} /> {worldStars}/{LEVELS_PER_WORLD * 3}</span>
-        </div>
-        <div className="worldbar">
-          <button className="iconbtn" disabled={world <= 1} onClick={() => setWorld(world - 1)} aria-label="Monde précédent"><Icon name="back" /></button>
-          <div className="wt"><b>{t.world} {world}</b><small>{t[`cat_${cat}` as 'cat_fact'] ?? cat}</small></div>
-          <button className="iconbtn" disabled={world >= curWorld} onClick={() => setWorld(world + 1)} aria-label="Monde suivant" style={{ transform: 'scaleX(-1)' }}><Icon name="back" /></button>
-        </div>
-        <div className="trail">
-          {Array.from({ length: LEVELS_PER_WORLD }, (_, i) => {
-            const n = (world - 1) * LEVELS_PER_WORLD + i + 1;
-            const st = camp.stars[n] ?? 0;
-            const boss = isBossLevel(n);
-            return (
-              <button key={n} className={`stop ${n === level ? 'cur' : ''} ${st ? 'cleared' : ''} ${boss ? 'boss' : ''}`} disabled={n > level} onClick={() => onStart(levelMode(n))} aria-label={`${t.level} ${n}`}>
-                {boss ? <Icon name="crown" size={20} /> : n > level ? <Icon name="lock" size={15} /> : n}
-                <span className="st">{Array.from({ length: st }, (_, k) => <Icon key={k} name="starFill" size={8} />)}</span>
-              </button>
-            );
-          })}
-        </div>
-        <button className="btn primary block stack" onClick={() => onStart(levelMode(level))}>
-          <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>{isBossLevel(level) && <Icon name="crown" size={18} />}{isBossLevel(level) ? t.boss : t.level} {level}</span>
-          <small>{t.d[bossD]}</small>
-        </button>
-        {isBossLevel(level) && <p className="small muted">{t.bossDesc}</p>}
-      </section>
+      <AdventureCard t={t} save={save} lang={lang} onStart={onStart} open={() => go('adventure')} />
 
       <div className="pair">
         <button className="rowlink" onClick={() => go('season')}>
@@ -331,13 +296,13 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
       </div>
 
       <div className="pair">
+        <button className="rowlink" onClick={() => go('arena')}>
+          <span className="rl-icon"><Icon name="flag" size={22} /></span>
+          <span className="rl-main"><b>{t.expedition}</b><small>{t.bestDepth} {save.records[lang]?.expedition?.best ?? 0}</small></span>
+        </button>
         <button className="rowlink" onClick={() => onStart({ kind: 'practice', d: 2, nonce: String(Date.now()) })}>
           <span className="rl-icon"><Icon name="target" size={22} /></span>
           <span className="rl-main"><b>{t.practice}</b><small>{t.d[2]}</small></span>
-        </button>
-        <button className="rowlink" onClick={() => go('album')}>
-          <span className="rl-icon"><Icon name="book" size={22} /></span>
-          <span className="rl-main"><b>{t.album}</b><small>{(save.album[lang] ?? []).length} / {PACKS[lang].phrases.length}</small></span>
         </button>
       </div>
     </div>
@@ -346,7 +311,7 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
 
 // ---------------- Arène ----------------
 
-export function Arena({ t, save, lang, day, onStart, setSave, go }: { t: Strings; save: Save; lang: Lang; day: string; onStart: (m: Mode) => void; setSave: SetSave; go: (s: Screen) => void }) {
+export function Arena({ t, save, lang, day, onStart, setSave, go, onExpedition }: { t: Strings; save: Save; lang: Lang; day: string; onStart: (m: Mode) => void; setSave: SetSave; go: (s: Screen) => void; onExpedition: (daily: boolean) => void }) {
   const [diffs, setDiffs] = useState<Record<string, Difficulty>>({});
   const plv = playerLevel(save.xp);
   return (
@@ -356,6 +321,7 @@ export function Arena({ t, save, lang, day, onStart, setSave, go }: { t: Strings
         <h2>{t.arena}</h2>
         <p className="muted">{t.arenaSub}</p>
       </div>
+      <ExpeditionCard t={t} save={save} lang={lang} day={day} onDaily={() => onExpedition(true)} onFree={() => onExpedition(false)} />
       {ARENA.map((a) => {
         const [name, desc] = modeLabel(t, a.kind);
         const d = (a.kind === 'hardcore' ? 5 : diffs[a.kind] ?? 2) as Difficulty;
@@ -503,6 +469,7 @@ const BOARDS: { key: string; kind: ModeKind; count?: boolean }[] = [
   { key: 'timeattack:3', kind: 'timeattack' },
   { key: 'survival:3', kind: 'survival' },
   { key: 'sudden:3', kind: 'sudden' },
+  { key: 'expedition', kind: 'expedition', count: true },
   { key: 'marathon', kind: 'marathon', count: true },
   { key: 'cryptogram:3', kind: 'cryptogram' },
   { key: 'hardcore', kind: 'hardcore' },
@@ -543,7 +510,7 @@ export function Ranking({ t, save, lang, day, go }: { t: Strings; save: Save; la
           <li key={i} className={r.isYou ? 'you' : ''}>
             <span className="pos">{i + 1}</span>
             <span className="who">{r.name}<small>{r.place}</small></span>
-            <span className="sc">{r.score}{b.count ? ` ${t.grids}` : ''}<small>{fmt(r.ms)}</small></span>
+            <span className="sc">{r.score}{b.count ? ` ${b.kind === 'expedition' ? '' : t.grids}` : ''}<small>{fmt(r.ms)}</small></span>
           </li>
         ))}
       </ol>

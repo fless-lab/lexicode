@@ -24,8 +24,17 @@ export interface FinishInfo {
   words: number;
 }
 
+export interface Perks {
+  shield: number;
+  reveal: number;
+  freeLetters: number;
+}
+
 interface Props {
   puzzle: Puzzle;
+  palette?: React.CSSProperties;
+  chips?: { icon: string; label: string }[];
+  perks?: Perks;
   title: string;
   subtitle: string[];
   t: Strings;
@@ -54,7 +63,15 @@ export function fmt(ms: number): string {
 
 export function Play(props: Props) {
   const { puzzle, title, subtitle, t, tokens, premium, rules, deadline, boosters, useBooster, onFreeze, spend, onNeedTokens, onFinish, onFail, onMistake, onExit, overlay } = props;
-  const [g, setG] = useState<GameState>(() => initGame(puzzle, Date.now(), rules.lives));
+  const perks = props.perks;
+  const start = () => {
+    let s0 = initGame(puzzle, Date.now(), rules.lives);
+    if (perks?.shield) s0 = addShield(s0, perks.shield);
+    if (perks?.reveal) s0 = { ...revealPhraseLetters(s0, perks.reveal), hints: 0 };
+    return s0;
+  };
+  const [g, setG] = useState<GameState>(start);
+  const [freeLeft, setFreeLeft] = useState(perks?.freeLetters ?? 0);
   const [now, setNow] = useState(Date.now());
   const [oracle, setOracle] = useState<{ pattern: string; results: string[]; empty?: boolean } | null>(null);
   const [shake, setShake] = useState(false);
@@ -171,7 +188,16 @@ export function Play(props: Props) {
   };
 
   const nextWord = () => selWord ?? g.puzzle.words.findIndex((_, i) => !wordSolved(g, i));
-  const hintLetter = () => !isOver(g) && pay(COST.letter) && setG((s) => revealSelected(s));
+  const hintLetter = () => {
+    if (isOver(g)) return;
+    if (freeLeft > 0) {
+      setFreeLeft(freeLeft - 1);
+      sfx.booster();
+      setG((s) => revealSelected(s));
+      return;
+    }
+    if (pay(COST.letter)) setG((s) => revealSelected(s));
+  };
   const hintWord = () => {
     const w = nextWord();
     if (isOver(g) || w < 0 || wordSolved(g, w)) return;
@@ -234,7 +260,7 @@ export function Play(props: Props) {
   let li = 0;
 
   return (
-    <div className={`play ${urgent ? 'urgent' : ''}`}>
+    <div className={`play ${urgent ? 'urgent' : ''} ${props.palette ? 'themed' : ''}`} style={props.palette}>
       <header className="playbar">
         <button className="iconbtn" onClick={onExit} aria-label={t.back}><Icon name="back" /></button>
         <div className="ttl">
@@ -261,6 +287,10 @@ export function Play(props: Props) {
         <div className="gauge"><i style={{ width: `${pct}%` }} /></div>
       )}
 
+      {props.chips && props.chips.length > 0 && (
+        <div className="modchips">{props.chips.map((c) => <span key={c.label}><Icon name={c.icon} size={13} />{c.label}</span>)}</div>
+      )}
+
       {puzzle.cryptogram && g.mistakes === 0 && pct < 40 && (
         <p className="cryptotip"><Icon name="key" size={18} />{t.cryptoTip}</p>
       )}
@@ -275,11 +305,12 @@ export function Play(props: Props) {
               const isSel = g.sel?.kind === 'phrase' && g.sel.i === i;
               const good = isCorrect(g, c.code);
               const idx = li++;
+              const fogged = !!puzzle.mods?.fog && !good && !puzzle.given.includes(c.code);
               return (
                 <button
                   key={i}
                   style={{ '--i': idx } as React.CSSProperties}
-                  className={cellClass(c.code, isSel) + (good ? ' good' : '') + (g.failed && !good ? ' reveal' : '')}
+                  className={cellClass(c.code, isSel) + (good ? ' good' : '') + (g.failed && !good ? ' reveal' : '') + (fogged && !g.failed ? ' fogged' : '')}
                   onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}
                   aria-label={`${c.code}`}
                 >
@@ -307,17 +338,28 @@ export function Play(props: Props) {
         <section className="words">
           {puzzle.words.map((w, wi) => {
             const solved = wordSolved(g, wi);
+            const sealed = !!puzzle.mods?.chain && wi > 0 && !solved && !wordSolved(g, wi - 1) && !g.failed;
             return (
-              <div key={wi} className={`wrow ${selWord === wi ? 'active' : ''} ${solved ? 'done' : ''} ${flashWord === wi ? 'pop' : ''}`}>
-                <div className="clue">{w.clue}</div>
+              <div key={wi} className={`wrow ${selWord === wi ? 'active' : ''} ${solved ? 'done' : ''} ${flashWord === wi ? 'pop' : ''} ${sealed ? 'sealed' : ''}`}>
+                <div className="clue">
+                  {sealed ? (
+                    <span className="sealedclue"><Icon name="lock" size={14} />{t.chainLocked}</span>
+                  ) : (
+                    <>
+                      {w.shown ?? w.clue}
+                      {w.tier === 3 && <span className="tierbadge">{t.tierHard}</span>}
+                    </>
+                  )}
+                </div>
                 <div className="wcells">
                   {w.codes.map((code, ci) => {
                     const sel: Sel = { kind: 'word', w: wi, i: ci };
                     const isSel = g.sel?.kind === 'word' && g.sel.w === wi && g.sel.i === ci;
+                    const inked = !!puzzle.mods?.ink?.includes(code) && !isCorrect(g, code) && !g.failed;
                     return (
-                      <button key={ci} className={cellClass(code, isSel, solved)} onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}>
+                      <button key={ci} className={cellClass(code, isSel, solved) + (inked ? ' inked' : '')} onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}>
                         <span className="l">{g.failed ? w.answer[ci] : g.guesses[code] ?? ''}</span>
-                        <span className="n">{code}</span>
+                        <span className="n">{inked ? '?' : code}</span>
                       </button>
                     );
                   })}
@@ -334,7 +376,7 @@ export function Play(props: Props) {
             <p className="nohints"><Icon name="lock" size={15} />{t.hintsOff}</p>
           ) : (
             <div className="tools">
-              <button className="tool" onClick={hintLetter}><Icon name="bulb" size={17} />{t.hint}{!premium && <small><Icon name="token" size={12} />{price(COST.letter)}</small>}</button>
+              <button className="tool" onClick={hintLetter}><Icon name="bulb" size={17} />{t.hint}{freeLeft > 0 ? <small>{t.free} x{freeLeft}</small> : !premium && <small><Icon name="token" size={12} />{price(COST.letter)}</small>}</button>
               {!puzzle.cryptogram && <button className="tool" onClick={openOracle}><Icon name="search" size={17} />{t.oracle}{!premium && <small><Icon name="token" size={12} />{price(COST.oracle)}</small>}</button>}
               {!puzzle.cryptogram && <button className="tool" onClick={hintWord}><Icon name="sparkle" size={17} />{t.hintWord}{!premium && <small><Icon name="token" size={12} />{price(COST.word)}</small>}</button>}
               {showBoosters && (['freeze', 'shield', 'reveal'] as BoosterId[]).map((id) => (
@@ -409,7 +451,7 @@ export function Play(props: Props) {
                 if (tuto + 1 < t.tutorial.length) setTuto(tuto + 1);
                 else {
                   setTuto(-1);
-                  setG(initGame(puzzle, Date.now(), rules.lives));
+                  setG(start());
                   props.onTutorialDone();
                 }
               }}

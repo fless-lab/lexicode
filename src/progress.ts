@@ -45,6 +45,8 @@ export interface GameEvent {
 
 export function xpFor(e: GameEvent): number {
   if (e.kind === 'marathon') return 20 + (e.run ?? 0) * 35;
+  // Expédition : chaque étage franchi rapporte un peu ; la fin de descente rapporte selon la profondeur.
+  if (e.kind === 'expedition') return e.won ? 12 + e.d * 4 : 20 + (e.run ?? 0) * 30;
   if (!e.won) return 8;
   const base = Math.round(e.score / 18) + e.d * 6;
   const bonus: Partial<Record<ModeKind, number>> = { daily: 40, sudden: 25, hardcore: 80, timeattack: 15, survival: 10 };
@@ -158,9 +160,6 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'hardcore_win', icon: '🌋', test: (s) => wins(s, 'hardcore') >= 1 },
   { id: 'hardcore_5', icon: '🐉', test: (s) => wins(s, 'hardcore') >= 5 },
   { id: 'boss_1', icon: '👹', test: (_, e) => !!e && e.won && !!e.boss },
-  { id: 'world_1', icon: '🗺', test: (s) => maxLevel(s) >= 12 },
-  { id: 'world_3', icon: '🧭', test: (s) => maxLevel(s) >= 36 },
-  { id: 'world_6', icon: '🌍', test: (s) => maxLevel(s) >= 72 },
   { id: 'album_10', icon: '📖', test: (s) => albumSize(s) >= 10 },
   { id: 'album_50', icon: '📚', test: (s) => albumSize(s) >= 50 },
   { id: 'polyglot', icon: '🌐', test: (s) => Object.values(s.album).filter((a) => a.length > 0).length >= 3 },
@@ -179,6 +178,13 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'season_10', icon: 's', test: (s) => Math.floor(s.season.xp / 150) >= 10 },
   { id: 'season_30', icon: 's', test: (s) => Math.floor(s.season.xp / 150) >= 30 },
   { id: 'skins_3', icon: 'p', test: (s) => s.skins.length >= 3 },
+  { id: 'chapter_1', icon: 'b', test: (s) => maxLevel(s) >= 12 },
+  { id: 'chapter_4', icon: 'b', test: (s) => maxLevel(s) >= 48 },
+  { id: 'chapter_8', icon: 'b', test: (s) => maxLevel(s) >= 96 },
+  { id: 'cycle_2', icon: 'r', test: (s) => maxLevel(s) >= 192 },
+  { id: 'depth_5', icon: 'f', test: (s) => best(s, 'expedition') >= 5 },
+  { id: 'depth_12', icon: 'f', test: (s) => best(s, 'expedition') >= 12 },
+  { id: 'depth_25', icon: 'f', test: (s) => best(s, 'expedition') >= 25 },
 ];
 
 export const ACH_REWARD = 4;

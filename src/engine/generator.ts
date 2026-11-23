@@ -1,4 +1,4 @@
-import type { Difficulty, Entry, LangPack, PhraseCell, Puzzle, PuzzleWord } from './types';
+import type { Difficulty, Entry, LangPack, Mods, PhraseCell, Puzzle, PuzzleWord, Tier } from './types';
 import { rngFromSeed, shuffle, hashString, type Rng } from './rng';
 import { norm, isAZ, letterSet, letterCount } from './text';
 
@@ -70,7 +70,28 @@ function greedyCover(target: Set<string>, pool: Entry[], cfg: DiffCfg, rng: Rng)
   return { chosen, uncovered };
 }
 
+export type TierChoice = Tier | 'mix';
+
+/** Niveau d'indice par défaut selon la difficulté. */
+export function tierFor(d: Difficulty): TierChoice {
+  return d <= 2 ? 1 : d === 3 ? 2 : d === 4 ? 'mix' : 3;
+}
+
+/** Choisit l'indice d'un mot au niveau voulu, en redescendant si ce niveau manque. */
+export function pickClue(e: Entry, choice: TierChoice, rng: Rng): { clue: string; tier: Tier } {
+  const want: Tier = choice === 'mix' ? (rng() < 0.5 ? 2 : 3) : choice;
+  const by: Record<Tier, string | undefined> = { 1: e.c, 2: e.c2, 3: e.c3 };
+  for (let t = want; t >= 1; t--) if (by[t as Tier]) return { clue: by[t as Tier]!, tier: t as Tier };
+  return { clue: e.c, tier: 1 };
+}
+
+const isStory = (pack: LangPack, i: number) => pack.phrases[i].k === 'story';
+
 export interface GenOptions {
+  /** Niveau des indices (par défaut selon la difficulté). */
+  tier?: TierChoice;
+  /** Nombre de lettres données imposé. */
+  given?: number;
   /** Force une phrase précise (index dans le pack). */
   phraseIndex?: number;
   /** Restreint à une catégorie de phrases. */
@@ -92,13 +113,15 @@ export function generatePuzzle(
 ): Puzzle {
   const rng = rngFromSeed(`${pack.lang}|${seed}|${difficulty}`);
   let cfg = { ...DIFF[difficulty] };
+  if (opts.given !== undefined) cfg.given = opts.given;
+  const tierChoice = opts.tier ?? tierFor(difficulty);
 
-  // Phrases candidates.
+  // Phrases candidates (les phrases du récit ne sortent jamais au hasard).
   let indices: number[];
   if (opts.phraseIndex !== undefined) {
     indices = [opts.phraseIndex];
   } else {
-    const all = pack.phrases.map((_, i) => i);
+    const all = pack.phrases.map((_, i) => i).filter((i) => !isStory(pack, i));
     const byCat = opts.category ? all.filter((i) => pack.phrases[i].k === opts.category) : all;
     const base = byCat.length ? byCat : all;
     const fit = base.filter((i) => {
@@ -154,11 +177,10 @@ export function generatePuzzle(
           codeToLetter[i + 1] = l;
         });
 
-        const words: PuzzleWord[] = shuffle(chosen, rng).map((e) => ({
-          clue: e.c,
-          answer: e.w,
-          codes: [...e.w].map((l) => letterToCode[l]),
-        }));
+        const words: PuzzleWord[] = shuffle(chosen, rng).map((e) => {
+          const { clue, tier } = pickClue(e, tierChoice, rng);
+          return { clue, tier, answer: e.w, codes: [...e.w].map((l) => letterToCode[l]) };
+        });
 
         return {
           id: `${pack.lang}-${hashString(seed + '|' + difficulty).toString(36)}`,
@@ -174,6 +196,7 @@ export function generatePuzzle(
           given: [...givenLetters].map((l) => letterToCode[l]).sort((a, b) => a - b),
           codeToLetter,
           maxCode: order.length,
+          story: phrase.k === 'story' || undefined,
         };
       }
     }
@@ -185,7 +208,7 @@ export function generatePuzzle(
       minLen: 3,
       given: cfg.given + 1,
     };
-    if (opts.phraseIndex === undefined) indices = shuffle(pack.phrases.map((_, i) => i), rng);
+    if (opts.phraseIndex === undefined) indices = shuffle(pack.phrases.map((_, i) => i).filter((i) => !isStory(pack, i)), rng);
   }
   throw new Error(`Impossible de générer une grille (${pack.lang}, ${seed}, d${difficulty})`);
 }
@@ -208,12 +231,10 @@ export function difficultyForLength(n: number): Difficulty {
 
 /** Défi du jour : même grille pour tous les joueurs d'une langue, phrases parcourues sans répétition. */
 export function dailyPuzzle(pack: LangPack, dateStr: string): Puzzle {
-  const n = pack.phrases.length;
+  const pool = pack.phrases.map((_, i) => i).filter((i) => !isStory(pack, i));
+  const n = pool.length;
   const cycle = Math.floor(dayIndex(dateStr) / n);
-  const order = shuffle(
-    pack.phrases.map((_, i) => i),
-    rngFromSeed(`order|${pack.lang}|${cycle}`),
-  );
+  const order = shuffle(pool, rngFromSeed(`order|${pack.lang}|${cycle}`));
   const pi = order[((dayIndex(dateStr) % n) + n) % n];
   const d = difficultyForLength(letterCount(pack.phrases[pi].t));
   return generatePuzzle(pack, `daily-${dateStr}`, d, { phraseIndex: pi });
@@ -230,7 +251,7 @@ export function levelDifficulty(level: number): Difficulty {
 }
 
 export function worldCategory(pack: LangPack, level: number): string {
-  const cats = [...new Set(pack.phrases.map((p) => p.k))];
+  const cats = [...new Set(pack.phrases.filter((p) => p.k !== 'story').map((p) => p.k))];
   const w = Math.floor((level - 1) / LEVELS_PER_WORLD);
   return cats[w % cats.length];
 }
@@ -249,12 +270,13 @@ export function practicePuzzle(pack: LangPack, difficulty: Difficulty, nonce: st
  * Cryptogramme pur : la phrase seule, chiffrée, sans mots indices.
  * Seules les lettres les plus fréquentes sont données au départ.
  */
-export function cryptogramPuzzle(pack: LangPack, seed: string, difficulty: Difficulty): Puzzle {
+export function cryptogramPuzzle(pack: LangPack, seed: string, difficulty: Difficulty, phraseIndex?: number): Puzzle {
   const rng = rngFromSeed(`crypto|${pack.lang}|${seed}|${difficulty}`);
   const minLen = difficulty >= 4 ? 26 : 18;
-  const candidates = pack.phrases.map((_, i) => i).filter((i) => letterCount(pack.phrases[i].t) >= minLen);
-  const pool = candidates.length ? candidates : pack.phrases.map((_, i) => i);
-  const pi = pool[Math.floor(rng() * pool.length)];
+  const free = pack.phrases.map((_, i) => i).filter((i) => !isStory(pack, i));
+  const candidates = free.filter((i) => letterCount(pack.phrases[i].t) >= minLen);
+  const pool = candidates.length ? candidates : free;
+  const pi = phraseIndex ?? pool[Math.floor(rng() * pool.length)];
   const phrase = pack.phrases[pi];
   const target = [...letterSet(phrase.t)];
   const order = shuffle(target, rng);
@@ -287,5 +309,44 @@ export function cryptogramPuzzle(pack: LangPack, seed: string, difficulty: Diffi
     codeToLetter,
     maxCode: order.length,
     cryptogram: true,
+    story: phrase.k === 'story' || undefined,
   };
+}
+
+export interface ModSpec {
+  /** Part des numéros des mots cachés sous l'encre (0 à 1). */
+  ink?: number;
+  fog?: boolean;
+  chain?: boolean;
+  smudge?: boolean;
+}
+
+/** Applique des altérations à une grille, de façon déterministe. */
+export function applyMods(p: Puzzle, spec: ModSpec): Puzzle {
+  const rng = rngFromSeed(`mods|${p.id}`);
+  const mods: Mods = {};
+  if (spec.ink && p.words.length) {
+    const inWords = [...new Set(p.words.flatMap((w) => w.codes))].filter((c) => !p.given.includes(c));
+    mods.ink = shuffle(inWords, rng).slice(0, Math.round(inWords.length * spec.ink)).sort((a, b) => a - b);
+  }
+  if (spec.fog) mods.fog = true;
+  if (spec.chain && p.words.length > 1) mods.chain = true;
+  let words = p.words;
+  if (spec.smudge) {
+    mods.smudge = true;
+    words = p.words.map((w) => ({ ...w, shown: smudge(w.clue, rng) }));
+  }
+  return { ...p, words, mods };
+}
+
+/** Efface environ une lettre sur trois de l'indice, sans toucher au premier caractère de chaque mot. */
+export function smudge(text: string, rng: Rng): string {
+  let start = true;
+  let out = '';
+  for (const ch of text) {
+    const letter = /\p{L}/u.test(ch);
+    out += letter && !start && rng() < 0.28 ? '·' : ch;
+    start = !letter;
+  }
+  return out;
 }

@@ -1,5 +1,7 @@
 import type { Difficulty, LangPack, Puzzle } from './engine/types';
-import { dailyPuzzle, levelPuzzle, practicePuzzle, generatePuzzle, levelDifficulty, worldCategory, cryptogramPuzzle } from './engine/generator';
+import { dailyPuzzle, practicePuzzle, generatePuzzle, cryptogramPuzzle } from './engine/generator';
+import { levelInfo, adventurePuzzle, adventureLimits } from './chapters';
+import { makeFloor, floorPuzzle, count, type Run } from './expedition';
 
 export type ModeKind =
   | 'daily'
@@ -11,7 +13,8 @@ export type ModeKind =
   | 'marathon'
   | 'hardcore'
   | 'zen'
-  | 'cryptogram';
+  | 'cryptogram'
+  | 'expedition';
 
 export interface Mode {
   kind: ModeKind;
@@ -21,6 +24,8 @@ export interface Mode {
   level?: number;
   /** Rang de la grille dans une série marathon. */
   run?: number;
+  /** État de l'expédition en cours. */
+  exp?: Run;
 }
 
 export interface Rules {
@@ -51,10 +56,12 @@ export const TIME_LIMIT: Record<Difficulty, number> = {
 export const MARATHON_START_MS = 150_000;
 export const MARATHON_BONUS_MS = (d: Difficulty) => 30_000 + d * 8_000;
 
-/** Un niveau sur six est un boss : chrono et trois vies. */
+/** Deux boss par chapitre : au milieu et au message final. */
 export function isBossLevel(level: number): boolean {
-  return level % 6 === 0;
+  return levelInfo(level).boss;
 }
+
+export const HOURGLASS_MS = 25_000;
 
 export function rulesFor(m: Mode): Rules {
   const base: Rules = { timeMs: null, lives: null, noHints: false, cheapHints: false, mistakePenaltyMs: 0, mult: 1, boosters: true };
@@ -75,9 +82,16 @@ export function rulesFor(m: Mode): Rules {
       return { ...base, boosters: false };
     case 'zen':
       return { ...base, cheapHints: true, mult: 0.5 };
-    case 'level':
-      if (m.level && isBossLevel(m.level)) return { ...base, timeMs: Math.round(TIME_LIMIT[m.d] * 1.4), lives: 3, mult: 1.3 };
-      return base;
+    case 'level': {
+      const info = levelInfo(m.level ?? 1);
+      const lim = adventureLimits(info, (d) => TIME_LIMIT[d]);
+      return { ...base, ...lim, mult: 1 + info.chapter * 0.1 + info.cycle * 0.5 + (info.boss ? 0.3 : 0) };
+    }
+    case 'expedition': {
+      const run = m.exp!;
+      const f = makeFloor(run.seed, run.depth);
+      return { ...base, lives: run.hearts, timeMs: f.timeMs !== null ? f.timeMs + count(run, 'hourglass') * HOURGLASS_MS : null, boosters: false };
+    }
     default:
       return base;
   }
@@ -93,10 +107,9 @@ export function puzzleFor(pack: LangPack, m: Mode): Puzzle {
     case 'daily':
       return dailyPuzzle(pack, m.date!);
     case 'level':
-      // Les boss sont un cran plus difficiles que les niveaux qui les entourent.
-      if (isBossLevel(m.level!))
-        return generatePuzzle(pack, `boss-${m.level}`, Math.min(5, levelDifficulty(m.level!) + 1) as Difficulty, { category: worldCategory(pack, m.level!) });
-      return levelPuzzle(pack, m.level!);
+      return adventurePuzzle(pack, m.level!);
+    case 'expedition':
+      return floorPuzzle(pack, m.exp!, makeFloor(m.exp!.seed, m.exp!.depth));
     case 'hardcore':
       return generatePuzzle(pack, `hardcore-${m.nonce}`, 5);
     case 'cryptogram':
@@ -127,7 +140,7 @@ export function recordKey(m: Mode): string | null {
 }
 
 export function levelMode(level: number): Mode {
-  return { kind: 'level', d: levelDifficulty(level), nonce: '', level };
+  return { kind: 'level', d: levelInfo(level).d, nonce: '', level };
 }
 
 /** Modes de l'arène, dans l'ordre d'affichage. `pickD` : la difficulté se choisit. */

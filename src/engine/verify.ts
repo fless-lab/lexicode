@@ -24,7 +24,7 @@ export function verifyPuzzle(p: Puzzle, pack: LangPack): string[] {
   // 3. Chaque mot correspond à son indice dans le pack et à ses numéros.
   const answers = new Set<string>();
   for (const w of p.words) {
-    const entry = pack.entries.find((e) => e.w === w.answer && e.c === w.clue);
+    const entry = pack.entries.find((e) => e.w === w.answer && [e.c, e.c2, e.c3].includes(w.clue));
     if (!entry) errs.push(`mot ${w.answer} absent du pack`);
     if (answers.has(w.answer)) errs.push(`mot ${w.answer} en double`);
     answers.add(w.answer);
@@ -76,10 +76,14 @@ export function verifyPack(pack: LangPack): string[] {
   for (const e of pack.entries) {
     if (!/^[A-Z]{3,}$/.test(e.w)) errs.push(`réponse invalide: ${e.w}`);
     if (words.has(e.w)) errs.push(`réponse en double: ${e.w}`);
-    if (clues.has(e.c)) errs.push(`indice en double: ${e.c}`);
-    if (/—/.test(e.c)) errs.push(`tiret cadratin: ${e.c}`);
+    for (const c of [e.c, e.c2, e.c3]) {
+      if (!c) continue;
+      if (clues.has(c)) errs.push(`indice en double: ${c}`);
+      if (/—/.test(c)) errs.push(`tiret cadratin: ${c}`);
+      if (norm(c).replace(/[^A-Z]/g, ' ').split(' ').includes(e.w)) errs.push(`la réponse apparaît dans l'indice: ${e.w} / ${c}`);
+      clues.add(c);
+    }
     words.add(e.w);
-    clues.add(e.c);
   }
   for (const ph of pack.phrases) {
     for (const ch of ph.t) {

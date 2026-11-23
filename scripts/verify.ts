@@ -22,7 +22,7 @@ for (const pack of Object.values(PACKS)) {
     const date = new Date(Date.UTC(2026, 10, 1) + d * 86400000).toISOString().slice(0, 10);
     puzzles.push({ label: `daily ${date}`, make: () => dailyPuzzle(pack, date) });
   }
-  for (let l = 1; l <= 150; l++) puzzles.push({ label: `level ${l}`, make: () => puzzleFor(pack, { kind: 'level', d: 1, nonce: '', level: l }) });
+  for (let l = 1; l <= 200; l++) puzzles.push({ label: `level ${l}`, make: () => puzzleFor(pack, { kind: 'level', d: 1, nonce: '', level: l }) });
   for (let d = 1; d <= 5; d++)
     for (let k = 0; k < 60; k++)
       puzzles.push({ label: `practice d${d} #${k}`, make: () => practicePuzzle(pack, d as Difficulty, String(k)) });
@@ -30,6 +30,14 @@ for (const pack of Object.values(PACKS)) {
   for (const kind of ['hardcore', 'marathon', 'timeattack', 'sudden', 'survival', 'zen', 'cryptogram'] as ModeKind[])
     for (let k = 0; k < 40; k++)
       puzzles.push({ label: `${kind} #${k}`, make: () => puzzleFor(pack, { kind, d: ((k % 5) + 1) as Difficulty, nonce: String(k), run: k % 12 }) });
+
+  // Expédition : plusieurs graines, jusqu'à la profondeur 40, avec et sans reliques.
+  for (const seed of ['a', 'b', 'c']) {
+    for (let depth = 0; depth <= 40; depth++) {
+      const exp = { seed, daily: false, depth, hearts: 3, relics: depth % 2 ? (['prism', 'inkwell'] as const).slice() : [] } as never;
+      puzzles.push({ label: `expedition ${seed} ${depth}`, make: () => puzzleFor(pack, { kind: 'expedition', d: 1, nonce: seed, exp }) });
+    }
+  }
 
   // Règles d'échec : mort subite perd à la 1re erreur, survie à la 3e, le chrono échoue.
   {
@@ -78,7 +86,7 @@ for (const pack of Object.values(PACKS)) {
   }
 
   // Les défis du jour ne répètent pas une phrase avant d'avoir épuisé le pack.
-  const n = pack.phrases.length;
+  const n = pack.phrases.filter((ph) => ph.k !== 'story').length;
   const seen = new Set<number>();
   for (let d = 0; d < n; d++) {
     const date = new Date(Date.UTC(2026, 0, 1) + d * 86400000).toISOString().slice(0, 10);
