@@ -5,9 +5,15 @@ import '@fontsource/nunito/latin-700.css';
 import '@fontsource/nunito/latin-800.css';
 import '@fontsource/nunito/latin-900.css';
 import App from './App';
+import { ErrorBoundary, installErrorLog } from './ui/ErrorBoundary';
 import './styles.css';
 
-createRoot(document.getElementById('root')!).render(<App />);
+installErrorLog();
+createRoot(document.getElementById('root')!).render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>,
+);
 
 // Hors ligne : le service worker met le jeu en cache une fois chargé (version web publiée).
 if ('serviceWorker' in navigator && location.protocol === 'https:' && !location.hostname.endsWith('claude.ai')) {
