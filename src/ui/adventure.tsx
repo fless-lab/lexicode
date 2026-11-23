@@ -218,7 +218,7 @@ export function RelicPicker({ t, lang, run, offer, next, onPick }: { t: Strings;
   return (
     <div className="modal">
       <div className="sheet">
-        <span className="seal win"><Icon name="flag" size={30} /></span>
+        <div className="stage win"><Loupi mood="wow" size={120} className="pop-in" /></div>
         <h2>{t.chooseRelic}</h2>
         <RunBar t={t} run={run} />
         <div className="relics">

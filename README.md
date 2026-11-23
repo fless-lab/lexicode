@@ -18,12 +18,12 @@ Chaque push sur `master` vérifie les grilles, compile et publie le jeu sur GitH
 
 ## Direction artistique
 
-Le bureau du chiffre, la nuit, sous la lampe : encre indigo, lumière ambrée, tuiles de papier, clavier en touches de machine à écrire (anneau sombre, pastille ivoire). Chaque geste a un retour : la tuile s'écrase puis rebondit, le mot trouvé se retourne en vert, la phrase s'allume lettre par lettre, le sceau tombe comme un tampon et les lettres de la phrase pleuvent sur l'écran de victoire.
+Nuit arcade : l'univers du bureau du chiffre la nuit, habillé avec la générosité de Royal Match et la clarté de Duolingo. Aplats saturés sans halo ni flou, contours foncés et reliefs pleins sur chaque élément, gros boutons brillants (vert pour jouer, or pour les récompenses), tuiles blanches cernées, clavier de jeu propre au jeu (il remplace le clavier du téléphone, disposition selon la langue), grandes tuiles colorées pour les modes, et un thème par chapitre réservé à l'aventure pour que l'application garde une identité stable. Chaque geste a un retour : la tuile s'écrase puis rebondit, le mot trouvé se retourne en vert, la phrase s'allume lettre par lettre, et les lettres de la phrase pleuvent sur l'écran de victoire.
 
 - Décors illustrés en SVG (`src/ui/scenes.tsx`) : toits la nuit avec la fenêtre d'Ada, et une scène par chapitre (atelier, bibliothèque, train de nuit, archives en feu, observatoire, salle des machines, tour, cabinet noir), plus l'expédition. Ils prennent les couleurs du thème du chapitre et vivent doucement (étoiles, flamme, engrenages, train qui passe). Grain de papier et vignettage pour éviter l'effet vectoriel lisse.
 - Loupi, le raton laveur d'Ada (`src/ui/mascot.tsx`) : personnage original, la mascotte et l'icône de l'application. Il est dessiné en pièces séparées (queue, corps, tête, oreilles, yeux, bras, loupe) et a cinq humeurs (calme, réflexion avec l'œil grossi par la loupe, joie, tristesse, surprise). Il cligne des yeux, respire, remue la queue. On le retrouve sur les toits de l'accueil (il saute quand on le touche), comme pion sur le chemin de l'aventure, à côté de la grille où il réagit aux combos et aux erreurs, dans le tutoriel, à l'ouverture des chapitres et sur les écrans de fin. Un illustrateur pourra redessiner chaque pièce plus tard sans toucher au code. L'icône se régénère avec `npx tsx .qa/icon.tsx`.
 - Icônes : [Phosphor](https://phosphoricons.com) (licence MIT), style duotone partout pour une famille homogène.
-- Polices embarquées Zilla Slab (tuiles, titres, chiffres) et Figtree (interface). Aucun emoji.
+- Polices embarquées Lilita One (titres, boutons, tuiles, chiffres) et Nunito (textes). Aucun emoji.
 - Sons entièrement synthétisés (`src/sound.ts`) : clic de touche, notes de marimba qui montent avec le combo, coup de tampon, une note par étoile, cloches de victoire, réverbération générée.
 
 ## Aventure : Le Cabinet noir

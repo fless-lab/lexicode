@@ -15,7 +15,7 @@ import { Icon, MODE_ICON, achIcon } from './ui/Icon';
 import { WinFx, CountUp } from './ui/fx';
 import { Loupi } from './ui/mascot';
 import { LangPicker, Home, Arena, Season, Ranking, Album, Profile, League, Settings, Premium, TabBar, type Screen } from './ui/screens';
-import { AdventureScreen, ChapterIntro, RelicPicker, campaignLevel, themeOf, MOD_ICON, RELIC_ICON } from './ui/adventure';
+import { AdventureScreen, ChapterIntro, RelicPicker, themeOf, MOD_ICON, RELIC_ICON } from './ui/adventure';
 import { levelInfo, LEVELS_PER_CHAPTER } from './chapters';
 import { STORY } from './content/story';
 import { makeFloor, floorName, floorPalette, relicOffer, count, START_HEARTS, MAX_HEARTS, type Run, type RelicId, type Floor } from './expedition';
@@ -479,7 +479,7 @@ export default function App() {
   const worldTheme =
     screen === 'play'
       ? mode?.kind === 'level' ? `theme-${themeOf(mode.level!)}` : ''
-      : `theme-${themeOf(campaignLevel(save, lang))}`;
+      : '';
 
   function chapterChips(i: ReturnType<typeof levelInfo>) {
     const chips: { icon: string; label: string }[] = [];

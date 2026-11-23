@@ -230,6 +230,35 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
         </button>
       )}
 
+      <AdventureCard t={t} save={save} lang={lang} onStart={onStart} open={() => go('adventure')} />
+
+      <section className="tiles" aria-label={t.arena}>
+        <button className="tile t-violet" onClick={() => go('arena')}>
+          <Icon name="flag" size={34} />
+          <b>{t.expedition}</b>
+          <small>{t.bestDepth} {save.records[lang]?.expedition?.best ?? 0}</small>
+        </button>
+        <button className="tile t-coral" onClick={() => go('arena')}>
+          <Icon name="arena" size={34} />
+          <b>{t.arena}</b>
+          <small>{ARENA.filter((a) => plv >= a.unlockLevel).length} / {ARENA.length}</small>
+        </button>
+        <button className="tile t-gold" onClick={() => go('season')}>
+          <span className="tnum">{sTier}</span>
+          <b>{fill(t.seasonN, season.id || seasonOf(day))}</b>
+          <small>{fill(t.daysLeft, seasonDaysLeft(day))}</small>
+        </button>
+        <button className="tile t-teal" onClick={() => go('league')}>
+          <Icon name="medal" size={34} />
+          <b>{t.leagueNames[save.league.tier]}</b>
+          <small className={myRank <= PROMOTE ? 'zone-up' : myRank > LEAGUE_SIZE - DEMOTE ? 'zone-down' : ''}>{t.rank} {myRank} / {LEAGUE_SIZE}</small>
+        </button>
+        <button className="tile t-wide t-blue" onClick={() => onStart({ kind: 'practice', d: 2, nonce: String(Date.now()) })}>
+          <Icon name="target" size={30} />
+          <span><b>{t.practice}</b><small>{t.d[2]}</small></span>
+        </button>
+      </section>
+
       <section className="sec">
         <div className="sechead">
           <h3>{t.quests}</h3>
@@ -271,58 +300,6 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
           </div>
         </div>
       </section>
-
-      <section className="sec">
-        <div className="sechead">
-          <h3>{t.arena}</h3>
-          <button className="aside" onClick={() => go('arena')}>{t.seeAll}</button>
-        </div>
-        <div className="medals">
-          {ARENA.map((a) => {
-            const locked = plv < a.unlockLevel;
-            const rec = save.records[lang]?.[a.pickD ? `${a.kind}:2` : a.kind];
-            return (
-              <button key={a.kind} className={`medal ${locked ? 'locked' : ''}`} onClick={() => go('arena')}>
-                <span className="disc"><Icon name={locked ? 'lock' : MODE_ICON[a.kind]} size={26} /></span>
-                {modeLabel(t, a.kind)[0]}
-                <small>{locked ? `${t.lvl} ${a.unlockLevel}` : rec?.best ? rec.best : ' '}</small>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <AdventureCard t={t} save={save} lang={lang} onStart={onStart} open={() => go('adventure')} />
-
-      <div className="pair">
-        <button className="rowlink" onClick={() => go('season')}>
-          <span className="rl-icon">{sTier}</span>
-          <span className="rl-main">
-            <b>{fill(t.seasonN, season.id || seasonOf(day))}</b>
-            <span className="xpbar wide"><i style={{ width: `${((season.xp % TIER_XP) / TIER_XP) * 100}%` }} /></span>
-            <small>{fill(t.daysLeft, seasonDaysLeft(day))}</small>
-          </span>
-        </button>
-        <button className="rowlink" onClick={() => go('league')}>
-          <span className="rl-icon"><Icon name="medal" size={22} /></span>
-          <span className="rl-main">
-            <b>{t.leagueNames[save.league.tier]}</b>
-            <small className={myRank <= PROMOTE ? 'zone-up' : myRank > LEAGUE_SIZE - DEMOTE ? 'zone-down' : ''}>{t.rank} {myRank} / {LEAGUE_SIZE}</small>
-            <small>{t.leagueEnds} {untilSunday()}</small>
-          </span>
-        </button>
-      </div>
-
-      <div className="pair">
-        <button className="rowlink" onClick={() => go('arena')}>
-          <span className="rl-icon"><Icon name="flag" size={22} /></span>
-          <span className="rl-main"><b>{t.expedition}</b><small>{t.bestDepth} {save.records[lang]?.expedition?.best ?? 0}</small></span>
-        </button>
-        <button className="rowlink" onClick={() => onStart({ kind: 'practice', d: 2, nonce: String(Date.now()) })}>
-          <span className="rl-icon"><Icon name="target" size={22} /></span>
-          <span className="rl-main"><b>{t.practice}</b><small>{t.d[2]}</small></span>
-        </button>
-      </div>
     </div>
   );
 }

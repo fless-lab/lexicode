@@ -92,13 +92,18 @@ function Defs({ id }: { id: string }) {
         <stop offset="1" style={{ stopColor: v('tide-2') }} />
       </linearGradient>
       <radialGradient id={`${id}-halo`}>
-        <stop offset="0" style={{ stopColor: v('bone'), stopOpacity: 0.28 }} />
-        <stop offset="1" style={{ stopColor: v('bone'), stopOpacity: 0 }} />
+        <stop offset="0" style={{ stopColor: v('bone'), stopOpacity: 0.14 }} />
+        <stop offset="0.55" style={{ stopColor: v('bone'), stopOpacity: 0.14 }} />
+        <stop offset="0.55" style={{ stopColor: v('bone'), stopOpacity: 0.06 }} />
+        <stop offset="1" style={{ stopColor: v('bone'), stopOpacity: 0.06 }} />
       </radialGradient>
       <radialGradient id={`${id}-lamp`}>
-        <stop offset="0" style={{ stopColor: v('brass-hi'), stopOpacity: 0.75 }} />
-        <stop offset="0.45" style={{ stopColor: v('brass'), stopOpacity: 0.22 }} />
-        <stop offset="1" style={{ stopColor: v('brass'), stopOpacity: 0 }} />
+        <stop offset="0" style={{ stopColor: v('brass-hi'), stopOpacity: 0.42 }} />
+        <stop offset="0.3" style={{ stopColor: v('brass-hi'), stopOpacity: 0.42 }} />
+        <stop offset="0.3" style={{ stopColor: v('brass'), stopOpacity: 0.2 }} />
+        <stop offset="0.6" style={{ stopColor: v('brass'), stopOpacity: 0.2 }} />
+        <stop offset="0.6" style={{ stopColor: v('brass'), stopOpacity: 0.08 }} />
+        <stop offset="1" style={{ stopColor: v('brass'), stopOpacity: 0.08 }} />
       </radialGradient>
       <linearGradient id={`${id}-cone`} x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" style={{ stopColor: v('brass-hi'), stopOpacity: 0.55 }} />
@@ -401,7 +406,6 @@ export function Scene({ kind, className = '', height }: { kind: SceneKind; class
       <Defs id={id} />
       <Draw id={id} />
       <rect width={W} height={H} fill={`url(#${id}-vig)`} />
-      <rect width={W} height={H} filter={`url(#${id}-grain)`} opacity={0.22} style={{ mixBlendMode: 'overlay' }} />
     </svg>
   );
 }
