@@ -1,5 +1,6 @@
 import { rngFromSeed } from '../engine/rng';
 import type { Lang } from '../engine/types';
+import { apiEnabled, fetchBoard } from './api';
 
 export type Scope = 'city' | 'country' | 'world' | 'friends';
 
@@ -20,8 +21,8 @@ export interface MyResult {
 }
 
 /**
- * Contrat du service de classement. L'implémentation réelle (Supabase, voir backend/schema.sql)
- * enverra le score signé côté serveur et lira les classements filtrés par ville, pays ou amis.
+ * Contrat du service de classement. L'implémentation réelle lit le serveur Lexicode (dossier server/) ;
+ * les scores n'y entrent que par la fin de partie, après rejeu du journal des coups.
  */
 export interface RankingService {
   readonly demo: boolean;
@@ -57,4 +58,27 @@ export class DemoRanking implements RankingService {
   }
 }
 
-export const ranking: RankingService = new DemoRanking();
+/** Classement réel : le serveur renvoie les 100 premiers ; on ajoute sa propre ligne si elle n'y est pas. */
+export class RemoteRanking implements RankingService {
+  readonly demo = false;
+  async submit(): Promise<void> {
+    // Rien à faire : le score part avec le journal de la partie (services/api.ts, finishGame).
+  }
+  async board(lang: Lang, key: string, scope: Scope, me: MyResult | null, profile: { city: string; country: string }): Promise<RankRow[]> {
+    if (scope === 'friends') return me ? [{ name: me.name || 'Toi', place: me.city, score: me.score, ms: me.ms, isYou: true }] : [];
+    const place = scope === 'city' ? profile.city : scope === 'country' ? profile.country : '';
+    if (scope !== 'world' && !place) return [];
+    try {
+      const { rows } = await fetchBoard(lang, key, scope, place);
+      if (me && !rows.some((r) => r.isYou) && me.score > 0) {
+        rows.push({ name: me.name || 'Toi', place: scope === 'world' ? me.country || me.city : scope === 'country' ? me.country : me.city, score: me.score, ms: me.ms, isYou: true });
+      }
+      return rows;
+    } catch {
+      // Hors ligne : on n'invente pas d'adversaires, on montre seulement son propre score.
+      return me && me.score > 0 ? [{ name: me.name || 'Toi', place: me.city, score: me.score, ms: me.ms, isYou: true }] : [];
+    }
+  }
+}
+
+export const ranking: RankingService = apiEnabled ? new RemoteRanking() : new DemoRanking();

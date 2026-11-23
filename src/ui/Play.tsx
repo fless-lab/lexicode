@@ -23,6 +23,8 @@ export interface FinishInfo {
   remainingMs: number | null;
   maxCombo: number;
   words: number;
+  /** Journal des coups, envoyé au serveur pour les parties classées. */
+  log: [number, number, string][];
 }
 
 export interface Perks {
@@ -121,6 +123,7 @@ export function Play(props: Props) {
       remainingMs: deadline !== null ? Math.max(0, deadline - (g.startedAt + g.elapsedMs)) : null,
       maxCombo: g.maxCombo,
       words: puzzle.words.filter((_, i) => wordSolved(g, i)).length,
+      log: g.log,
     });
     if (g.finished) {
       reported.current = key;

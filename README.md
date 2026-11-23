@@ -98,15 +98,36 @@ Pour activer les vrais achats :
 
 Un événement est une fiche de données dans `src/events.ts` : dates, thème de l'application, décor ajouté aux scènes, tenue de Loupi, titre et histoire en trois langues, monnaie propre (jamais achetable), nombre de messages et récompenses. Les messages à déchiffrer sont dans `src/content/extra.ts` et passent par le vérificateur. Le premier, « À la rescousse du Père Noël », démarre seul le 1er décembre. Pour l'essayer avant : ajouter `?event=xmas` à l'adresse.
 
-En production, la liste des événements viendra du serveur pour lancer, prolonger ou corriger un événement sans mise à jour du Play Store. Les dessins d'un nouvel événement doivent être livrés dans une mise à jour quelques semaines avant.
+Le serveur expose aussi une liste d'événements (`GET /v1/events`) pour lancer, prolonger ou corriger un événement sans mise à jour du Play Store. Les dessins d'un nouvel événement doivent être livrés dans une mise à jour quelques semaines avant.
+
+## Serveur
+
+Le dossier `server/` contient notre propre serveur : Node et TypeScript, Express pour l'API, Colyseus pour le temps réel (multijoueur, à venir) et PostgreSQL pour les données. Il partage le moteur du jeu avec l'application, ce qui lui permet de rejouer chaque partie classée.
+
+**Comment une partie classée est vérifiée.** Au lancement, l'application demande au serveur d'ouvrir la partie : le serveur note l'heure et, pour l'arène, tire lui-même la graine de la grille. À la fin, l'application envoie le journal des coups (chaque lettre avec son instant). Le serveur rejoue la partie avec le même moteur, recalcule le score et refuse le journal si la grille n'est pas résolue, si une aide a été utilisée, si deux frappes sont trop rapprochées pour être humaines ou si la durée annoncée dépasse le temps réellement écoulé chez lui. Seul le meilleur score de chaque joueur est gardé par classement, et chaque partie validée est conservée comme fantôme pour le multijoueur.
+
+**Côté application.** Il suffit de mettre l'adresse du serveur dans `.env` : `VITE_API_URL=https://api.exemple.com`. Sans cette ligne, le jeu reste entièrement local et les classements affichent la démonstration. Le joueur reçoit une identité anonyme à la première partie classée ; son nom, sa ville et son pays sont envoyés quand il les change. Hors ligne, la partie se joue normalement mais ne compte pas au classement.
+
+**Mise en ligne.** Sur un petit serveur (un VPS à 5 ou 10 euros par mois suffit au départ) avec Docker :
+
+```bash
+cd server
+cp .env.example .env      # remplir DB_PASSWORD, SERVER_SECRET (openssl rand -hex 32) et CORS_ORIGIN
+docker compose up -d --build
+```
+
+Cela lance trois services : la base PostgreSQL, le serveur (port 2567) et une sauvegarde de la base chaque nuit, gardée 14 jours dans `server/backups/`. Les tables sont créées au démarrage (`server/migrations/`). Il faut ensuite placer un proxy HTTPS devant le port 2567 (Caddy le fait en deux lignes). Ces fichiers Docker n'ont pas pu être essayés dans l'environnement où ils ont été écrits : à vérifier au premier lancement.
+
+**Points d'entrée.** `POST /v1/auth/anon`, `PATCH /v1/me`, `POST /v1/games`, `POST /v1/games/:id/finish`, `GET /v1/boards/:lang/:key?scope=world|country|city&place=`, `GET /v1/ghosts/:lang/:key`, `GET /v1/events`, `GET /health`.
+
+**Tests.** Avec un serveur lancé sur une base vide : `cd server && API_URL=http://localhost:2567 DATABASE_URL=postgres://... npm test` (21 tests de bout en bout).
 
 ## Ce qu'il reste à brancher avant la publication
 
-1. **Classements réels** : créer un projet Supabase, exécuter `backend/schema.sql`, puis remplacer `DemoRanking` dans `src/services/ranking.ts`. Les classements actuels sont simulés et signalés comme tels.
+1. **Serveur** : louer le VPS, remplir `server/.env`, lancer `docker compose up -d --build`, mettre un nom de domaine en HTTPS, puis `VITE_API_URL=...` dans le `.env` de l'application.
 2. **Pubs** : AdMob est branché (pub récompensée, formulaire de consentement RGPD). Il tourne avec les identifiants de test de Google : remplacer l'identifiant d'application dans `android/app/src/main/AndroidManifest.xml` et mettre `VITE_ADMOB_REWARDED_ID=...` dans `.env`.
 3. **Achats** : produits Play Console et clé RevenueCat (voir plus haut).
-4. **Packs de grilles** : « Proverbes » est prêt (40 grilles par langue). Cinéma, football, géographie et contes d'Afrique sont affichés « bientôt » et attendent leurs phrases.
-5. **Nom définitif** : vérifier que « Lexicode » est libre sur le Play Store.
+4. **Nom définitif** : vérifier que « Lexicode » est libre sur le Play Store.
 
 ## Construire l'APK / AAB
 

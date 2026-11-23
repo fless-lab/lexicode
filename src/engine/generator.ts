@@ -169,9 +169,12 @@ export function generatePuzzle(
         const givenLetters = new Set(uncovered);
         const freq = new Map<string, number>();
         for (const ch of norm(phrase.t)) if (isAZ(ch)) freq.set(ch, (freq.get(ch) ?? 0) + 1);
+        // Le bruit est tiré avant le tri : un comparateur qui appelle rng() dépend du nombre de
+        // comparaisons, qui change d'un moteur JavaScript à l'autre (navigateur contre serveur).
         const byFreq = [...freq.entries()]
           .filter(([l]) => !givenLetters.has(l))
-          .sort((a, b) => b[1] - a[1] + (rng() - 0.5) * 1.5)
+          .map(([l, f]) => [l, f + (rng() - 0.5) * 1.5] as const)
+          .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
           .map(([l]) => l);
         while (givenLetters.size < cfg.given && byFreq.length) givenLetters.add(byFreq.shift()!);
 

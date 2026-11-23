@@ -22,6 +22,7 @@ import { loadPrices, entitlements } from './services/billing';
 import { SHOP_STRINGS, fmtS } from './i18n-shop';
 import { EVENTS } from './events';
 import { RANKED } from './modes';
+import { apiEnabled, openGame, finishGame, syncProfile } from './services/api';
 import { LangPicker, Home, Arena, Season, Ranking, Album, Profile, League, Settings, Premium, TabBar, type Screen } from './ui/screens';
 import { AdventureScreen, ChapterIntro, RelicPicker, themeOf, MOD_ICON, RELIC_ICON } from './ui/adventure';
 import { levelInfo, LEVELS_PER_CHAPTER } from './chapters';
@@ -72,11 +73,19 @@ export default function App() {
   const [intro, setIntro] = useState<{ chapter: number; cycle: number; abs: number; mode: Mode } | null>(null);
   const [relicChoice, setRelicChoice] = useState<{ run: Run; offer: RelicId[]; next: Floor } | null>(null);
   const marathonStart = useRef(0);
+  /** Partie classée ouverte sur le serveur, et journaux des grilles déjà finies (marathon). */
+  const serverGame = useRef<string | null>(null);
+  const marathonLogs = useRef<[number, number, string][][]>([]);
   const saveRef = useRef(save);
   saveRef.current = save;
 
   useEffect(() => { persist(save); }, [save]);
   useEffect(() => { setSound(save.settings.sound, save.settings.haptics); }, [save.settings]);
+  useEffect(() => {
+    if (!apiEnabled || !save.lang) return;
+    const id = setTimeout(() => syncProfile({ name: save.name, city: save.city, country: save.country }), 1500);
+    return () => clearTimeout(id);
+  }, [save.name, save.city, save.country, save.lang]);
   useEffect(() => { window.scrollTo(0, 0); }, [screen]);
 
   // Une seule pastille à la fois : les suivantes attendent leur tour au lieu de s'empiler sur la grille.
@@ -138,8 +147,22 @@ export default function App() {
         return;
       }
     }
-    const r = rulesFor(m);
     sfx.open();
+    serverGame.current = null;
+    marathonLogs.current = [];
+    if (apiEnabled && RANKED.includes(m.kind)) {
+      const s = saveRef.current;
+      // Le serveur note l'heure de départ et tire la graine de l'arène. Hors ligne, on joue quand même, sans classement.
+      openGame(lang, m, { name: s.name, city: s.city, country: s.country }).then((o) => {
+        if (o) serverGame.current = o.gameId;
+        launch(o ? { ...m, nonce: o.mode.nonce || m.nonce } : m);
+      });
+      return;
+    }
+    launch(m);
+  };
+  const launch = (m: Mode) => {
+    const r = rulesFor(m);
     setMode(m);
     setEnd(null);
     setDeadline(r.timeMs !== null ? Date.now() + r.timeMs : null);
@@ -194,11 +217,25 @@ export default function App() {
     return { save: n, xp };
   };
 
+  /** Envoie le journal au serveur, qui rejoue la partie. Le classement affiché vient de lui. */
+  const submitServer = (logs: [number, number, string][][]) => {
+    const id = serverGame.current;
+    serverGame.current = null;
+    if (!id) return;
+    finishGame(id, logs).then((v) => {
+      if (!v) return;
+      const S = SHOP_STRINGS[lang];
+      if ('rejected' in v) toast(S.rankRejected, 'info', 'flag');
+      else if (v.rank) setTimeout(() => toast(fmtS(S.rankWorld, { n: String(v.rank) }), 'lvl', 'trophy'), 900);
+    });
+  };
+
   const onFinish = (info: FinishInfo) => {
     if (!mode || !puzzle || !rules) return;
     const s0 = saveRef.current;
 
     if (mode.kind === 'marathon') {
+      marathonLogs.current.push(info.log);
       const run = (mode.run ?? 0) + 1;
       const bonus = MARATHON_BONUS_MS(marathonDifficulty(run - 1));
       const al = new Set(s0.album[lang] ?? []);
@@ -245,6 +282,7 @@ export default function App() {
     let record = false;
 
     const assisted = RANKED.includes(mode.kind) && info.hints > 0;
+    if (!assisted) submitServer([info.log]);
     if (mode.kind === 'event') {
       const ev = EVENTS.find((e) => e.id === mode.ref)!;
       const st = n.events[ev.id] ?? { done: 0, currency: 0, claimed: [] };
@@ -304,6 +342,7 @@ export default function App() {
     if (mode.kind === 'marathon') {
       const run = mode.run ?? 0;
       const total = Date.now() - marathonStart.current;
+      if (run > 0) submitServer(marathonLogs.current);
       const prev = s0.records[lang]?.marathon?.best ?? 0;
       const n = bumpRecord({ ...s0, stats: { ...s0.stats, played: s0.stats.played + 1 } }, lang, 'marathon', run > 0, run, total);
       const { save: n2, xp } = progressAfter(n, { kind: 'marathon', won: run > 0, score: run, ms: total, stars: 0, hints: 0, mistakes: 0, d: 1, run, maxCombo: info.maxCombo, words: info.words });

@@ -69,6 +69,8 @@ const fr = {
   archivesSub: 'Rejoue les défis du jour passés. Hors classement.',
   archivesLocked: 'Les archives sont réservées à Lexicode+.',
   assisted: 'Avec aide : hors classement',
+  rankWorld: 'Classement mondial : n° {n}',
+  rankRejected: 'Partie non retenue au classement',
   newItem: 'Nouvel objet : {x}',
   title: 'Titre',
 };
@@ -143,6 +145,8 @@ const en: ShopStrings = {
   archivesSub: 'Replay past daily challenges. Not ranked.',
   archivesLocked: 'Archives are part of Lexicode+.',
   assisted: 'With help: not ranked',
+  rankWorld: 'World ranking: #{n}',
+  rankRejected: 'Game not counted in the rankings',
   newItem: 'New item: {x}',
   title: 'Title',
 };
@@ -215,6 +219,8 @@ const es: ShopStrings = {
   archivesSub: 'Vuelve a jugar retos diarios pasados. Sin clasificación.',
   archivesLocked: 'El archivo es parte de Lexicode+.',
   assisted: 'Con ayuda: sin clasificación',
+  rankWorld: 'Clasificación mundial: n.º {n}',
+  rankRejected: 'Partida no contada en la clasificación',
   newItem: 'Nuevo objeto: {x}',
   title: 'Título',
 };

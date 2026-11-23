@@ -1,5 +1,6 @@
 // L'Expédition : descente infinie et procédurale. Chaque étage est généré à partir
 // de la graine de l'expédition et de sa profondeur : lieu, palette, altérations.
+import type { CSSProperties } from 'react';
 import type { Difficulty, Lang, LangPack, Puzzle } from './engine/types';
 import { rngFromSeed, shuffle } from './engine/rng';
 import { generatePuzzle, cryptogramPuzzle, applyMods, type ModSpec, type TierChoice } from './engine/generator';
@@ -100,7 +101,7 @@ export function count(run: Run, r: RelicId): number {
 }
 
 /** Palette procédurale de l'étage. */
-export function floorPalette(hue: number): React.CSSProperties {
+export function floorPalette(hue: number): CSSProperties {
   const acc = (hue + 160) % 360;
   return {
     '--abyss': `hsl(${hue} 42% 9%)`,
@@ -112,5 +113,5 @@ export function floorPalette(hue: number): React.CSSProperties {
     '--brass-hi': `hsl(${acc} 70% 74%)`,
     '--brass-lo': `hsl(${acc} 40% 42%)`,
     '--mist': `hsl(${hue} 18% 66%)`,
-  } as React.CSSProperties;
+  } as CSSProperties;
 }

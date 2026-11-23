@@ -1,0 +1,47 @@
+# Lancement complet : cd server && cp .env.example .env && docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lexicode
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: lexicode
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lexicode"]
+      interval: 10s
+
+  server:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://lexicode:${DB_PASSWORD}@db:5432/lexicode
+      SERVER_SECRET: ${SERVER_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    ports:
+      - "2567:2567"
+
+  # Sauvegarde de la base chaque nuit, conservée 14 jours.
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    depends_on: [db]
+    environment:
+      PGPASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./backups:/backups
+    entrypoint: >
+      sh -c 'while true; do
+        pg_dump -h db -U lexicode lexicode | gzip > /backups/lexicode-$$(date +%F).sql.gz;
+        find /backups -name "*.sql.gz" -mtime +14 -delete;
+        sleep 86400; done'
+
+volumes:
+  pgdata:
