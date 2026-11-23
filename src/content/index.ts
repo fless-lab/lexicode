@@ -10,6 +10,7 @@ import { STORY } from './story';
 import { LEX_FR_MORE, EXTRA_FR } from './lex-fr-2';
 import { LEX_EN_MORE, EXTRA_EN } from './lex-en-2';
 import { LEX_ES_MORE, EXTRA_ES } from './lex-es-2';
+import { applyReview } from './review';
 
 /** Lit un lexique « MOT|facile|moyen|malin ». */
 export function parseLex(src: string): Entry[] {
@@ -58,7 +59,8 @@ function build(base: LangPack, lex: string, extras = ''): LangPack {
   const usedClues = new Set(rich.flatMap((e) => allClues(e)));
   const legacy = base.entries.filter((e) => !have.has(e.w) && !usedClues.has(e.c));
   const story = STORY[base.lang].chapters.map((c) => ({ t: c.phrase, k: 'story' }));
-  return { ...base, entries: [...rich, ...legacy], phrases: [...base.phrases, ...story] };
+  // Seuls les indices validés (ou corrigés) arrivent en jeu.
+  return { ...base, entries: applyReview(base.lang, [...rich, ...legacy]), phrases: [...base.phrases, ...story] };
 }
 
 export const PACKS: Record<Lang, LangPack> = {

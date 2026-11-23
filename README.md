@@ -43,6 +43,18 @@ Descente infinie (`src/expedition.ts`) : chaque étage est généré à partir d
 
 Environ 380 mots par langue (plus de 5 000 indices) : un indice facile, un moyen et deux ou trois malins qui tournent (`src/content/lex-*.ts`, format `MOT|facile|moyen|malin`). La difficulté choisit le niveau ; le vérificateur refuse les doublons, les réponses présentes dans l'indice et les tirets cadratins.
 
+## Circuit de validation des indices
+
+Aucun indice n'arrive au joueur sans avoir passé ce circuit. `src/content/review/<langue>.json` contient la décision pour chaque indice (`ok`, `fixed` avec son texte corrigé, ou `rejected`) et son niveau recalibré. `applyReview` (dans `src/content/review.ts`) n'utilise que les indices validés, et `npm run verify` échoue si un indice publié n'y figure pas.
+
+1. Résolution à l'aveugle : un agent indépendant reçoit l'indice et le nombre de lettres, sans la réponse, et propose un mot avec sa confiance.
+2. Jugement : un second agent, qui connaît la réponse, vérifie le fait, l'expression, la grammaire et le niveau réel. Il propose une correction quand l'indice est faible ou faux.
+3. Fusion (`scripts/review-merge.ts`) : un indice faux est corrigé ou retiré ; un indice jugé juste mais que l'aveugle lit avec assurance comme un autre mot est retiré comme ambigu ; la réponse ne doit jamais apparaître dans l'indice, même cachée dans un mot plus long.
+4. Toute correction repasse un test à l'aveugle (indices mélangés et anonymisés) puis un second juge indépendant, car une correction peut elle-même introduire une erreur.
+5. Le niveau est recalibré d'après la mesure : un indice « malin » résolu sans hésiter descend en moyen, un « facile » que personne ne trouve monte.
+
+Première passe (novembre 2026) sur 5 072 indices : 4 311 validés tels quels, 713 corrigés puis revalidés, 48 retirés, 765 changés de niveau. Prochaines étapes : signalement « indice douteux » et taux de réussite réel par indice chez les joueurs, puis relecture ciblée par des locuteurs natifs.
+
 ## Ce qui est en place
 
 - Moteur de grilles déterministe : même grille du jour pour tous les joueurs d'une langue.

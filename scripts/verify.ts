@@ -3,7 +3,8 @@
 import { PACKS } from '../src/content/index';
 import { dailyPuzzle, practicePuzzle } from '../src/engine/generator';
 import { verifyPuzzle, verifyPack } from '../src/engine/verify';
-import type { Difficulty, Puzzle } from '../src/engine/types';
+import { allClues, type Difficulty, type Puzzle } from '../src/engine/types';
+import { REVIEWS, hasReview } from '../src/content/review';
 import { puzzleFor, rulesFor, type ModeKind } from '../src/modes';
 import { initGame, select, typeLetter, failGame, addShield } from '../src/engine/game';
 
@@ -15,6 +16,26 @@ for (const pack of Object.values(PACKS)) {
   if (packErrs.length) {
     failures += packErrs.length;
     console.log(`[${pack.lang}] contenu:`, packErrs);
+  }
+
+  // Verrou : un indice ne peut être publié que s'il a passé le circuit de validation.
+  if (!hasReview(pack.lang)) {
+    failures++;
+    console.log(`[${pack.lang}] aucun fichier de validation : rien ne doit partir sans relecture`);
+  } else {
+    const valid = new Set<string>();
+    for (const [k, v] of Object.entries(REVIEWS[pack.lang])) {
+      const word = k.slice(0, k.indexOf('|'));
+      if (v.s === 'ok') valid.add(k);
+      if (v.s === 'fixed' && v.f) valid.add(`${word}|${v.f}`);
+    }
+    const unvalidated = pack.entries.flatMap((e) => allClues(e).filter((c) => !valid.has(`${e.w}|${c}`)).map((c) => `${e.w} « ${c} »`));
+    if (unvalidated.length) {
+      failures += unvalidated.length;
+      console.log(`[${pack.lang}] indices non validés :`, unvalidated.slice(0, 20));
+    }
+    const clues = pack.entries.reduce((n, e) => n + allClues(e).length, 0);
+    console.log(`[${pack.lang}] ${pack.entries.length} mots, ${clues} indices validés`);
   }
 
   const puzzles: { label: string; make: () => Puzzle }[] = [];
