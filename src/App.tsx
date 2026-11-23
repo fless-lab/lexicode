@@ -12,6 +12,7 @@ import { xpFor, playerLevel, titleIndex, newAchievements, rollLeague, ACH_REWARD
 import { applyQuests, freshQuests, freshSeason, questsFor, QUEST_BONUS, tierReward, seasonTier, type BoosterId, type Reward } from './meta';
 import { sfx, setSound } from './sound';
 import { Icon, MODE_ICON, achIcon } from './ui/Icon';
+import { WinFx, CountUp } from './ui/fx';
 import { LangPicker, Home, Arena, Season, Ranking, Album, Profile, League, Settings, Premium, TabBar, type Screen } from './ui/screens';
 import { AdventureScreen, ChapterIntro, RelicPicker, campaignLevel, themeOf, MOD_ICON, RELIC_ICON } from './ui/adventure';
 import { levelInfo, LEVELS_PER_CHAPTER } from './chapters';
@@ -66,11 +67,17 @@ export default function App() {
   useEffect(() => { setSound(save.settings.sound, save.settings.haptics); }, [save.settings]);
   useEffect(() => { window.scrollTo(0, 0); }, [screen]);
 
+  // Une seule pastille à la fois : les suivantes attendent leur tour au lieu de s'empiler sur la grille.
   const toast = useCallback((text: string, kind: Toast['kind'] = 'info', icon?: string, sub?: string) => {
     const id = Date.now() + Math.random();
-    setToasts((ts) => [...ts.slice(-2), { id, text, kind, icon, sub }]);
-    setTimeout(() => setToasts((ts) => ts.filter((x) => x.id !== id)), kind === 'info' ? 1900 : 3400);
+    setToasts((ts) => [...ts, { id, text, kind, icon, sub }].slice(-6));
   }, []);
+  const headToast = toasts[0];
+  useEffect(() => {
+    if (!headToast) return;
+    const h = setTimeout(() => setToasts((ts) => ts.slice(1)), headToast.kind === 'info' ? 1700 : 2600);
+    return () => clearTimeout(h);
+  }, [headToast]);
 
   const lang: Lang = save.lang ?? 'en';
   const t = STRINGS[lang];
@@ -399,6 +406,7 @@ export default function App() {
 
   const overlay = end && puzzle && mode && (
     <div className="modal">
+      {end.type === 'win' && <WinFx text={puzzle.phraseText} stars={end.stars} />}
       <div className={`sheet result ${end.type}`} role="dialog" aria-label={end.type === 'win' ? t.solved : t.failTitle}>
         {end.type === 'win' && (
           <>
@@ -434,7 +442,7 @@ export default function App() {
         {end.type === 'win' && levelI?.finale && <p className="story" style={{ fontSize: 16 }}>{STORY[lang].chapters[levelI.chapter].outro}</p>}
         {end.type !== 'marathon' && (
           <div className="kpis">
-            <div><b>{end.score}</b><small>{t.score}</small></div>
+            <div><b><CountUp to={end.score} /></b><small>{t.score}</small></div>
             <div><b>{fmt(end.ms)}</b><small>{t.time}</small></div>
             <div><b>{end.maxCombo}</b><small>{t.combo}</small></div>
             <div><b>{end.mistakes}</b><small>{t.mistakes}</small></div>
@@ -577,7 +585,7 @@ export default function App() {
         </div>
       )}
       <div className="toasts" aria-live="polite">
-        {toasts.map((x) => (
+        {toasts.slice(0, 1).map((x) => (
           <div key={x.id} className={`toast toast-${x.kind}`}>
             {x.icon && <span className="ti"><Icon name={x.icon} size={17} /></span>}
             <span>{x.text}{x.sub && <small>{x.sub}</small>}</span>

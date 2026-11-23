@@ -8,6 +8,7 @@ import { levelMode, type Mode } from '../modes';
 import { RELICS, type RelicId, type Run, type Floor, floorName, START_HEARTS } from '../expedition';
 import { Icon } from './Icon';
 import { sfx } from '../sound';
+import { Scene, type SceneKind } from './scenes';
 
 const fill = (s: string, n: number | string) => s.replace('{n}', String(n));
 const roman = (n: number) => ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][n] ?? String(n + 1);
@@ -15,19 +16,19 @@ const roman = (n: number) => ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 
 export const RELIC_ICON: Record<RelicId, string> = {
   heart: 'heartFill',
   hourglass: 'hourglass',
-  lantern: 'bulb',
-  quill: 'sparkle',
-  inkwell: 'eye',
-  compass: 'globe',
-  prism: 'star',
-  seal: 'shield',
+  lantern: 'lantern',
+  quill: 'quill',
+  inkwell: 'inkwell',
+  compass: 'compass',
+  prism: 'prism',
+  seal: 'seal',
 };
 
 export const MOD_ICON: Record<string, string> = {
   ink: 'eye',
-  fog: 'snow',
-  chain: 'lock',
-  smudge: 'erase',
+  fog: 'fog',
+  chain: 'chain',
+  smudge: 'smudge',
   timer: 'hourglass',
   cryptic: 'brain',
   bare: 'target',
@@ -76,7 +77,8 @@ export function AdventureCard({ t, save, lang, onStart, open }: { t: Strings; sa
         <h3>{story.title}</h3>
         <button className="aside" onClick={open}>{t.chapters}</button>
       </div>
-      <div className="chapcard">
+      <div className={`chapcard theme-${info.def.theme}`}>
+        <Scene kind={info.def.theme as SceneKind} />
         <button className="ct" onClick={open} style={{ textAlign: 'left' }}>
           <span className="disc"><Icon name={info.def.icon} size={22} /></span>
           <span>
@@ -116,7 +118,8 @@ export function AdventureScreen({ t, save, lang, onStart, back }: { t: Strings; 
       </header>
       <div className="screen" style={{ paddingTop: 6 }}>
         <p className="muted">{story.prologue}</p>
-        <div className="chapcard">
+        <div className={`chapcard theme-${info.def.theme}`}>
+          <Scene kind={info.def.theme as SceneKind} />
           <div className="ct">
             <span className="disc"><Icon name={info.def.icon} size={22} /></span>
             <span>
@@ -162,7 +165,8 @@ export function ChapterIntro({ t, lang, chapter, cycle, onBegin }: { t: Strings;
   const ch = story.chapters[chapter];
   return (
     <div className="modal center">
-      <div className="sheet">
+      <div className={`sheet chapter theme-${CHAPTERS[chapter].theme}`}>
+        <Scene kind={CHAPTERS[chapter].theme as SceneKind} />
         <span className="seal run"><Icon name={CHAPTERS[chapter].icon} size={32} /></span>
         <p className="chapnum">{fill(t.chapterN, chapter + 1)}{cycle ? `, ${story.cycle} ${roman(cycle)}` : ''}</p>
         <h2>{ch.name}</h2>
@@ -182,6 +186,7 @@ export function ExpeditionCard({ t, save, lang, day, onDaily, onFree }: { t: Str
   const today = save.expDaily[`${lang}:${day}`];
   return (
     <section className="expcard">
+      <Scene kind="expedition" />
       <h3><Icon name="flag" size={22} />{t.expedition}</h3>
       <p>{t.expeditionSub}</p>
       <div className="depthline">

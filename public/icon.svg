@@ -1,8 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0d2427"/>
-  <circle cx="420" cy="80" r="220" fill="#cda45e" opacity=".08"/>
-  <rect x="120" y="96" width="272" height="300" rx="44" fill="#c2b597"/>
-  <rect x="120" y="96" width="272" height="282" rx="44" fill="#efe7d6"/>
-  <text x="256" y="320" text-anchor="middle" font-family="Georgia, 'Zilla Slab', serif" font-weight="700" font-size="220" fill="#16282b">L</text>
-  <text x="256" y="452" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="64" fill="#cda45e">12</text>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111332"/><stop offset="1" stop-color="#333874"/></linearGradient>
+    <radialGradient id="lamp" cx=".5" cy=".42" r=".6"><stop offset="0" stop-color="#ffd27a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb938" stop-opacity="0"/></radialGradient>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#efe2c4"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#sky)"/>
+  <circle cx="256" cy="230" r="250" fill="url(#lamp)"/>
+  <circle cx="404" cy="104" r="26" fill="#f6f0e4" opacity=".9"/>
+  <path d="M0 440 L60 410 L60 380 L120 380 L150 352 L180 380 L180 400 L330 400 L330 370 L392 370 L392 392 L452 392 L512 420 L512 512 L0 512 Z" fill="#111332"/>
+  <rect x="132" y="104" width="248" height="292" rx="40" fill="#d6c49d"/>
+  <rect x="132" y="104" width="248" height="274" rx="40" fill="url(#tile)"/>
+  <text x="256" y="320" text-anchor="middle" font-family="'Zilla Slab', Georgia, serif" font-weight="700" font-size="214" fill="#1a1b40">L</text>
+  <text x="256" y="462" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="58" fill="#ffb938">12</text>
 </svg>

@@ -16,6 +16,7 @@ import { fmt } from './Play';
 import { sfx } from '../sound';
 import { Icon, MODE_ICON, BOOSTER_ICON, achIcon } from './Icon';
 import { AdventureCard, ExpeditionCard } from './adventure';
+import { Scene } from './scenes';
 
 export type Screen = 'home' | 'play' | 'arena' | 'season' | 'ranking' | 'profile' | 'album' | 'league' | 'settings' | 'premium' | 'adventure';
 type SetSave = React.Dispatch<React.SetStateAction<Save>>;
@@ -36,7 +37,7 @@ function untilSunday(): string {
 export function Wordmark({ small }: { small?: boolean }) {
   return (
     <div className={`wordmark ${small ? 'sm' : ''}`} aria-label="Lexicode">
-      {'LEXICODE'.split('').map((c, i) => <span key={i} className={i >= 4 ? 'dim' : ''}>{c}</span>)}
+      {'LEXICODE'.split('').map((c, i) => <span key={i} style={{ '--i': i } as React.CSSProperties} className={i >= 4 ? 'dim' : ''}>{c}</span>)}
     </div>
   );
 }
@@ -55,7 +56,10 @@ export function LangPicker({ onPick }: { onPick: (l: Lang) => void }) {
   return (
     <div className="app">
       <div className="intro">
-        <Wordmark />
+        <div className="intro-scene">
+          <Scene kind="home" />
+          <Wordmark />
+        </div>
         <h1>{t.tagline}</h1>
         <p className="muted">{t.chooseLangSub}</p>
         <div className="langs" role="radiogroup" aria-label={t.chooseLang}>
@@ -167,6 +171,7 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
       <StatusBar t={t} save={save} day={day} go={go} />
 
       <section className="hero" aria-label={t.dailyHero}>
+        <Scene kind="home" />
         <div className="top">
           <h2>{done ? t.dailyDone : t.dailyHero}</h2>
           <span className="date">{new Date().toLocaleDateString(lang, { day: 'numeric', month: 'long' })}</span>

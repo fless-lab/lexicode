@@ -18,7 +18,12 @@ Chaque push sur `master` vérifie les grilles, compile et publie le jeu sur GitH
 
 ## Direction artistique
 
-Salle de chiffrement : sarcelle profonde, laiton, tuiles ivoire façon touches de machine. Polices embarquées Zilla Slab (tuiles, titres, chiffres) et Figtree (interface). Icônes dessinées en SVG (`src/ui/Icon.tsx`), aucun emoji. Sons entièrement synthétisés (`src/sound.ts`) : clic de touche, notes de marimba qui montent avec le combo, cloches de victoire, réverbération générée.
+Le bureau du chiffre, la nuit, sous la lampe : encre indigo, lumière ambrée, tuiles de papier, clavier en touches de machine à écrire (anneau sombre, pastille ivoire). Chaque geste a un retour : la tuile s'écrase puis rebondit, le mot trouvé se retourne en vert, la phrase s'allume lettre par lettre, le sceau tombe comme un tampon et les lettres de la phrase pleuvent sur l'écran de victoire.
+
+- Décors illustrés en SVG (`src/ui/scenes.tsx`) : toits la nuit avec la fenêtre d'Ada, et une scène par chapitre (atelier, bibliothèque, train de nuit, archives en feu, observatoire, salle des machines, tour, cabinet noir), plus l'expédition. Ils prennent les couleurs du thème du chapitre et vivent doucement (étoiles, flamme, engrenages, train qui passe). Grain de papier et vignettage pour éviter l'effet vectoriel lisse.
+- Icônes : [Phosphor](https://phosphoricons.com) (licence MIT), style duotone partout pour une famille homogène.
+- Polices embarquées Zilla Slab (tuiles, titres, chiffres) et Figtree (interface). Aucun emoji.
+- Sons entièrement synthétisés (`src/sound.ts`) : clic de touche, notes de marimba qui montent avec le combo, coup de tampon, une note par étoile, cloches de victoire, réverbération générée.
 
 ## Aventure : Le Cabinet noir
 

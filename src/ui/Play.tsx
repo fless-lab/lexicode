@@ -357,7 +357,7 @@ export function Play(props: Props) {
                     const isSel = g.sel?.kind === 'word' && g.sel.w === wi && g.sel.i === ci;
                     const inked = !!puzzle.mods?.ink?.includes(code) && !isCorrect(g, code) && !g.failed;
                     return (
-                      <button key={ci} className={cellClass(code, isSel, solved) + (inked ? ' inked' : '')} onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}>
+                      <button key={ci} style={{ '--j': ci } as React.CSSProperties} className={cellClass(code, isSel, solved) + (inked ? ' inked' : '')} onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}>
                         <span className="l">{g.failed ? w.answer[ci] : g.guesses[code] ?? ''}</span>
                         <span className="n">{inked ? '?' : code}</span>
                       </button>

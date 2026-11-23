@@ -221,4 +221,8 @@ export const sfx = {
     bell(1046.5, 0.02, 0.1, 1);
   },
   open: () => click(0, 0.06, 1200, 0.03),
+  /** Une étoile qui tombe sur le résultat : chaque étoile sonne un cran plus haut. */
+  star: (i: number) => { bell([783.99, 987.77, 1318.51][i] ?? 1318.51, 0, 0.14, 1.4); buzz([12]); },
+  /** Le tampon du sceau. */
+  stamp: () => { click(0, 0.22, 420, 0.06); buzz([28]); },
 };
