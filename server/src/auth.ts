@@ -30,13 +30,22 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-/** Limite simple par adresse : protège la création de comptes et l'envoi de parties. */
-export function rateLimit(max: number, windowMs: number) {
+/**
+ * Limite de débit nommée. La clé ne contient jamais le chemin (qui porte souvent un identifiant de
+ * partie ou un code) : derrière `requireAuth`, on compte par joueur, sinon par adresse.
+ */
+export function rateLimit(name: string, max: number, windowMs: number) {
   const hits = new Map<string, { n: number; until: number }>();
+  // Les entrées expirées sont balayées régulièrement pour que la table ne grossisse pas sans fin.
+  setInterval(() => {
+    const now = Date.now();
+    for (const [k, h] of hits) if (h.until < now) hits.delete(k);
+  }, Math.min(windowMs, 60_000)).unref();
   return (req: Request, res: Response, next: NextFunction) => {
     // Les tests de bout en bout créent beaucoup de comptes depuis la même adresse.
     if (process.env.NODE_ENV === 'test') return next();
-    const key = `${req.ip}|${req.path}`;
+    const who = (req as Partial<Authed>).playerId ?? `ip:${req.ip}`;
+    const key = `${who}|${name}`;
     const now = Date.now();
     const h = hits.get(key);
     if (!h || h.until < now) hits.set(key, { n: 1, until: now + windowMs });

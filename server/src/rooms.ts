@@ -268,9 +268,13 @@ export class QueueRoom extends Room {
   }
 
   private async announce() {
-    const rooms = await matchMaker.query({});
-    const online = rooms.reduce((n, r) => n + r.clients, 0);
-    this.broadcast('m', { t: 'queue', waiting: this.waiting.length, online });
+    try {
+      const rooms = await matchMaker.query({});
+      const online = rooms.reduce((n, r) => n + r.clients, 0);
+      this.broadcast('m', { t: 'queue', waiting: this.waiting.length, online });
+    } catch (e) {
+      console.error('file d\'attente : annonce impossible', e);
+    }
   }
 
   private async pair() {
@@ -292,7 +296,15 @@ export class QueueRoom extends Room {
         if (!best) continue;
         taken.add(a);
         taken.add(best);
-        await this.launch(a, best);
+        try {
+          await this.launch(a, best);
+        } catch (e) {
+          // Salle non créée ou place non réservée : les deux joueurs restent dans la file et seront
+          // appariés au prochain tour, au lieu d'un rejet non rattrapé qui ferait tomber le serveur.
+          console.error('file d\'attente : lancement du duel impossible', e);
+          taken.delete(a);
+          taken.delete(best);
+        }
       }
       this.waiting = this.waiting.filter((w) => !taken.has(w));
     } finally {

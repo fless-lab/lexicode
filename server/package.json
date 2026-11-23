@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "test": "tsx test/match.test.ts && tsx test/api.test.ts && tsx test/multi.test.ts"
+    "test": "tsx test/match.test.ts && tsx test/ratelimit.test.ts && tsx test/api.test.ts && tsx test/multi.test.ts"
   },
   "dependencies": {
     "colyseus": "^0.18.12",

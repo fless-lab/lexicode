@@ -1,6 +1,6 @@
 // API HTTP du serveur Lexicode : comptes, parties classées vérifiées, classements, fantômes, événements.
 import express, { type Request, type Response } from 'express';
-import { q } from './db';
+import { q, tx } from './db';
 import { tokenFor, requireAuth, rateLimit, type Authed } from './auth';
 import { LANGS, boardKey, checkMode, judge, judgeChallenge, arenaNonce, type Log } from './validate';
 import { findRoom, roomCode } from './rooms';
@@ -12,6 +12,11 @@ import type { Mode } from '../../src/modes';
 const today = () => new Date().toISOString().slice(0, 10);
 const isLang = (x: unknown): x is Lang => LANGS.includes(x as Lang);
 const clean = (s: unknown, max: number) => (typeof s === 'string' ? s.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, max) : '');
+/** Un identifiant mal formé ferait échouer la requête SQL (erreur 500) : on le refuse avant. */
+const isUuid = (x: unknown): x is string => typeof x === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x);
+
+/** Fantômes gardés par langue, tableau et tranche de 100 points de cote : les plus récents. */
+export const GHOSTS_PER_BUCKET = 50;
 
 export function createApp() {
   const app = express();
@@ -38,7 +43,7 @@ export function createApp() {
 
   // ---------- Comptes ----------
 
-  app.post('/v1/auth/anon', rateLimit(10, 3_600_000), async (req, res) => {
+  app.post('/v1/auth/anon', rateLimit('anon', 10, 3_600_000), async (req, res) => {
     const name = clean(req.body?.name, 16);
     const { rows } = await q<{ id: string }>('insert into players (name, city, country) values ($1, $2, $3) returning id', [name, clean(req.body?.city, 40), clean(req.body?.country, 40)]);
     res.json({ id: rows[0].id, token: tokenFor(rows[0].id) });
@@ -55,7 +60,7 @@ export function createApp() {
   // ---------- Parties classées ----------
 
   /** Ouvre une partie : le serveur note l'heure et, pour l'arène, tire la graine. */
-  app.post('/v1/games', requireAuth, rateLimit(120, 3_600_000), async (req, res) => {
+  app.post('/v1/games', requireAuth, rateLimit('open', 120, 3_600_000), async (req, res) => {
     const id = (req as Authed).playerId;
     const lang = req.body?.lang;
     const base = checkMode(req.body?.mode, today());
@@ -67,8 +72,9 @@ export function createApp() {
   });
 
   /** Termine une partie : le journal est rejoué, le score recalculé et enregistré s'il est meilleur. */
-  app.post('/v1/games/:id/finish', requireAuth, rateLimit(120, 3_600_000), async (req: Request, res: Response) => {
+  app.post('/v1/games/:id/finish', requireAuth, rateLimit('finish', 120, 3_600_000), async (req: Request, res: Response) => {
     const playerId = (req as Authed).playerId;
+    if (!isUuid(req.params.id)) return res.status(404).json({ error: 'partie inconnue' });
     const { rows } = await q<{ id: string; lang: Lang; mode: Mode; board_key: string; status: string; wall: number }>(
       `select id, lang, mode, board_key, status, extract(epoch from (now() - started_at)) * 1000 as wall
        from games where id = $1 and player_id = $2`,
@@ -80,19 +86,37 @@ export function createApp() {
 
     const logs: Log[] = Array.isArray(req.body?.logs) ? req.body.logs.slice(0, 200) : [];
     const v = judge(g.lang, g.mode, logs, Number(g.wall));
+    // Chaque écriture ne vaut que si la partie est encore ouverte : deux envois simultanés du même
+    // journal ne peuvent pas être comptés deux fois (le second attend le verrou, puis ne trouve plus rien).
     if (!v.ok) {
-      await q("update games set status = 'rejected', finished_at = now() where id = $1", [g.id]);
+      const r = await q("update games set status = 'rejected', finished_at = now() where id = $1 and status = 'open'", [g.id]);
+      if (!r.rowCount) return res.status(409).json({ error: 'partie déjà terminée' });
       return res.status(422).json({ error: v.reason ?? 'partie refusée' });
     }
-    await q("update games set status = 'won', finished_at = now(), score = $2, ms = $3 where id = $1", [g.id, v.score, v.ms]);
-    await q(
-      `insert into scores (player_id, lang, board_key, score, ms, game_id) values ($1, $2, $3, $4, $5, $6)
-       on conflict (player_id, lang, board_key) do update set score = excluded.score, ms = excluded.ms, game_id = excluded.game_id, updated_at = now()
-       where excluded.score > scores.score or (excluded.score = scores.score and excluded.ms < scores.ms)`,
-      [playerId, g.lang, g.board_key, v.score, v.ms, g.id],
-    );
-    const { rows: pr } = await q<{ rating: number }>('select rating from players where id = $1', [playerId]);
-    await q('insert into ghosts (game_id, player_id, lang, board_key, mode, rating, ms, log) values ($1, $2, $3, $4, $5, $6, $7, $8)', [g.id, playerId, g.lang, g.board_key, g.mode, pr[0]?.rating ?? 1000, v.ms, JSON.stringify(logs)]);
+    const saved = await tx(async (c) => {
+      const u = await c.query("update games set status = 'won', finished_at = now(), score = $2, ms = $3 where id = $1 and status = 'open'", [g.id, v.score, v.ms]);
+      if (!u.rowCount) return false;
+      await c.query(
+        `insert into scores (player_id, lang, board_key, score, ms, game_id) values ($1, $2, $3, $4, $5, $6)
+         on conflict (player_id, lang, board_key) do update set score = excluded.score, ms = excluded.ms, game_id = excluded.game_id, updated_at = now()
+         where excluded.score > scores.score or (excluded.score = scores.score and excluded.ms < scores.ms)`,
+        [playerId, g.lang, g.board_key, v.score, v.ms, g.id],
+      );
+      const { rows: pr } = await c.query<{ rating: number }>('select rating from players where id = $1', [playerId]);
+      const rating = pr[0]?.rating ?? 1000;
+      await c.query('insert into ghosts (game_id, player_id, lang, board_key, mode, rating, ms, log) values ($1, $2, $3, $4, $5, $6, $7, $8)', [g.id, playerId, g.lang, g.board_key, g.mode, rating, v.ms, JSON.stringify(logs)]);
+      return rating;
+    });
+    if (saved === false) return res.status(409).json({ error: 'partie déjà terminée' });
+    // Plafond des fantômes : les plus anciens de la même tranche de cote disparaissent. Hors de la
+    // transaction et sans attendre : un retard ou un échec ici ne doit pas faire perdre la partie.
+    const bucket = Math.floor(saved / 100) * 100;
+    q(
+      `delete from ghosts where id in (
+         select id from ghosts where lang = $1 and board_key = $2 and rating >= $3 and rating < $3 + 100
+         order by created_at desc offset $4 limit 20)`,
+      [g.lang, g.board_key, bucket, GHOSTS_PER_BUCKET],
+    ).catch((e) => console.error('plafond des fantômes', e));
     const rank = await myRank(g.lang, g.board_key, playerId);
     res.json({ score: v.score, ms: v.ms, grids: v.grids, rank });
   });
@@ -104,7 +128,7 @@ export function createApp() {
     if (!isLang(lang)) return res.status(400).json({ error: 'langue inconnue' });
     const scope = String(req.query.scope ?? 'world');
     const place = clean(req.query.place, 40);
-    const me = typeof req.query.me === 'string' ? req.query.me : null;
+    const me = isUuid(req.query.me) ? req.query.me : null;
     const filter = scope === 'country' ? 'and p.country = $3' : scope === 'city' ? 'and p.city = $3' : '';
     const params: unknown[] = [lang, key];
     if (filter) params.push(place);
@@ -125,11 +149,18 @@ export function createApp() {
   /** Une partie enregistrée d'un joueur de niveau proche, pour courir contre elle. */
   app.get('/v1/ghosts/:lang/:key', requireAuth, async (req, res) => {
     const { lang, key } = req.params;
-    const rating = Number(req.query.rating ?? 1000);
+    const asked = Number(req.query.rating ?? 1000);
+    const rating = Number.isFinite(asked) ? Math.round(Math.min(10_000, Math.max(0, asked))) : 1000;
+    // Deux parcours d'index bornés autour de la cote (ghosts_pick), puis un tirage parmi 20 au plus :
+    // la table entière n'est jamais lue ni triée.
     const { rows } = await q(
-      `select g.mode, g.ms, g.log, p.name, p.city, p.country, p.look, g.rating from ghosts g join players p on p.id = g.player_id
-       where g.lang = $1 and g.board_key = $2 and g.player_id <> $3
-       order by abs(g.rating - $4), random() limit 1`,
+      `with c as (
+         (select id from ghosts where lang = $1 and board_key = $2 and rating >= $4 and player_id <> $3 order by rating asc limit 10)
+         union all
+         (select id from ghosts where lang = $1 and board_key = $2 and rating < $4 and player_id <> $3 order by rating desc limit 10))
+       select g.mode, g.ms, g.log, p.name, p.city, p.country, p.look, g.rating
+       from ghosts g join players p on p.id = g.player_id
+       where g.id = (select id from c order by random() limit 1)`,
       [lang, key, (req as Authed).playerId, rating],
     );
     if (!rows[0]) return res.status(404).json({ error: 'aucun fantôme' });
@@ -153,7 +184,7 @@ export function createApp() {
   });
 
   /** Salon ou enquête ouverts, retrouvés par leur code à 4 caractères. */
-  app.get('/v1/rooms/:code', rateLimit(120, 60_000), async (req, res) => {
+  app.get('/v1/rooms/:code', rateLimit('room', 120, 60_000), async (req, res) => {
     const code = String(req.params.code).toUpperCase();
     if (!/^[A-Z0-9]{4}$/.test(code)) return res.status(400).json({ error: 'code invalide' });
     const r = await findRoom(code);
@@ -176,7 +207,7 @@ export function createApp() {
   // ---------- Défis entre amis ----------
 
   /** Crée un défi : le serveur tire la grille et lance le chrono du créateur. */
-  app.post('/v1/challenges', requireAuth, rateLimit(60, 3_600_000), async (req, res) => {
+  app.post('/v1/challenges', requireAuth, rateLimit('challenge', 60, 3_600_000), async (req, res) => {
     const id = (req as Authed).playerId;
     const lang = req.body?.lang;
     const d = Number(req.body?.d);
@@ -231,7 +262,7 @@ export function createApp() {
     });
   });
 
-  app.post('/v1/challenges/:code/start', requireAuth, rateLimit(60, 3_600_000), async (req, res) => {
+  app.post('/v1/challenges/:code/start', requireAuth, rateLimit('attempt', 60, 3_600_000), async (req, res) => {
     const id = (req as Authed).playerId;
     const { rows } = await q<{ owner_id: string }>("select owner_id from challenges where code = $1 and status = 'ready'", [req.params.code]);
     if (!rows[0]) return res.status(404).json({ error: 'défi introuvable' });
@@ -242,6 +273,7 @@ export function createApp() {
 
   app.post('/v1/challenges/attempts/:id/finish', requireAuth, async (req, res) => {
     const id = (req as Authed).playerId;
+    if (!isUuid(req.params.id)) return res.status(404).json({ error: 'tentative inconnue' });
     const { rows } = await q<{ code: string; lang: Lang; d: Difficulty; nonce: string; status: string; wall: number; score: number; ms: number }>(
       `select a.code, c.lang, c.d, c.nonce, a.status, extract(epoch from (now() - a.started_at)) * 1000 as wall, c.score, c.ms
        from challenge_attempts a join challenges c on c.code = a.code where a.id = $1 and a.player_id = $2`,
@@ -271,4 +303,24 @@ async function myRank(lang: string, key: string, playerId: string): Promise<numb
     [lang, key, playerId],
   );
   return rows[0] ? Number(rows[0].rank) : null;
+}
+
+/**
+ * Ménage quotidien : parties jamais terminées, fantômes du défi du jour (jamais proposés en course),
+ * fantômes au-delà du plafond par tranche de cote (ceux d'avant le plafond, ou d'un envoi concurrent).
+ */
+export async function purge(): Promise<{ games: number; ghosts: number }> {
+  return tx(async (c) => {
+    // La première passe sur une grosse table peut dépasser la limite des requêtes ordinaires.
+    await c.query("set local statement_timeout = '5min'");
+    const games = await c.query("delete from games where status = 'open' and started_at < now() - interval '2 days'");
+    const daily = await c.query("delete from ghosts where board_key like 'daily:%' and created_at < now() - interval '7 days'");
+    const extra = await c.query(
+      `delete from ghosts g using (
+         select id, row_number() over (partition by lang, board_key, rating / 100 order by created_at desc) as n from ghosts) x
+       where g.id = x.id and x.n > $1`,
+      [GHOSTS_PER_BUCKET],
+    );
+    return { games: games.rowCount ?? 0, ghosts: (daily.rowCount ?? 0) + (extra.rowCount ?? 0) };
+  });
 }

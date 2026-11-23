@@ -2,11 +2,16 @@
 import { createServer } from 'node:http';
 import { Server } from 'colyseus';
 import { WebSocketTransport } from '@colyseus/ws-transport';
-import { createApp } from './app';
+import { createApp, purge } from './app';
 import { LexiRoom, QueueRoom } from './rooms';
 import { migrate, pool } from './db';
 
 const PORT = Number(process.env.PORT ?? 2567);
+const DAY_MS = 86_400_000;
+
+// Dernier filet : une promesse rejetée sans `catch` est journalisée au lieu d'arrêter le processus
+// (et toutes les salles en cours avec lui).
+process.on('unhandledRejection', (e) => console.error('rejet non rattrapé', e));
 
 async function main() {
   const applied = await migrate();
@@ -23,6 +28,14 @@ async function main() {
 
   await game.listen(PORT);
   console.log(`Lexicode serveur prêt sur le port ${PORT}`);
+
+  // Ménage des données : une fois peu après le démarrage, puis chaque jour.
+  const tidy = () =>
+    purge()
+      .then((r) => { if (r.games || r.ghosts) console.log(`ménage : ${r.games} partie(s) abandonnée(s), ${r.ghosts} fantôme(s) supprimé(s)`); })
+      .catch((e) => console.error('ménage impossible', e));
+  setTimeout(tidy, 60_000).unref();
+  setInterval(tidy, DAY_MS).unref();
 
   const stop = async () => {
     await game.gracefullyShutdown(false);

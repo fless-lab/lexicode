@@ -15,6 +15,12 @@ const ARENA: ModeKind[] = ['timeattack', 'sudden', 'survival', 'marathon', 'hard
 const MIN_GAP_MS = 60;
 /** Le serveur lance son chrono avant le téléphone (aller-retour réseau compris) : la durée annoncée ne peut pas dépasser la sienne, à cette marge près. */
 const CLOCK_SLACK_MS = 1_500;
+/**
+ * Coups acceptés au total dans un envoi (toutes grilles confondues). Une grille compte au plus
+ * quelques dizaines de lettres : la borne laisse une large place aux erreurs et aux longs marathons,
+ * mais empêche un journal gonflé de bloquer le serveur pendant le rejeu.
+ */
+export const MAX_MOVES = 6_000;
 
 export function boardKey(mode: Mode): string | null {
   if (mode.kind === 'daily') return mode.date ? `daily:${mode.date}` : null;
@@ -41,7 +47,10 @@ export function checkMode(raw: unknown, today: string): Mode | null {
 
 export function gapsOk(log: Log): boolean {
   let last = -Infinity;
-  for (const [t, code, letter] of log) {
+  for (const move of log) {
+    // Un coup mal formé (nombre, objet…) ferait échouer la déstructuration : le journal est refusé.
+    if (!Array.isArray(move)) return false;
+    const [t, code, letter] = move;
     if (!Number.isFinite(t) || !Number.isInteger(code) || typeof letter !== 'string' || letter.length !== 1) return false;
     if (letter === '?') return false; // une aide : partie hors classement
     if (t - last < MIN_GAP_MS && last !== -Infinity) return false;
@@ -67,7 +76,9 @@ export function judge(lang: Lang, mode: Mode, logs: Log[], wallMs: number): Verd
   const pack = PACKS[lang];
   const rules = rulesFor(mode);
   const fail = (reason: string): Verdict => ({ ok: false, reason, score: 0, ms: 0 });
-  if (!logs.length || !logs.every(gapsOk)) return fail('journal invalide');
+  if (!logs.length || !logs.every(Array.isArray)) return fail('journal invalide');
+  if (logs.reduce((n, l) => n + l.length, 0) > MAX_MOVES) return fail('journal trop long');
+  if (!logs.every(gapsOk)) return fail('journal invalide');
 
   if (mode.kind === 'marathon') {
     let budget = MARATHON_START_MS;

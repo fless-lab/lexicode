@@ -1,4 +1,5 @@
 // Test de bout en bout de l'API contre une vraie base PostgreSQL (DATABASE_URL) et un serveur lancé (API_URL).
+import pg from 'pg';
 import { PACKS } from '../../src/content/index';
 import { puzzleFor, type Mode } from '../../src/modes';
 import { initGame, select, typeLetter, selFor, computeScore, type GameState } from '../../src/engine/game';
@@ -99,6 +100,50 @@ const city = await call('GET', `/v1/boards/fr/daily:${day}?scope=city&place=Raba
 ok('classement par ville', city.status === 200 && city.json.rows.length === 1 && city.json.rows[0].name === 'Loupi');
 const ghost = await call('GET', `/v1/ghosts/fr/daily:${day}?rating=1000`, undefined, tok2);
 ok('fantôme d\'un autre joueur', ghost.status === 200 && ghost.json.name.startsWith('Ada') && Array.isArray(ghost.json.log[0]));
+
+// Fin de partie atomique : deux envois simultanés du même journal ne comptent qu'une fois.
+const db = new pg.Client({ connectionString: process.env.DATABASE_URL });
+await db.connect();
+const c = await call('POST', '/v1/auth/anon', { name: 'Cléo', city: 'Dakar', country: 'Sénégal' });
+const tok3 = c.json.token as string;
+const s8 = await call('POST', '/v1/games', { lang: 'fr', mode: { kind: 'timeattack', d: 1 } }, tok3);
+const g8 = play(s8.json.mode);
+await sleep(g8.elapsedMs + 200);
+// Connexions ouvertes à l'avance : sans cela, les envois suivants arrivent après la fin du premier.
+const N = 6;
+await Promise.all(Array.from({ length: N }, () => call('GET', '/health')));
+const twice = await Promise.all(Array.from({ length: N }, () => call('POST', `/v1/games/${s8.json.gameId}/finish`, { logs: [g8.log] }, tok3)));
+const codes = twice.map((r) => r.status);
+const ghosts8 = await db.query('select count(*)::int as n from ghosts where game_id = $1', [s8.json.gameId]);
+const scores8 = await db.query('select count(*)::int as n from scores where game_id = $1', [s8.json.gameId]);
+ok('envois simultanés : un seul accepté, les autres en conflit', codes.filter((x) => x === 200).length === 1 && codes.filter((x) => x === 409).length === N - 1);
+ok('envois simultanés : un seul fantôme et un seul score', ghosts8.rows[0].n === 1 && scores8.rows[0].n === 1);
+
+// Plafond des fantômes par tableau et tranche de cote : les plus anciens disparaissent.
+await db.query(
+  `insert into ghosts (player_id, lang, board_key, mode, rating, ms, log, created_at)
+   select $1::uuid, 'fr', 'timeattack:1', $2::jsonb, 1000 + (i % 100), 1000, '[]', now() - i * interval '1 hour' from generate_series(1, 60) i`,
+  [a.json.id, s8.json.mode],
+);
+const s9 = await call('POST', '/v1/games', { lang: 'fr', mode: { kind: 'timeattack', d: 1 } }, tok3);
+const g9 = play(s9.json.mode);
+await sleep(g9.elapsedMs + 200);
+const f9 = await call('POST', `/v1/games/${s9.json.gameId}/finish`, { logs: [g9.log] }, tok3);
+await sleep(300);
+const kept = await db.query("select count(*)::int as n, count(*) filter (where game_id = $1)::int as mine from ghosts where lang = 'fr' and board_key = 'timeattack:1' and rating >= 1000 and rating < 1100", [s9.json.gameId]);
+ok('plafond des fantômes : 50 gardés, le plus récent compris', f9.status === 200 && kept.rows[0].n === 50 && kept.rows[0].mine === 1);
+const near = await call('GET', '/v1/ghosts/fr/timeattack:1?rating=pas-un-nombre', undefined, tok3);
+ok('tirage d\'un fantôme proche, jamais le sien', near.status === 200 && !near.json.name.startsWith('Cl'));
+
+// Entrées mal formées : refusées proprement, sans erreur 500.
+ok('identifiant de partie mal formé : 404', (await call('POST', '/v1/games/pas-un-uuid/finish', { logs: [] }, tok3)).status === 404);
+ok('paramètre me mal formé ignoré', (await call('GET', `/v1/boards/fr/daily:${day}?me=nimporte`)).status === 200);
+const s10 = await call('POST', '/v1/games', { lang: 'fr', mode: { kind: 'timeattack', d: 1 } }, tok3);
+const huge = Array.from({ length: 7000 }, (_, i) => [i * 100, 1, 'A']);
+ok('journal démesuré : refusé avant rejeu', (await call('POST', `/v1/games/${s10.json.gameId}/finish`, { logs: [huge] }, tok3)).status === 422);
+const s11 = await call('POST', '/v1/games', { lang: 'fr', mode: { kind: 'timeattack', d: 1 } }, tok3);
+ok('coups mal formés : refusés', (await call('POST', `/v1/games/${s11.json.gameId}/finish`, { logs: [[1, 2, 3]] }, tok3)).status === 422);
+await db.end();
 const ev = await call('GET', '/v1/events');
 ok('événements à distance', ev.status === 200 && Array.isArray(ev.json));
 
