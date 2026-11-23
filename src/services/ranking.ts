@@ -31,8 +31,17 @@ export interface RankingService {
   board(lang: Lang, key: string, scope: Scope, me: MyResult | null, profile: { city: string; country: string }, count?: boolean): Promise<RankRow[]>;
 }
 
-const FIRST = ['Alex', 'Sam', 'Nina', 'Léo', 'Maya', 'Omar', 'Yuki', 'Ana', 'Kofi', 'Lina', 'Hugo', 'Zoé', 'Ravi', 'Ines', 'Tom', 'Aya', 'Max', 'Eva', 'Noah', 'Sara'];
-const CITIES = ['Paris', 'Lyon', 'Montréal', 'Bruxelles', 'Lomé', 'Dakar', 'Madrid', 'London', 'New York', 'Mexico', 'Abidjan', 'Genève', 'Toronto', 'Rabat'];
+const DEMO_NAMES: Record<Lang, string[]> = {
+  fr: ['AdaLune', 'motsenfuite', 'Raph', 'Loupière', 'Nora décode', 'clédeschamps', 'Camille', 'pistejaune', 'Noé', 'sansbavure', 'Jade', 'leCabinet', 'Mina', 'grillepain', 'Éliot', 'encreviolette', 'Théo', 'Marin', 'laChouette', 'Léonie', 'Bastien', 'zéroindice', 'Maëlle', 'Yanis.k', 'plumedepaon', 'Sorayaa', 'Gaspard', 'lavieenclair'],
+  en: ['AdaAfterDark', 'ciphercat', 'Moss', 'nightshift', 'ClueKeeper', 'inkandtea', 'Marlow', 'gridwalker', 'PaperKey', 'NoHints', 'Rowan', 'wordsmith', 'BlackChamber', 'SlowBurn', 'theDecoder', 'Wren', 'Ember', 'Sparrow', 'Juno', 'Nia', 'tom_h', 'Priya', 'quietfox', 'Callum', 'Bea', 'oddlyspecific', 'Kit', 'deadletter'],
+  es: ['AdaEnClave', 'lupita', 'cafeypistas', 'ClaveMora', 'sinayudas', 'ojoavizor', 'PistaPista', 'TintaRoja', 'Gabinete', 'nochedehumo', 'CifraCero', 'palabrera', 'elzorro', 'Rayo', 'Noelia', 'Alba', 'Vega', 'sietellaves', 'Lola', 'Iria', 'Javi', 'mariposa', 'Teo', 'puzzleconcafe', 'Carmela', 'ruben_m', 'lanochenegra', 'Paz'],
+};
+const DEMO_CITIES: Record<Lang, string[]> = {
+  fr: ['Lyon', 'Montréal', 'Bruxelles', 'Lomé', 'Dakar', 'Abidjan', 'Genève', 'Rabat', 'Toulouse', 'Nantes', 'Lausanne', 'Bordeaux', 'Liège', 'Bamako'],
+  en: ['London', 'Dublin', 'Toronto', 'New York', 'Edinburgh', 'Auckland', 'Chicago', 'Manchester', 'Boston', 'Seattle', 'Melbourne', 'Bristol', 'Cape Town', 'Cardiff'],
+  es: ['Madrid', 'Barcelona', 'Bogotá', 'Ciudad de México', 'Sevilla', 'Lima', 'Quito', 'Valencia', 'Montevideo', 'Santiago', 'Guadalajara', 'Bilbao', 'Málaga', 'Rosario'],
+};
+const DEFAULT_COUNTRY: Record<Lang, string> = { fr: 'France', en: 'United Kingdom', es: 'España' };
 
 /** Classement de démonstration : joueurs simulés, clairement signalés dans l'interface. */
 export class DemoRanking implements RankingService {
@@ -40,14 +49,22 @@ export class DemoRanking implements RankingService {
   async submit(): Promise<void> {}
   async board(lang: Lang, key: string, scope: Scope, me: MyResult | null, profile: { city: string; country: string }, count = false): Promise<RankRow[]> {
     const rng = rngFromSeed(`board|${lang}|${key}|${scope}`);
+    // Tirage sans remise : deux lignes du classement ne portent jamais le même pseudo.
+    const names = [...DEMO_NAMES[lang]];
+    for (let i = names.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [names[i], names[j]] = [names[j], names[i]];
+    }
+    const cities = DEMO_CITIES[lang];
     const n = scope === 'friends' ? 6 : scope === 'city' ? 14 : 25;
     const rows: RankRow[] = [];
     for (let i = 0; i < n; i++) {
       const score = count ? Math.max(1, Math.round(22 - Math.pow(rng(), 0.5) * 20)) : Math.round(1200 - Math.pow(rng(), 0.7) * 800);
       const place =
-        scope === 'city' ? profile.city || CITIES[0] : scope === 'country' ? profile.country || 'France' : CITIES[Math.floor(rng() * CITIES.length)];
+        scope === 'city' ? profile.city || cities[0] : scope === 'country' ? profile.country || DEFAULT_COUNTRY[lang] : cities[Math.floor(rng() * cities.length)];
+      const name = names[i % names.length];
       rows.push({
-        name: `${FIRST[Math.floor(rng() * FIRST.length)]}${Math.floor(rng() * 90 + 10)}`,
+        name,
         place,
         score,
         ms: Math.round(60000 + rng() * 240000),

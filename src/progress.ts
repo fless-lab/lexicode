@@ -1,6 +1,7 @@
 import { rngFromSeed } from './engine/rng';
 import type { Save } from './storage';
 import type { ModeKind } from './modes';
+import type { Lang } from './engine/types';
 
 // ---------- Niveau du joueur ----------
 
@@ -73,7 +74,11 @@ export function weekFraction(d = new Date()): number {
   return Math.min(1, (day + (d.getHours() + d.getMinutes() / 60) / 24) / 7);
 }
 
-const BOT_NAMES = ['Alex', 'Sam', 'Nina', 'Léo', 'Maya', 'Omar', 'Yuki', 'Ana', 'Kofi', 'Lina', 'Hugo', 'Zoé', 'Ravi', 'Inès', 'Tom', 'Aya', 'Max', 'Eva', 'Noah', 'Sara', 'Iris', 'Malik', 'Jade', 'Theo', 'Emma', 'Diego', 'Lucia', 'Kenji', 'Amara'];
+const BOT_NAMES: Record<Lang, string[]> = {
+  fr: ['AdaLune', 'loupière', 'Mina décode', 'papiercarbone', 'Raph', 'Nora au carré', 'clédeschamps', 'Éliot', 'pistejaune', 'Camille', 'Mots-croisés', 'Sacha', 'encreviolette', 'Léonie', 'Le Cabinet', 'Noé', 'grillepain', 'Iris', 'Marin', 'sansbavure', 'Jade', 'Théo', 'Malo', 'la chouette', 'Emma', 'Nassim', 'Zoé', 'chiffreSept', 'Lou'],
+  en: ['AdaAfterDark', 'ciphercat', 'Moss', 'nightshift', 'ClueKeeper', 'Rin', 'inkandtea', 'Marlow', 'gridwalker', 'June', 'PaperKey', 'Sage', 'NoHints', 'Ellis', 'BlackChamber', 'Rowan', 'wordsmith', 'Iris', 'Theo', 'SlowBurn', 'Juno', 'Maxwell', 'theDecoder', 'Wren', 'Ember', 'Nia', 'Sparrow', 'sevenkeys', 'hollowpine'],
+  es: ['AdaEnClave', 'lupita', 'cafeypistas', 'Nico', 'ClaveMora', 'sinayudas', 'Luz', 'ojoavizor', 'Mar', 'PistaPista', 'TintaRoja', 'Iria', 'Gabinete', 'Rayo', 'Noelia', 'duendegris', 'Leo', 'palabrera', 'Mateo', 'nochedehumo', 'Alba', 'CifraCero', 'Vega', 'elzorro', 'Inés', 'Toni', 'Lola', 'sietellaves', 'Quique'],
+};
 
 export interface LeagueRow {
   name: string;
@@ -82,13 +87,14 @@ export interface LeagueRow {
 }
 
 /** Adversaires simulés de la ligue (remplacés par de vrais joueurs une fois le serveur branché). */
-export function leagueRows(week: string, tier: number, myXp: number, myName: string, frac: number): LeagueRow[] {
+export function leagueRows(week: string, tier: number, myXp: number, myName: string, frac: number, lang: Lang = 'en'): LeagueRow[] {
   const rng = rngFromSeed(`league|${week}|${tier}`);
   const strength = 250 + tier * 180;
-  const rows: LeagueRow[] = BOT_NAMES.slice(0, LEAGUE_SIZE - 1).map((n) => {
+  const rows: LeagueRow[] = BOT_NAMES[lang].slice(0, LEAGUE_SIZE - 1).map((n) => {
     const target = strength * (0.25 + rng() * 1.9);
     const pace = 0.6 + rng() * 0.8;
-    return { name: `${n}${Math.floor(rng() * 90 + 10)}`, xp: Math.round(target * Math.min(1, Math.pow(frac, pace))) };
+    rng(); // conserve le tirage qui produisait le suffixe numérique
+    return { name: n, xp: Math.round(target * Math.min(1, Math.pow(frac, pace))) };
   });
   rows.push({ name: myName, xp: myXp, isYou: true });
   return rows.sort((a, b) => b.xp - a.xp);
@@ -99,7 +105,7 @@ export function rollLeague(s: Save, now = new Date()): { save: Save; result: 'up
   const wk = weekKey(now);
   if (!s.league.week) return { save: { ...s, league: { ...s.league, week: wk } }, result: null };
   if (s.league.week === wk) return { save: s, result: null };
-  const rows = leagueRows(s.league.week, s.league.tier, s.league.xp, 'me', 1);
+  const rows = leagueRows(s.league.week, s.league.tier, s.league.xp, 'me', 1, s.lang ?? 'en');
   const rank = rows.findIndex((r) => r.isYou) + 1;
   let tier = s.league.tier;
   let result: 'up' | 'down' | 'stay' = 'stay';

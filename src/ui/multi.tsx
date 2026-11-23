@@ -32,10 +32,10 @@ export function Avatar({ p, size = 48, mood = 'idle', ghost, flip }: { p: { look
   );
 }
 
-function Head({ title, back, right }: { title: string; back: () => void; right?: React.ReactNode }) {
+function Head({ title, back, right, lang }: { title: string; back: () => void; right?: React.ReactNode; lang: Lang }) {
   return (
     <header className="subhead">
-      <button className="iconbtn" onClick={back} aria-label="←"><Icon name="back" /></button>
+      <button className="iconbtn" onClick={back} aria-label={MULTI_STRINGS[lang].back}><Icon name="back" /></button>
       <h2>{title}</h2>
       {right}
     </header>
@@ -68,6 +68,7 @@ export function MultiHub(p: HubProps) {
       <Head
         title={M.hub}
         back={p.back}
+        lang={p.lang}
         right={p.online !== null && !p.offline ? <span className="online"><i />{fm(M.online, { n: p.online })}</span> : undefined}
       />
       <div className="screen mhub" style={{ paddingTop: 6 }}>
@@ -303,7 +304,7 @@ export function MultiDock({ lang, kind, traps, charges, target, immune, onTrap, 
       )}
       {traps && kind !== 'coop' && <span className="charges" aria-label={M.trap}><Icon name="bolt" size={14} />{charges}</span>}
       <span className="emotewrap">
-        <button className="tool boost" onClick={() => setEmotes(!emotes)} aria-label="emotes"><Icon name="chat" size={18} /></button>
+        <button className="tool boost" onClick={() => setEmotes(!emotes)} aria-label={M.emotesLabel}><Icon name="chat" size={18} /></button>
         {emotes && (
           <span className="emotes">
             {(Object.keys(M.emotes) as Emote[]).map((e) => (
@@ -350,7 +351,7 @@ export function Lobby({ lang, state, meId, onReady, onStart, onOptions, onShare,
   const seats = Array.from({ length: max }, (_, i) => state.players[i] ?? null);
   return (
     <div>
-      <Head title={state.kind === 'coop' ? M.coop : M.party} back={onLeave} />
+      <Head title={state.kind === 'coop' ? M.coop : M.party} back={onLeave} lang={lang} />
       <div className="screen lobby" style={{ paddingTop: 6 }}>
         <section className="codecard">
           <small>{M.lobbyCode}</small>

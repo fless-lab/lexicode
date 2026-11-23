@@ -76,7 +76,7 @@ export const ITEMS: Item[] = [
   it('frame', 'northstar', N('Étoile du Nord', 'North Star', 'Estrella polar'), { unlock: { event: 'xmas-2026' } }),
   // Décors de l'accueil
   it('decor', 'home', N('Les toits', 'The rooftops', 'Los tejados'), { free: true }),
-  it('decor', 'tower', N('Le phare', 'The lighthouse', 'El faro'), { tokens: 800 }),
+  it('decor', 'tower', N('La tour du chiffre', 'Cipher Tower', 'La torre del cifrado'), { tokens: 800 }),
   it('decor', 'train', N('Le viaduc', 'The viaduct', 'El viaducto'), { sku: SKUS.decorTrain }),
   it('decor', 'observatory', N('La coupole', 'The dome', 'La cúpula'), { unlock: { chapter: 5 } }),
   // Packs de grilles

@@ -8,7 +8,7 @@ import { Loupi, type Outfit } from './mascot';
 import { Scene, type SceneKind } from './scenes';
 import { daysLeft, type SeasonalEvent } from '../events';
 import { sfx } from '../sound';
-import { SHOP_STRINGS, fmtS } from '../i18n-shop';
+import { SHOP_STRINGS, fmtS, type ShopStrings } from '../i18n-shop';
 import { ITEMS, BUNDLES, TOKEN_PACKS, owns, grant, item, weeklyShowcase, outfitOf, type Item, type ItemKind } from '../catalog';
 import { SKUS, buy, priceOf, restore, isDemoStore, type Sku } from '../services/billing';
 import { weekKey } from '../progress';
@@ -113,10 +113,10 @@ function Action({ ctx, i, shop }: { ctx: ShopCtx; i: Item; shop: ReturnType<type
   return null;
 }
 
-function Head({ title, back, right }: { title: string; back: () => void; right?: React.ReactNode }) {
+function Head({ title, back, right, lang }: { title: string; back: () => void; right?: React.ReactNode; lang: Lang }) {
   return (
     <header className="subhead">
-      <button className="iconbtn" onClick={back} aria-label="←"><Icon name="back" /></button>
+      <button className="iconbtn" onClick={back} aria-label={SHOP_STRINGS[lang].back}><Icon name="back" /></button>
       <h2>{title}</h2>
       {right}
     </header>
@@ -148,13 +148,13 @@ export function Preview({ i, size = 80 }: { i: Item; size?: number }) {
   }
 }
 
-function untilMonday(): string {
+function untilMonday(S: ShopStrings): string {
   const d = new Date();
   const next = new Date(d);
   next.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7));
   next.setHours(0, 0, 0, 0);
   const h = Math.max(0, Math.round((next.getTime() - d.getTime()) / 3600000));
-  return `${Math.floor(h / 24)} j ${h % 24} h`;
+  return h > 0 ? `${Math.floor(h / 24)} ${S.unitDay} ${h % 24} ${S.unitHour}` : S.lessThanHour;
 }
 
 // ---------------- Boutique ----------------
@@ -183,13 +183,13 @@ export function Shop({ ctx, back, openWardrobe, openPacks }: { ctx: ShopCtx; bac
 
   return (
     <div className="shop">
-      <Head title={S.shop} back={back} right={<span className="counter gold"><Icon name="token" size={18} />{save.tokens}</span>} />
+      <Head title={S.shop} back={back} lang={lang} right={<span className="counter gold"><Icon name="token" size={18} />{save.tokens}</span>} />
       <div className="screen" style={{ paddingTop: 6 }}>
         {isDemoStore() && <p className="demo-note">{S.demo}</p>}
         <section className="vitrine">
           <div className="vit-top">
             <Loupi mood="happy" size={92} outfit={{ hat: 'tophat', neck: 'bowtie' }} />
-            <div className="bubble">{S.showcase} {fmtS(S.showcaseLeft, { t: untilMonday() })}</div>
+            <div className="bubble">{S.showcase} {fmtS(S.showcaseLeft, { t: untilMonday(S) })}</div>
           </div>
           <div className="feat">
             {feat.map((i, k) => (
@@ -331,7 +331,7 @@ export function Wardrobe({ ctx, back }: { ctx: ShopCtx; back: () => void }) {
 
   return (
     <div>
-      <Head title={S.wardrobe} back={back} />
+      <Head title={S.wardrobe} back={back} lang={lang} />
       <div className="screen" style={{ paddingTop: 6 }}>
         <section className="dress">
           <Scene kind={(save.equip.decor as SceneKind) ?? 'home'} />
@@ -398,7 +398,7 @@ export function EventScreen({ ev, ctx, day, back, play }: { ev: SeasonalEvent; c
   const finished = done >= ev.levels;
   return (
     <div>
-      <Head title={ev.title[lang]} back={back} />
+      <Head title={ev.title[lang]} back={back} lang={lang} />
       <div className="screen" style={{ paddingTop: 6 }}>
         <section className="chapcard evcard">
           <Scene kind="xmas" />
@@ -450,7 +450,7 @@ export function PacksScreen({ ctx, back, play, openShop }: { ctx: ShopCtx; back:
   const packs = ITEMS.filter((i) => i.kind === 'pack' && !i.soon);
   return (
     <div>
-      <Head title={S.secPacks} back={back} />
+      <Head title={S.secPacks} back={back} lang={lang} />
       <div className="screen" style={{ paddingTop: 6 }}>
         {packs.map((p) => {
           const n = PACK_PHRASES[p.value]?.[lang].length ?? 0;
@@ -490,7 +490,7 @@ export function ArchiveScreen({ ctx, day, back, play, openShop }: { ctx: ShopCtx
   const days = Array.from({ length: 60 }, (_, i) => new Date(Date.parse(day) - (i + 1) * 86400000).toISOString().slice(0, 10));
   return (
     <div>
-      <Head title={S.archives} back={back} />
+      <Head title={S.archives} back={back} lang={lang} />
       <div className="screen" style={{ paddingTop: 6 }}>
         <p className="muted">{S.archivesSub}</p>
         {!save.premium && (

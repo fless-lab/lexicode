@@ -30,13 +30,13 @@ const fill = (s: string, n: number | string) => s.replace('{n}', String(n));
 const modeLabel = (t: Strings, k: ModeKind): string[] =>
   k === 'daily' ? [t.daily, t.dailySub] : k === 'level' ? [t.adventure, ''] : k === 'practice' ? [t.practice, ''] : k === 'expedition' ? [t.expedition, t.expeditionSub] : ((t[`mode_${k}` as 'mode_zen'] as string[] | undefined) ?? [k, '']);
 
-function untilSunday(): string {
+function untilSunday(t: Strings): string {
   const now = new Date();
   const end = new Date(now);
   end.setDate(now.getDate() + (7 - ((now.getDay() + 6) % 7)));
   end.setHours(0, 0, 0, 0);
   const h = Math.max(0, Math.round((end.getTime() - now.getTime()) / 3600000));
-  return h >= 24 ? `${Math.floor(h / 24)} j ${h % 24} h` : `${h} h`;
+  return h >= 24 ? `${Math.floor(h / 24)} ${t.unitDay} ${h % 24} ${t.unitHour}` : h > 0 ? `${h} ${t.unitHour}` : t.lessThanHour;
 }
 
 export function Wordmark({ small }: { small?: boolean }) {
@@ -165,7 +165,7 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
   const quests = questsFor(day);
   const qs = freshQuests(day, save.quests);
   const allDone = quests.every((q) => qs.claimed.includes(q.id));
-  const rows = leagueRows(save.league.week ?? weekKey(), save.league.tier, save.league.xp, save.name || t.you, weekFraction());
+  const rows = leagueRows(save.league.week ?? weekKey(), save.league.tier, save.league.xp, save.name || t.you, weekFraction(), lang);
   const myRank = rows.findIndex((r) => r.isYou) + 1;
   const season = freshSeason(day, save.season);
   const sTier = seasonTier(season.xp);
@@ -249,10 +249,10 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
         <button className="tile t-coral" onClick={() => go('arena')}>
           <Icon name="arena" size={34} />
           <b>{t.arena}</b>
-          <small>{ARENA.filter((a) => plv >= a.unlockLevel).length} / {ARENA.length}</small>
+          <small>{fill(t.modesOpen, ARENA.filter((a) => plv >= a.unlockLevel).length).replace('{m}', String(ARENA.length))}</small>
         </button>
         <button className="tile t-gold" onClick={() => go('season')}>
-          <span className="tnum">{sTier}</span>
+          <span className="tnum"><em>{t.tier}</em>{sTier}</span>
           <b>{fill(t.seasonN, season.id || seasonOf(day))}</b>
           <small>{fill(t.daysLeft, seasonDaysLeft(day))}</small>
         </button>
@@ -263,7 +263,7 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
         </button>
         <button className="tile t-wide t-red mp-tile" onClick={() => go('multi')}>
           <Icon name="users" size={30} />
-          <span><b>{MULTI_STRINGS[lang].hub}</b><small>{[MULTI_STRINGS[lang].duel, MULTI_STRINGS[lang].party, MULTI_STRINGS[lang].coop].join(', ')}</small></span>
+          <span><b>{MULTI_STRINGS[lang].hub}</b><small>{lang === 'fr' ? 'Duel, salon et enquête' : lang === 'es' ? 'Duelo, sala e investigación' : 'Duel, room and case'}</small></span>
         </button>
         <button className="tile t-wide t-blue" onClick={() => onStart({ kind: 'practice', d: 2, nonce: String(Date.now()) })}>
           <Icon name="target" size={30} />
@@ -464,11 +464,11 @@ export function Season({ t, save, day, go, claimTier, setSave }: { t: Strings; s
 
 // ---------------- Écrans secondaires ----------------
 
-function Sub({ title, back, children }: { title: string; back: () => void; children: React.ReactNode }) {
+function Sub({ title, back, backLabel, children }: { title: string; back: () => void; backLabel: string; children: React.ReactNode }) {
   return (
     <div>
       <header className="subhead">
-        <button className="iconbtn" onClick={back} aria-label="Retour"><Icon name="back" /></button>
+        <button className="iconbtn" onClick={back} aria-label={backLabel}><Icon name="back" /></button>
         <h2>{title}</h2>
       </header>
       <div className="screen" style={{ paddingTop: 6 }}>{children}</div>
@@ -531,13 +531,13 @@ export function Ranking({ t, save, lang, day, go }: { t: Strings; save: Save; la
   );
 }
 
-export function League({ t, save, back }: { t: Strings; save: Save; back: () => void }) {
-  const rows = leagueRows(save.league.week ?? weekKey(), save.league.tier, save.league.xp, save.name || t.you, weekFraction());
+export function League({ t, save, lang = 'en', back }: { t: Strings; save: Save; lang?: Lang; back: () => void }) {
+  const rows = leagueRows(save.league.week ?? weekKey(), save.league.tier, save.league.xp, save.name || t.you, weekFraction(), lang);
   return (
-    <Sub title={`${t.league} ${t.leagueNames[save.league.tier]}`} back={back}>
+    <Sub title={`${t.league} ${t.leagueNames[save.league.tier]}`} back={back} backLabel={t.back}>
       <div className="tiers">{t.leagueNames.map((n, i) => <i key={i} title={n} className={i === save.league.tier ? 'on' : i < save.league.tier ? 'past' : ''}>{i + 1}</i>)}</div>
       <p className="muted">{t.leagueSub}</p>
-      <p className="small muted"><Icon name="hourglass" size={14} /> {t.leagueEnds} {untilSunday()}</p>
+      <p className="small muted"><Icon name="hourglass" size={14} /> {t.leagueEnds} {untilSunday(t)}</p>
       <ol className="board">
         {rows.map((r, i) => (
           <li key={i} className={`${r.isYou ? 'you' : ''} ${i < PROMOTE ? 'zup' : i >= LEAGUE_SIZE - DEMOTE ? 'zdown' : ''}`}>
@@ -556,10 +556,11 @@ export function Album({ t, save, lang, back }: { t: Strings; save: Save; lang: L
   const found = new Set(save.album[lang] ?? []);
   const phrases = PACKS[lang].phrases;
   const cats = [...new Set(phrases.map((p) => p.k))];
+  const categoryLabel = (key: string) => key === 'story' ? t.cat_story : key.startsWith('event:') ? t.cat_event : key.startsWith('pack:') ? t.categoryNames[key.slice(5) as keyof typeof t.categoryNames] ?? t.cat_pack : t[`cat_${key}` as 'cat_fact'] ?? t.cat_pack;
   const [cat, setCat] = useState<string | null>(null);
   const list = phrases.map((p, i) => ({ p, i })).filter(({ p }) => !cat || p.k === cat).sort((a, b) => Number(found.has(b.i)) - Number(found.has(a.i)));
   return (
-    <Sub title={t.album} back={back}>
+    <Sub title={t.album} back={back} backLabel={t.back}>
       <p className="muted">{t.albumSub}</p>
       <span className="xpbar wide"><i style={{ width: `${(found.size / phrases.length) * 100}%` }} /></span>
       <div className="pills">
@@ -567,14 +568,14 @@ export function Album({ t, save, lang, back }: { t: Strings; save: Save; lang: L
         {cats.map((c) => {
           const tot = phrases.filter((p) => p.k === c).length;
           const got = phrases.filter((p, i) => p.k === c && found.has(i)).length;
-          return <button key={c} className={cat === c ? 'on' : ''} onClick={() => setCat(c)}>{t[`cat_${c}` as 'cat_fact'] ?? c} {got}/{tot}</button>;
+          return <button key={c} className={cat === c ? 'on' : ''} onClick={() => setCat(c)}>{categoryLabel(c)} {got}/{tot}</button>;
         })}
       </div>
       {!found.size && <p className="demo-note">{t.albumEmpty}</p>}
       <div>
         {list.map(({ p, i }) => (
           <div key={i} className={`acard ${found.has(i) ? '' : 'lockedc'}`}>
-            <small>{t[`cat_${p.k}` as 'cat_fact'] ?? p.k}</small>
+            <small>{categoryLabel(p.k)}</small>
             <p>{found.has(i) ? p.t : p.t.replace(/\p{L}/gu, '·').slice(0, 28)}</p>
           </div>
         ))}
@@ -673,7 +674,7 @@ export function Settings({ t, save, setSave, back }: { t: Strings; save: Save; s
   const [confirm, setConfirm] = useState(false);
   const toggle = (k: 'sound' | 'haptics') => setSave((s) => ({ ...s, settings: { ...s.settings, [k]: !s.settings[k] } }));
   return (
-    <Sub title={t.settings} back={back}>
+    <Sub title={t.settings} back={back} backLabel={t.back}>
       <label className="field">{t.language}
         <select value={save.lang ?? 'en'} onChange={(e) => setSave((s) => ({ ...s, lang: e.target.value as Lang }))}>
           {LANGS.map((l) => <option key={l.code} value={l.code}>{l.name}</option>)}
@@ -714,7 +715,7 @@ export function Premium({ t, save, setSave, back }: { t: Strings; save: Save; se
     }
   };
   return (
-    <Sub title={t.premiumTitle} back={back}>
+    <Sub title={t.premiumTitle} back={back} backLabel={t.back}>
       <ul className="perks">
         {[...t.premiumPerks, `${t.premiumTrack} : ${t.season}`].map((p) => <li key={p}><Icon name="check" />{p}</li>)}
       </ul>

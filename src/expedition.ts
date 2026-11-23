@@ -31,9 +31,9 @@ export interface Floor {
 }
 
 const PLACES: Record<Lang, string[]> = {
-  fr: ['La Crypte', 'Le Phare', 'La Galerie', 'La Serre', 'La Citerne', 'Le Scriptorium', 'La Volière', 'Le Belvédère', 'La Chapelle', 'La Chambre forte', 'La Rotonde', 'Le Cloître', 'La Forge', "L'Orangerie", 'Le Puits'],
-  en: ['The Crypt', 'The Lighthouse', 'The Gallery', 'The Greenhouse', 'The Cistern', 'The Scriptorium', 'The Aviary', 'The Belvedere', 'The Chapel', 'The Vault', 'The Rotunda', 'The Cloister', 'The Forge', 'The Orangery', 'The Well'],
-  es: ['La Cripta', 'El Faro', 'La Galería', 'El Invernadero', 'La Cisterna', 'El Scriptorium', 'La Pajarera', 'El Mirador', 'La Capilla', 'La Cámara acorazada', 'La Rotonda', 'El Claustro', 'La Forja', 'El Naranjal', 'El Pozo'],
+  fr: ["L'atelier noyé", 'La Crypte', 'La Galerie des cartes', 'La Serre d’Ada', 'La Citerne', 'Le Scriptorium', 'La Volière', 'Le Belvédère', 'La Chapelle', 'La Chambre forte', 'La Rotonde', 'Le Cloître', 'La Forge', "L'Orangerie", 'Le Puits'],
+  en: ['Ada’s workshop', 'The Crypt', 'The Map Gallery', 'The Glasshouse', 'The Cistern', 'The Scriptorium', 'The Aviary', 'The Lookout', 'The Chapel', 'The Vault', 'The Rotunda', 'The Cloister', 'The Forge', 'The Orangery', 'The Well'],
+  es: ['El taller sumergido', 'La Cripta', 'La Galería de mapas', 'El invernadero de Ada', 'La Cisterna', 'El Scriptorium', 'La Pajarera', 'El Mirador', 'La Capilla', 'La Cámara acorazada', 'La Rotonda', 'El Claustro', 'La Forja', 'El Naranjal', 'El Pozo'],
 };
 
 const QUALS: Record<Lang, string[]> = {

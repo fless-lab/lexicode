@@ -472,7 +472,7 @@ export function Play(props: Props) {
                 {[...row].map((k) => (
                   <button key={k} className={`key ${used.has(k) ? 'used' : ''}`} onClick={() => press(k)}>{k}</button>
                 ))}
-                {ri === 2 && <button className="key wide" onClick={() => setG((s) => erase(s))} aria-label="Effacer"><Icon name="erase" /></button>}
+                {ri === 2 && <button className="key wide" onClick={() => setG((s) => erase(s))} aria-label={t.erase}><Icon name="erase" /></button>}
               </div>
             ))}
           </div>

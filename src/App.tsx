@@ -598,7 +598,7 @@ export default function App() {
           <span className="gain xp"><Icon name="sparkle" size={14} />+{end.xp} {t.xp}</span>
           {end.timeBonus > 0 && <span className="gain time"><Icon name="hourglass" size={14} />+{end.timeBonus}</span>}
           {end.ratingDelta !== 0 && (
-            <span className={`gain ${end.ratingDelta >= 0 ? 'up' : 'down'}`}><Icon name="brain" size={14} />{save.rating} ({end.ratingDelta >= 0 ? '+' : ''}{end.ratingDelta})</span>
+            <span className={`gain ${end.ratingDelta >= 0 ? 'up' : 'down'}`}><Icon name="brain" size={14} />{t.ratingLabel} {save.rating} ({end.ratingDelta >= 0 ? '+' : ''}{end.ratingDelta})</span>
           )}
           {end.record && <span className="gain rec"><Icon name="trophy" size={14} />{t.newRecord}</span>}
           {end.assisted && <span className="gain"><Icon name="bulb" size={14} />{SHOP_STRINGS[lang].assisted}</span>}
@@ -666,7 +666,7 @@ export default function App() {
       {screen === 'ranking' && <Ranking t={t} save={save} lang={lang} day={day} go={setScreen} />}
       {screen === 'profile' && <Profile t={t} save={save} lang={lang} day={day} go={setScreen} />}
       {screen === 'album' && <Album t={t} save={save} lang={lang} back={() => setScreen('profile')} />}
-      {screen === 'league' && <League t={t} save={save} back={() => setScreen('home')} />}
+      {screen === 'league' && <League t={t} save={save} lang={lang} back={() => setScreen('home')} />}
       {screen === 'settings' && <Settings t={t} save={save} setSave={setSave} back={() => setScreen('home')} />}
       {screen === 'shop' && <Shop ctx={shopCtx} back={() => setScreen('home')} openWardrobe={() => setScreen('wardrobe')} openPacks={() => setScreen('packs')} />}
       {screen === 'wardrobe' && <Wardrobe ctx={shopCtx} back={() => setScreen('shop')} />}
