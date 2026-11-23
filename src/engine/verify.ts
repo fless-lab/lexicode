@@ -35,12 +35,14 @@ export function verifyPuzzle(p: Puzzle, pack: LangPack): string[] {
   // 4. Couverture : chaque lettre de la phrase est apprise par un mot ou donnée.
   const known = new Set<number>(p.given);
   for (const w of p.words) for (const c of w.codes) known.add(c);
-  for (const cell of p.phrase) {
-    if (cell.kind === 'letter' && !known.has(cell.code)) errs.push(`lettre ${cell.n} impossible à trouver`);
-  }
+  if (!p.cryptogram)
+    for (const cell of p.phrase) {
+      if (cell.kind === 'letter' && !known.has(cell.code)) errs.push(`lettre ${cell.n} impossible à trouver`);
+    }
 
   // 5. Bornes de difficulté (avec la marge d'assouplissement du générateur).
   const cfg = DIFF[p.difficulty];
+  if (!p.cryptogram && p.words.length === 0) errs.push('aucun mot');
   if (p.words.length > cfg.maxWords + 6) errs.push(`trop de mots (${p.words.length})`);
   if (p.given.length > cfg.given + 4) errs.push(`trop de lettres données (${p.given.length})`);
 
@@ -52,6 +54,13 @@ export function verifyPuzzle(p: Puzzle, pack: LangPack): string[] {
       s = typeLetter(s, p.words[w].answer[i], 1000);
     }
     if (!s.finished && !wordSolved(s, w)) errs.push(`mot ${w} non résolu en simulation`);
+  }
+  // Cryptogramme (ou fin de grille) : le joueur complète la phrase case par case.
+  for (let i = 0; i < p.phrase.length && !s.finished; i++) {
+    const c = p.phrase[i];
+    if (c.kind !== 'letter') continue;
+    s = select(s, { kind: 'phrase', i });
+    s = typeLetter(s, c.n, 1000);
   }
   if (!s.finished || !phraseSolved(s)) errs.push('partie simulée non gagnée');
   if (s.mistakes !== 0) errs.push('erreurs comptées pour un joueur parfait');

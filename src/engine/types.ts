@@ -46,4 +46,6 @@ export interface Puzzle {
   given: number[];
   codeToLetter: Record<number, string>;
   maxCode: number;
+  /** Cryptogramme pur : pas de mots indices, la phrase seule. */
+  cryptogram?: boolean;
 }

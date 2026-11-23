@@ -19,6 +19,11 @@ export interface GameState {
   lives: number | null;
   failed: boolean;
   failReason: 'time' | 'mistakes' | null;
+  /** Lettres justes d'affilée, et record de la partie. */
+  combo: number;
+  maxCombo: number;
+  /** Erreurs absorbées par le bonus bouclier. */
+  shield: number;
   /** Paires numéro|lettre déjà comptées comme erreur. */
   counted: Record<string, true>;
 }
@@ -44,6 +49,9 @@ export function initGame(puzzle: Puzzle, now = Date.now(), lives: number | null 
     lives,
     failed: false,
     failReason: null,
+    combo: 0,
+    maxCombo: 0,
+    shield: 0,
     counted: {},
   };
   s.sel = firstEmpty(s);
@@ -141,15 +149,23 @@ export function typeLetter(s: GameState, letter: string, now = Date.now()): Game
   if (isOver(s) || !s.sel) return s;
   const code = codeAt(s.puzzle, s.sel);
   if (code === null || s.locked[code]) return { ...s, sel: advance(s, s.sel) };
-  const guesses = { ...s.guesses, [code]: letter };
-  let { mistakes } = s;
+  const right = letter === s.puzzle.codeToLetter[code];
+  if (right && s.guesses[code] === letter) return { ...s, sel: advance(s, s.sel) };
+  let { mistakes, shield, combo, maxCombo } = s;
   const counted = { ...s.counted };
   const key = `${code}|${letter}`;
-  if (letter !== s.puzzle.codeToLetter[code] && !counted[key]) {
+  // Avec un bouclier actif, la mauvaise lettre est refusée sans compter d'erreur.
+  if (!right && shield > 0) return { ...s, shield: shield - 1, combo: 0 };
+  const guesses = { ...s.guesses, [code]: letter };
+  if (!right && !counted[key]) {
     mistakes++;
     counted[key] = true;
   }
-  const next: GameState = { ...s, guesses, mistakes, counted };
+  if (right) {
+    combo++;
+    maxCombo = Math.max(maxCombo, combo);
+  } else combo = 0;
+  const next: GameState = { ...s, guesses, mistakes, counted, combo, maxCombo };
   if (s.lives !== null && mistakes >= s.lives) return failGame(next, 'mistakes', now);
   const sel = letter === s.puzzle.codeToLetter[code] ? advance(next, s.sel) : s.sel;
   return finish({ ...next, sel }, now);
@@ -168,7 +184,7 @@ export function revealCode(s: GameState, code: number, now = Date.now()): GameSt
   if (isOver(s)) return s;
   const guesses = { ...s.guesses, [code]: s.puzzle.codeToLetter[code] };
   const locked = { ...s.locked, [code]: true as const };
-  const next = { ...s, guesses, locked, hints: s.hints + 1 };
+  const next = { ...s, guesses, locked, hints: s.hints + 1, combo: 0 };
   return finish({ ...next, sel: s.sel ? advance(next, s.sel) : null }, now);
 }
 
@@ -189,8 +205,27 @@ export function revealWord(s: GameState, w: number, now = Date.now()): GameState
     guesses[c] = s.puzzle.codeToLetter[c];
     locked[c] = true;
   }
-  const next = { ...s, guesses, locked, hints: s.hints + 3 };
+  const next = { ...s, guesses, locked, hints: s.hints + 3, combo: 0 };
   return finish({ ...next, sel: advance(next, { kind: 'word', w, i: 0 }) }, now);
+}
+
+/** Bonus révélation : dévoile jusqu'à n lettres manquantes de la phrase, sans compter d'indice. */
+export function revealPhraseLetters(s: GameState, n: number, now = Date.now()): GameState {
+  if (isOver(s)) return s;
+  const missing = [...new Set(s.puzzle.phrase.filter((c) => c.kind === 'letter' && !isCorrect(s, c.code)).map((c) => (c as { code: number }).code))];
+  const pick = missing.slice(0, n);
+  const guesses = { ...s.guesses };
+  const locked = { ...s.locked };
+  for (const c of pick) {
+    guesses[c] = s.puzzle.codeToLetter[c];
+    locked[c] = true;
+  }
+  const next = { ...s, guesses, locked };
+  return finish({ ...next, sel: s.sel ? advance(next, s.sel) : firstEmpty(next) }, now);
+}
+
+export function addShield(s: GameState, n = 1): GameState {
+  return { ...s, shield: s.shield + n };
 }
 
 /** Lettres déjà utilisées pour un autre numéro (aide visuelle sur le clavier). */
@@ -205,13 +240,14 @@ export function computeScore(s: GameState): number {
   const secs = s.elapsedMs / 1000;
   const par = 40 + s.puzzle.words.length * 25;
   const timePenalty = Math.max(0, secs - par) * 1.2;
-  const raw = 1000 - timePenalty - s.mistakes * 40 - s.hints * 60 - s.oracle * 30;
+  const comboBonus = Math.min(250, s.maxCombo * 10);
+  const raw = 1000 + comboBonus - timePenalty - s.mistakes * 40 - s.hints * 60 - s.oracle * 30;
   return Math.max(100, Math.round(raw));
 }
 
 export function stars(s: GameState): 1 | 2 | 3 {
   const sc = computeScore(s);
-  if (sc >= 800 && s.hints === 0) return 3;
+  if (sc >= 850 && s.hints === 0 && s.mistakes <= 1) return 3;
   if (sc >= 550) return 2;
   return 1;
 }

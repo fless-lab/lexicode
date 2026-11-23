@@ -5,7 +5,7 @@ import { dailyPuzzle, practicePuzzle } from '../src/engine/generator';
 import { verifyPuzzle, verifyPack } from '../src/engine/verify';
 import type { Difficulty, Puzzle } from '../src/engine/types';
 import { puzzleFor, rulesFor, type ModeKind } from '../src/modes';
-import { initGame, select, typeLetter, failGame } from '../src/engine/game';
+import { initGame, select, typeLetter, failGame, addShield } from '../src/engine/game';
 
 let failures = 0;
 let total = 0;
@@ -27,7 +27,7 @@ for (const pack of Object.values(PACKS)) {
     for (let k = 0; k < 60; k++)
       puzzles.push({ label: `practice d${d} #${k}`, make: () => practicePuzzle(pack, d as Difficulty, String(k)) });
 
-  for (const kind of ['hardcore', 'marathon', 'timeattack', 'sudden', 'survival', 'zen'] as ModeKind[])
+  for (const kind of ['hardcore', 'marathon', 'timeattack', 'sudden', 'survival', 'zen', 'cryptogram'] as ModeKind[])
     for (let k = 0; k < 40; k++)
       puzzles.push({ label: `${kind} #${k}`, make: () => puzzleFor(pack, { kind, d: ((k % 5) + 1) as Difficulty, nonce: String(k), run: k % 12 }) });
 
@@ -41,6 +41,16 @@ for (const pack of Object.values(PACKS)) {
     let h = initGame(p, 0, 3);
     for (const l of ['Q', 'Z', 'X']) h = typeLetter(select(h, { kind: 'word', w: 0, i: 0 }), l === p.words[0].answer[0] ? 'J' : l, 1);
     if (!h.failed) { failures++; console.log(`[${pack.lang}] survie ne perd pas après 3 erreurs`); }
+    // Bouclier : la mauvaise lettre est absorbée, pas d'échec en mort subite.
+    let sh = addShield(initGame(p, 0, 1));
+    sh = typeLetter(select(sh, { kind: 'word', w: 0, i: 0 }), wrongFor(0), 1);
+    if (sh.failed || sh.mistakes !== 0 || sh.shield !== 0) { failures++; console.log(`[${pack.lang}] bouclier inopérant`); }
+    // Combo : chaque bonne lettre l'augmente, une erreur le remet à zéro.
+    let cb = initGame(p, 0);
+    const ans = p.words[0].answer;
+    for (let i = 0; i < ans.length; i++) cb = typeLetter(select(cb, { kind: 'word', w: 0, i }), ans[i], 1);
+    const fresh = new Set(ans.split('').filter((l) => !p.given.includes(Object.entries(p.codeToLetter).find(([, v]) => v === l)![0] as unknown as number))).size;
+    if (cb.maxCombo < Math.min(1, fresh)) { failures++; console.log(`[${pack.lang}] combo non compté`); }
     const tf = failGame(initGame(p, 0), 'time', 5);
     if (!tf.failed || typeLetter(tf, 'A') !== tf) { failures++; console.log(`[${pack.lang}] échec au chrono non bloquant`); }
   }

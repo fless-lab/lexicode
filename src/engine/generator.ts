@@ -244,3 +244,48 @@ export function levelPuzzle(pack: LangPack, level: number): Puzzle {
 export function practicePuzzle(pack: LangPack, difficulty: Difficulty, nonce: string): Puzzle {
   return generatePuzzle(pack, `practice-${nonce}`, difficulty);
 }
+
+/**
+ * Cryptogramme pur : la phrase seule, chiffrée, sans mots indices.
+ * Seules les lettres les plus fréquentes sont données au départ.
+ */
+export function cryptogramPuzzle(pack: LangPack, seed: string, difficulty: Difficulty): Puzzle {
+  const rng = rngFromSeed(`crypto|${pack.lang}|${seed}|${difficulty}`);
+  const minLen = difficulty >= 4 ? 26 : 18;
+  const candidates = pack.phrases.map((_, i) => i).filter((i) => letterCount(pack.phrases[i].t) >= minLen);
+  const pool = candidates.length ? candidates : pack.phrases.map((_, i) => i);
+  const pi = pool[Math.floor(rng() * pool.length)];
+  const phrase = pack.phrases[pi];
+  const target = [...letterSet(phrase.t)];
+  const order = shuffle(target, rng);
+  const letterToCode: Record<string, number> = {};
+  const codeToLetter: Record<number, string> = {};
+  order.forEach((l, i) => {
+    letterToCode[l] = i + 1;
+    codeToLetter[i + 1] = l;
+  });
+  const freq = new Map<string, number>();
+  for (const ch of norm(phrase.t)) if (isAZ(ch)) freq.set(ch, (freq.get(ch) ?? 0) + 1);
+  const nGiven = { 1: 5, 2: 4, 3: 3, 4: 3, 5: 2 }[difficulty];
+  const given = [...freq.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, nGiven)
+    .map(([l]) => letterToCode[l])
+    .sort((a, b) => a - b);
+  return {
+    id: `${pack.lang}-c-${hashString(seed + '|' + difficulty).toString(36)}`,
+    lang: pack.lang,
+    seed,
+    category: phrase.k,
+    phraseText: phrase.t,
+    phraseIndex: pi,
+    difficulty,
+    rating: ratingFor(difficulty) + 100,
+    phrase: buildPhraseCells(phrase.t, letterToCode),
+    words: [],
+    given,
+    codeToLetter,
+    maxCode: order.length,
+    cryptogram: true,
+  };
+}

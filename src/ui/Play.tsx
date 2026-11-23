@@ -3,13 +3,15 @@ import type { Puzzle } from '../engine/types';
 import {
   initGame, select, typeLetter, erase, revealSelected, revealWord, codeAt, isCorrect, isWrong,
   wordSolved, progress, usedLetters, computeScore, stars, oracleSearch, wordPattern, failGame,
-  livesLeft, isOver, type GameState, type Sel,
+  livesLeft, isOver, addShield, revealPhraseLetters, type GameState, type Sel,
 } from '../engine/game';
 import { KEYBOARDS, type Strings } from '../i18n';
 import { PACKS } from '../content';
 import { COST } from '../services/monetization';
 import type { Rules } from '../modes';
+import { FREEZE_MS, REVEAL_N, type BoosterId } from '../meta';
 import { sfx } from '../sound';
+import { Icon, BOOSTER_ICON } from './Icon';
 
 export interface FinishInfo {
   score: number;
@@ -18,18 +20,22 @@ export interface FinishInfo {
   mistakes: number;
   hints: number;
   remainingMs: number | null;
+  maxCombo: number;
+  words: number;
 }
 
 interface Props {
   puzzle: Puzzle;
   title: string;
-  subtitle?: string;
+  subtitle: string[];
   t: Strings;
   tokens: number;
   premium: boolean;
   rules: Rules;
-  /** Échéance absolue du chrono (ms epoch), si chrono. */
   deadline: number | null;
+  boosters: Record<BoosterId, number>;
+  useBooster: (id: BoosterId) => boolean;
+  onFreeze: (ms: number) => void;
   spend: (n: number) => boolean;
   onNeedTokens: () => void;
   onFinish: (info: FinishInfo) => void;
@@ -47,47 +53,47 @@ export function fmt(ms: number): string {
 }
 
 export function Play(props: Props) {
-  const { puzzle, title, subtitle, t, tokens, premium, rules, deadline, spend, onNeedTokens, onFinish, onFail, onMistake, onExit, overlay } = props;
+  const { puzzle, title, subtitle, t, tokens, premium, rules, deadline, boosters, useBooster, onFreeze, spend, onNeedTokens, onFinish, onFail, onMistake, onExit, overlay } = props;
   const [g, setG] = useState<GameState>(() => initGame(puzzle, Date.now(), rules.lives));
   const [now, setNow] = useState(Date.now());
   const [oracle, setOracle] = useState<{ pattern: string; results: string[]; empty?: boolean } | null>(null);
   const [shake, setShake] = useState(false);
   const [flashWord, setFlashWord] = useState<number | null>(null);
   const [tuto, setTuto] = useState(props.showTutorial ? 0 : -1);
+  const [frozen, setFrozen] = useState<{ until: number; shown: number } | null>(null);
+  const [bump, setBump] = useState(0);
   const reported = useRef<string | null>(null);
 
   useEffect(() => {
-    setG(initGame(puzzle, Date.now(), rules.lives));
-    reported.current = null;
     if (location.search.includes('qa')) (window as unknown as { __lexi: () => Puzzle }).__lexi = () => puzzle;
-  }, [puzzle, rules.lives]);
+  }, [puzzle]);
 
   useEffect(() => {
     if (isOver(g)) return;
-    const id = setInterval(() => setNow(Date.now()), 250);
+    const id = setInterval(() => setNow(Date.now()), 200);
     return () => clearInterval(id);
-  }, [g.finished, g.failed]);
+  }, [g.finished, g.failed]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const isFrozen = frozen !== null && now < frozen.until;
   const remaining = deadline !== null ? deadline - (isOver(g) ? g.startedAt + g.elapsedMs : now) : null;
 
-  // Fin du chrono.
   useEffect(() => {
     if (remaining !== null && remaining <= 0 && !isOver(g) && tuto < 0) setG((s) => failGame(s, 'time'));
   }, [remaining, g, tuto]);
 
-  // Tic-tac des dix dernières secondes.
   const lastTick = useRef(-1);
   useEffect(() => {
-    if (remaining === null || isOver(g)) return;
+    if (remaining === null || isOver(g) || isFrozen) return;
     const sec = Math.ceil(remaining / 1000);
     if (sec <= 10 && sec > 0 && sec !== lastTick.current) {
       lastTick.current = sec;
-      sfx.tick();
+      sfx.tick(sec <= 5);
     }
-  }, [remaining, g]);
+  }, [remaining, g, isFrozen]);
 
   useEffect(() => {
-    if (reported.current === puzzle.id + g.startedAt) return;
+    const key = puzzle.id + g.startedAt;
+    if (reported.current === key) return;
     const info = (): FinishInfo => ({
       score: computeScore(g),
       stars: stars(g),
@@ -95,17 +101,20 @@ export function Play(props: Props) {
       mistakes: g.mistakes,
       hints: g.hints + g.oracle,
       remainingMs: deadline !== null ? Math.max(0, deadline - (g.startedAt + g.elapsedMs)) : null,
+      maxCombo: g.maxCombo,
+      words: puzzle.words.filter((_, i) => wordSolved(g, i)).length,
     });
     if (g.finished) {
-      reported.current = puzzle.id + g.startedAt;
+      reported.current = key;
       sfx.win();
-      onFinish(info());
+      // La phrase s'illumine avant l'écran de résultat.
+      setTimeout(() => onFinish(info()), 900);
     } else if (g.failed && g.failReason) {
-      reported.current = puzzle.id + g.startedAt;
+      reported.current = key;
       sfx.fail();
-      onFail(g.failReason, info());
+      setTimeout(() => onFail(g.failReason!, info()), 500);
     }
-  }, [g, puzzle.id, onFinish, onFail, deadline]);
+  }, [g, puzzle, onFinish, onFail, deadline]);
 
   const selCode = g.sel ? codeAt(puzzle, g.sel) : null;
   const selWord = g.sel?.kind === 'word' ? g.sel.w : null;
@@ -114,20 +123,25 @@ export function Play(props: Props) {
 
   const press = (l: string) => {
     if (tuto >= 0) return;
+    sfx.key();
     setG((s) => {
       const next = typeLetter(s, l);
       if (next.mistakes > s.mistakes) {
         setShake(true);
-        setTimeout(() => setShake(false), 350);
+        setTimeout(() => setShake(false), 340);
         sfx.bad();
         onMistake?.();
-      } else if (next !== s && !next.finished) {
+      } else if (next.shield < s.shield) {
+        sfx.booster();
+      } else if (next.combo > s.combo) {
         const solvedNow = s.puzzle.words.findIndex((_, i) => !wordSolved(s, i) && wordSolved(next, i));
         if (solvedNow >= 0) {
-          sfx.word();
+          sfx.word(next.combo);
           setFlashWord(solvedNow);
           setTimeout(() => setFlashWord(null), 600);
-        } else if (next.guesses !== s.guesses) sfx.good();
+        } else sfx.good(next.combo);
+        if (next.combo % 10 === 0) sfx.combo();
+        setBump((b) => b + 1);
       }
       return next;
     });
@@ -135,7 +149,7 @@ export function Play(props: Props) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (oracle) return;
+      if (oracle || e.metaKey || e.ctrlKey) return;
       const k = e.key.toUpperCase();
       if (/^[A-Z]$/.test(k)) press(k);
       else if (e.key === 'Backspace') setG((s) => erase(s));
@@ -156,34 +170,39 @@ export function Play(props: Props) {
     return spend(p);
   };
 
-  const hintLetter = () => {
-    if (isOver(g)) return;
-    if (pay(COST.letter)) setG((s) => revealSelected(s));
-  };
+  const nextWord = () => selWord ?? g.puzzle.words.findIndex((_, i) => !wordSolved(g, i));
+  const hintLetter = () => !isOver(g) && pay(COST.letter) && setG((s) => revealSelected(s));
   const hintWord = () => {
-    if (isOver(g)) return;
-    const w = selWord ?? g.puzzle.words.findIndex((_, i) => !wordSolved(g, i));
-    if (w < 0 || wordSolved(g, w)) return;
+    const w = nextWord();
+    if (isOver(g) || w < 0 || wordSolved(g, w)) return;
     if (pay(COST.word)) setG((s) => revealWord(s, w));
   };
   const openOracle = () => {
-    if (isOver(g)) return;
-    const w = selWord ?? g.puzzle.words.findIndex((_, i) => !wordSolved(g, i));
-    if (w < 0) return;
+    const w = nextWord();
+    if (isOver(g) || w < 0) return;
     const pattern = wordPattern(g, w);
-    if (!/[A-Z]/.test(pattern)) {
-      setOracle({ pattern, results: [], empty: true });
-      return;
-    }
+    if (!/[A-Z]/.test(pattern)) return setOracle({ pattern, results: [], empty: true });
     if (!pay(COST.oracle)) return;
     setG((s) => ({ ...s, oracle: s.oracle + 1 }));
     setOracle({ pattern, results: oracleSearch(pattern, lexicon) });
   };
 
+  const boost = (id: BoosterId) => {
+    if (isOver(g) || !useBooster(id)) return;
+    sfx.booster();
+    if (id === 'freeze' && remaining !== null) {
+      setFrozen({ until: Date.now() + FREEZE_MS, shown: remaining });
+      onFreeze(FREEZE_MS);
+    } else if (id === 'shield') setG((s) => addShield(s));
+    else if (id === 'reveal') setG((s) => revealPhraseLetters(s, REVEAL_N));
+  };
+
   const elapsed = isOver(g) ? g.elapsedMs : Math.max(0, now - g.startedAt);
   const pct = Math.round(progress(g) * 100);
   const lives = livesLeft(g);
-  const urgent = remaining !== null && remaining < 15_000 && !isOver(g);
+  const shownRemaining = isFrozen ? frozen!.shown : remaining;
+  const urgent = shownRemaining !== null && shownRemaining < 15_000 && !isOver(g) && !isFrozen;
+  const timePct = shownRemaining !== null ? Math.max(0, Math.min(100, (shownRemaining / (rules.timeMs ?? 1)) * 100)) : 0;
 
   const groups: number[][] = [];
   let cur: number[] = [];
@@ -205,38 +224,48 @@ export function Play(props: Props) {
     return cls.join(' ');
   };
 
-  const timeTotal = rules.timeMs ?? 1;
-  const timePct = remaining !== null ? Math.max(0, Math.min(100, (remaining / timeTotal) * 100)) : 0;
+  const canFreeze = remaining !== null && !isFrozen;
+  // Le mot le plus long doit tenir sur la largeur de l'écran.
+  const longest = Math.max(...groups.map((gr) => gr.length));
+  const avail = Math.min(window.innerWidth, 520) - 28;
+  const base = puzzle.cryptogram ? 34 : 30;
+  const cw = Math.max(20, Math.min(base, Math.floor((avail - (longest - 1) * 3) / longest)));
+  const showBoosters = rules.boosters && !isOver(g);
+  let li = 0;
 
   return (
-    <div className={`play ${urgent ? 'urgent' : ''} ${g.failed ? 'failed' : ''}`}>
-      <header className="topbar">
-        <button className="icon" onClick={onExit} aria-label={t.back}>‹</button>
-        <div className="title">
+    <div className={`play ${urgent ? 'urgent' : ''}`}>
+      <header className="playbar">
+        <button className="iconbtn" onClick={onExit} aria-label={t.back}><Icon name="back" /></button>
+        <div className="ttl">
           <div className="t1">{title}</div>
-          <div className="t2">{subtitle ?? `${t.d[puzzle.difficulty]} · ${t[`cat_${puzzle.category}` as 'cat_fact'] ?? puzzle.category}`}</div>
+          <div className="t2">{subtitle.join(', ')}</div>
         </div>
-        <div className="chips">
-          {remaining !== null ? (
-            <span className={`chip timer ${urgent ? 'hot' : ''}`}>⏳ {fmt(remaining)}</span>
+        <div className="counters">
+          {shownRemaining !== null ? (
+            <span className={`counter timer ${urgent ? 'hot' : ''} ${isFrozen ? 'frozen' : ''}`}><Icon name={isFrozen ? 'snow' : 'hourglass'} size={16} />{fmt(shownRemaining)}</span>
           ) : (
-            <span className="chip">⏱ {fmt(elapsed)}</span>
+            <span className="counter timer"><Icon name="clock" size={16} />{fmt(elapsed)}</span>
           )}
-          {lives !== null ? (
-            <span className="chip lives">{'❤️'.repeat(lives)}{'🖤'.repeat(Math.max(0, (rules.lives ?? 0) - lives))}</span>
-          ) : (
-            <span className="chip">✕ {g.mistakes}</span>
+          {lives !== null && (
+            <span className="counter lives" aria-label={`${t.lives} ${lives}`}>
+              {Array.from({ length: rules.lives ?? 0 }, (_, i) => <Icon key={i} name={i < lives ? 'heartFill' : 'heart'} size={15} className={i < lives ? '' : 'lost'} />)}
+            </span>
           )}
-          {!rules.noHints && <span className="chip gold">{premium ? '∞' : tokens} ◆</span>}
+          {!rules.noHints && <span className="counter gold"><Icon name="token" size={16} />{premium ? '∞' : tokens}</span>}
         </div>
       </header>
-      {remaining !== null ? (
-        <div className="bar time"><div style={{ width: `${timePct}%` }} /></div>
+      {shownRemaining !== null ? (
+        <div className={`gauge time ${urgent ? 'hot' : ''}`}><i style={{ width: `${timePct}%` }} /></div>
       ) : (
-        <div className="bar"><div style={{ width: `${pct}%` }} /></div>
+        <div className="gauge"><i style={{ width: `${pct}%` }} /></div>
       )}
 
-      <section className={`phrase ${shake ? 'shake' : ''}`}>
+      {puzzle.cryptogram && g.mistakes === 0 && pct < 40 && (
+        <p className="cryptotip"><Icon name="key" size={18} />{t.cryptoTip}</p>
+      )}
+
+      <section className={`phrase ${shake ? 'shake' : ''} ${puzzle.cryptogram ? 'crypto' : ''} ${g.finished ? 'won' : ''}`} style={{ '--cw': `${cw}px`, '--cg': cw < 26 ? '2px' : '3px' } as React.CSSProperties}>
         {groups.map((grp, gi) => (
           <div className="pgroup" key={gi}>
             {grp.map((i) => {
@@ -245,10 +274,16 @@ export function Play(props: Props) {
               const sel: Sel = { kind: 'phrase', i };
               const isSel = g.sel?.kind === 'phrase' && g.sel.i === i;
               const good = isCorrect(g, c.code);
-              const showFail = g.failed;
+              const idx = li++;
               return (
-                <button key={i} className={cellClass(c.code, isSel) + (good ? ' pgood' : '') + (showFail && !good ? ' reveal' : '')} onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}>
-                  <span className="l">{good || showFail ? c.shown : g.guesses[c.code] ?? ''}</span>
+                <button
+                  key={i}
+                  style={{ '--i': idx } as React.CSSProperties}
+                  className={cellClass(c.code, isSel) + (good ? ' good' : '') + (g.failed && !good ? ' reveal' : '')}
+                  onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}
+                  aria-label={`${c.code}`}
+                >
+                  <span className="l">{good || g.failed ? c.shown : g.guesses[c.code] ?? ''}</span>
                   <span className="n">{c.code}</span>
                 </button>
               );
@@ -257,38 +292,64 @@ export function Play(props: Props) {
         ))}
       </section>
 
-      <section className="words">
-        {puzzle.words.map((w, wi) => {
-          const solved = wordSolved(g, wi);
-          return (
-            <div key={wi} className={`wrow ${selWord === wi ? 'active' : ''} ${solved ? 'done' : ''} ${flashWord === wi ? 'pop' : ''}`}>
-              <div className="clue">{w.clue}</div>
-              <div className="wcells">
-                {w.codes.map((code, ci) => {
-                  const sel: Sel = { kind: 'word', w: wi, i: ci };
-                  const isSel = g.sel?.kind === 'word' && g.sel.w === wi && g.sel.i === ci;
-                  return (
-                    <button key={ci} className={cellClass(code, isSel, solved)} onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}>
-                      <span className="l">{g.failed ? w.answer[ci] : g.guesses[code] ?? ''}</span>
-                      <span className="n">{code}</span>
-                    </button>
-                  );
-                })}
+      <div className="meter" aria-live="polite">
+        {g.combo >= 3 && (
+          <span className={`combo ${bump % 2 ? 'bump' : ''}`} key={bump}>
+            <Icon name="combo" size={18} /> {t.combo} {g.combo}
+            <span className="cbar"><i style={{ width: `${(g.combo % 10) * 10}%` }} /></span>
+          </span>
+        )}
+        {g.shield > 0 && <span className="state"><Icon name="shield" size={15} />{t.shieldOn}</span>}
+        {isFrozen && <span className="state"><Icon name="snow" size={15} />{t.frozen}</span>}
+      </div>
+
+      {!puzzle.cryptogram && (
+        <section className="words">
+          {puzzle.words.map((w, wi) => {
+            const solved = wordSolved(g, wi);
+            return (
+              <div key={wi} className={`wrow ${selWord === wi ? 'active' : ''} ${solved ? 'done' : ''} ${flashWord === wi ? 'pop' : ''}`}>
+                <div className="clue">{w.clue}</div>
+                <div className="wcells">
+                  {w.codes.map((code, ci) => {
+                    const sel: Sel = { kind: 'word', w: wi, i: ci };
+                    const isSel = g.sel?.kind === 'word' && g.sel.w === wi && g.sel.i === ci;
+                    return (
+                      <button key={ci} className={cellClass(code, isSel, solved)} onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}>
+                        <span className="l">{g.failed ? w.answer[ci] : g.guesses[code] ?? ''}</span>
+                        <span className="n">{code}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </section>
+            );
+          })}
+        </section>
+      )}
 
       {!isOver(g) && (
         <footer className="dock">
           {rules.noHints ? (
-            <p className="nohints">🚫 {t.hintsOff}</p>
+            <p className="nohints"><Icon name="lock" size={15} />{t.hintsOff}</p>
           ) : (
             <div className="tools">
-              <button onClick={hintLetter}>💡 {t.hint} <small>{premium ? '' : `${price(COST.letter)}◆`}</small></button>
-              <button onClick={openOracle}>🔎 {t.oracle} <small>{premium ? '' : `${price(COST.oracle)}◆`}</small></button>
-              <button onClick={hintWord}>✨ {t.hintWord} <small>{premium ? '' : `${price(COST.word)}◆`}</small></button>
+              <button className="tool" onClick={hintLetter}><Icon name="bulb" size={17} />{t.hint}{!premium && <small><Icon name="token" size={12} />{price(COST.letter)}</small>}</button>
+              {!puzzle.cryptogram && <button className="tool" onClick={openOracle}><Icon name="search" size={17} />{t.oracle}{!premium && <small><Icon name="token" size={12} />{price(COST.oracle)}</small>}</button>}
+              {!puzzle.cryptogram && <button className="tool" onClick={hintWord}><Icon name="sparkle" size={17} />{t.hintWord}{!premium && <small><Icon name="token" size={12} />{price(COST.word)}</small>}</button>}
+              {showBoosters && (['freeze', 'shield', 'reveal'] as BoosterId[]).map((id) => (
+                <button
+                  key={id}
+                  className={`tool boost ${(id === 'shield' && g.shield > 0) || (id === 'freeze' && isFrozen) ? 'active' : ''}`}
+                  disabled={!boosters[id] || (id === 'freeze' && !canFreeze)}
+                  onClick={() => boost(id)}
+                  aria-label={(t[`b_${id}` as 'b_freeze'] as string[])[0]}
+                  title={(t[`b_${id}` as 'b_freeze'] as string[])[1]}
+                >
+                  <Icon name={BOOSTER_ICON[id]} size={18} />
+                  {boosters[id] > 0 && <em>{boosters[id]}</em>}
+                </button>
+              ))}
             </div>
           )}
           <div className="kb">
@@ -297,7 +358,7 @@ export function Play(props: Props) {
                 {[...row].map((k) => (
                   <button key={k} className={`key ${used.has(k) ? 'used' : ''}`} onClick={() => press(k)}>{k}</button>
                 ))}
-                {ri === 2 && <button className="key wide" onClick={() => setG((s) => erase(s))} aria-label="⌫">⌫</button>}
+                {ri === 2 && <button className="key wide" onClick={() => setG((s) => erase(s))} aria-label="Effacer"><Icon name="erase" /></button>}
               </div>
             ))}
           </div>
@@ -307,17 +368,21 @@ export function Play(props: Props) {
       {oracle && (
         <div className="modal" onClick={() => setOracle(null)}>
           <div className="sheet" onClick={(e) => e.stopPropagation()}>
-            <h3>🔎 {t.oracleTitle}</h3>
-            <p className="muted">{t.oracleSub}</p>
-            <div className="pattern">{[...oracle.pattern].map((c, i) => <span key={i}>{c === '_' ? '·' : c}</span>)}</div>
+            <h2>{t.oracleTitle}</h2>
+            <p className="lead">{t.oracleSub}</p>
+            <div className="pattern">
+              {[...oracle.pattern].map((c, i) => (
+                <span key={i} className={`cell ${c === '_' ? '' : 'good'}`}><span className="l">{c === '_' ? '' : c}</span></span>
+              ))}
+            </div>
             {oracle.empty ? (
-              <p className="muted">{t.oracleNeedLetter}</p>
+              <p className="lead">{t.oracleNeedLetter}</p>
             ) : oracle.results.length ? (
               <div className="results">{oracle.results.map((r) => <span key={r}>{r}</span>)}</div>
             ) : (
-              <p className="muted">{t.oracleNone}</p>
+              <p className="lead">{t.oracleNone}</p>
             )}
-            <button className="primary" onClick={() => setOracle(null)}>OK</button>
+            <button className="btn primary block" onClick={() => setOracle(null)}>OK</button>
           </div>
         </div>
       )}
@@ -325,21 +390,32 @@ export function Play(props: Props) {
       {tuto >= 0 && (
         <div className="modal center">
           <div className="sheet tuto">
-            <div className="tutostep">{tuto + 1} / {t.tutorial.length}</div>
+            <div className="tutostep">{t.tutorial.map((_, i) => <i key={i} className={i <= tuto ? 'on' : ''} />)}</div>
             <div className="tutodemo">
-              {tuto === 0 && <div className="wcells">{['S', 'A', 'L', 'U', 'T'].map((l, i) => <span className="cell" key={i}><span className="l">{i === 1 ? l : ''}</span><span className="n">{[10, 3, 9, 4, 5][i]}</span></span>)}</div>}
-              {tuto === 1 && <div className="clue">💬 « {puzzle.words[0]?.clue} »</div>}
-              {tuto === 2 && <div className="stars big">★★★</div>}
+              {tuto === 0 && (
+                <div className="wcells">
+                  {['S', 'A', 'L', 'U', 'T'].map((l, i) => (
+                    <span className={`cell ${i === 1 || i === 4 ? 'good' : ''}`} key={i}><span className="l">{i === 1 || i === 4 ? l : ''}</span><span className="n">{[10, 3, 9, 4, 5][i]}</span></span>
+                  ))}
+                </div>
+              )}
+              {tuto === 1 && <div className="clue serif">« {puzzle.words[0]?.clue ?? puzzle.phraseText.split(' ')[0]} »</div>}
+              {tuto === 2 && <div className="stars">{[0, 1, 2].map((i) => <Icon key={i} name="starFill" size={34} className="on" />)}</div>}
             </div>
             <p>{t.tutorial[tuto]}</p>
-            <button className="primary" onClick={() => {
-              if (tuto + 1 < t.tutorial.length) setTuto(tuto + 1);
-              else {
-                setTuto(-1);
-                setG(initGame(puzzle, Date.now(), rules.lives));
-                props.onTutorialDone();
-              }
-            }}>{tuto + 1 < t.tutorial.length ? t.tutoNext : t.tutoStart}</button>
+            <button
+              className="btn primary block lg"
+              onClick={() => {
+                if (tuto + 1 < t.tutorial.length) setTuto(tuto + 1);
+                else {
+                  setTuto(-1);
+                  setG(initGame(puzzle, Date.now(), rules.lives));
+                  props.onTutorialDone();
+                }
+              }}
+            >
+              {tuto + 1 < t.tutorial.length ? t.tutoNext : t.tutoStart}
+            </button>
           </div>
         </div>
       )}

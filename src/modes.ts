@@ -1,5 +1,5 @@
 import type { Difficulty, LangPack, Puzzle } from './engine/types';
-import { dailyPuzzle, levelPuzzle, practicePuzzle, generatePuzzle, levelDifficulty, worldCategory } from './engine/generator';
+import { dailyPuzzle, levelPuzzle, practicePuzzle, generatePuzzle, levelDifficulty, worldCategory, cryptogramPuzzle } from './engine/generator';
 
 export type ModeKind =
   | 'daily'
@@ -10,7 +10,8 @@ export type ModeKind =
   | 'survival'
   | 'marathon'
   | 'hardcore'
-  | 'zen';
+  | 'zen'
+  | 'cryptogram';
 
 export interface Mode {
   kind: ModeKind;
@@ -34,6 +35,8 @@ export interface Rules {
   mistakePenaltyMs: number;
   /** Multiplicateur de score. */
   mult: number;
+  /** Bonus utilisables en partie. */
+  boosters: boolean;
 }
 
 /** Temps imparti par difficulté pour le contre-la-montre. */
@@ -54,7 +57,7 @@ export function isBossLevel(level: number): boolean {
 }
 
 export function rulesFor(m: Mode): Rules {
-  const base: Rules = { timeMs: null, lives: null, noHints: false, cheapHints: false, mistakePenaltyMs: 0, mult: 1 };
+  const base: Rules = { timeMs: null, lives: null, noHints: false, cheapHints: false, mistakePenaltyMs: 0, mult: 1, boosters: true };
   switch (m.kind) {
     case 'timeattack':
       return { ...base, timeMs: TIME_LIMIT[m.d], mult: 1.25 };
@@ -65,7 +68,11 @@ export function rulesFor(m: Mode): Rules {
     case 'marathon':
       return { ...base, timeMs: MARATHON_START_MS, mistakePenaltyMs: 5_000 };
     case 'hardcore':
-      return { ...base, timeMs: 300_000, lives: 1, noHints: true, mult: 2 };
+      return { ...base, timeMs: 300_000, lives: 1, noHints: true, mult: 2, boosters: false };
+    case 'cryptogram':
+      return { ...base, mult: 1.6 };
+    case 'daily':
+      return { ...base, boosters: false };
     case 'zen':
       return { ...base, cheapHints: true, mult: 0.5 };
     case 'level':
@@ -92,6 +99,8 @@ export function puzzleFor(pack: LangPack, m: Mode): Puzzle {
       return levelPuzzle(pack, m.level!);
     case 'hardcore':
       return generatePuzzle(pack, `hardcore-${m.nonce}`, 5);
+    case 'cryptogram':
+      return cryptogramPuzzle(pack, m.nonce, m.d);
     case 'marathon':
       return generatePuzzle(pack, `marathon-${m.nonce}-${m.run ?? 0}`, marathonDifficulty(m.run ?? 0));
     default:
@@ -106,6 +115,7 @@ export function recordKey(m: Mode): string | null {
     case 'sudden':
     case 'survival':
     case 'zen':
+    case 'cryptogram':
     case 'practice':
       return `${m.kind}:${m.d}`;
     case 'marathon':
@@ -127,5 +137,6 @@ export const ARENA: { kind: ModeKind; icon: string; pickD: boolean; unlockLevel:
   { kind: 'sudden', icon: '💀', pickD: true, unlockLevel: 3 },
   { kind: 'marathon', icon: '🏃', pickD: false, unlockLevel: 5 },
   { kind: 'hardcore', icon: '🔥', pickD: false, unlockLevel: 8 },
+  { kind: 'cryptogram', icon: '🗝', pickD: true, unlockLevel: 4 },
   { kind: 'zen', icon: '🍃', pickD: true, unlockLevel: 1 },
 ];

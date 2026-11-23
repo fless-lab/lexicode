@@ -38,6 +38,9 @@ export interface GameEvent {
   /** Grilles résolues (marathon). */
   run?: number;
   boss?: boolean;
+  maxCombo?: number;
+  /** Mots résolus pendant la partie. */
+  words?: number;
 }
 
 export function xpFor(e: GameEvent): number {
@@ -167,6 +170,15 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'league_diamond', icon: '💎', test: (s) => s.league.tier >= 6 },
   { id: 'no_hint_10', icon: '🎯', test: (s) => s.counters.noHintWins >= 10 },
   { id: 'comeback', icon: '🔁', test: (_, e) => !!e && e.won && e.mistakes >= 5 },
+  { id: 'combo_20', icon: 'c', test: (_, e) => !!e && (e.maxCombo ?? 0) >= 20 },
+  { id: 'combo_40', icon: 'c', test: (_, e) => !!e && (e.maxCombo ?? 0) >= 40 },
+  { id: 'crypto_win', icon: 'k', test: (s) => wins(s, 'cryptogram') >= 1 },
+  { id: 'crypto_expert', icon: 'k', test: (s) => wins(s, 'cryptogram:5') >= 1 },
+  { id: 'quests_all', icon: 'q', test: (s) => s.counters.questDays >= 1 },
+  { id: 'quests_7', icon: 'q', test: (s) => s.counters.questDays >= 7 },
+  { id: 'season_10', icon: 's', test: (s) => Math.floor(s.season.xp / 150) >= 10 },
+  { id: 'season_30', icon: 's', test: (s) => Math.floor(s.season.xp / 150) >= 30 },
+  { id: 'skins_3', icon: 'p', test: (s) => s.skins.length >= 3 },
 ];
 
 export const ACH_REWARD = 4;

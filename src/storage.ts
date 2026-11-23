@@ -1,4 +1,5 @@
 import type { Lang } from './engine/types';
+import type { BoosterId, QuestState, SeasonState, SkinId } from './meta';
 
 export interface DayResult {
   score: number;
@@ -29,7 +30,14 @@ export interface Save {
   league: { week: string | null; tier: number; xp: number; last: 'up' | 'down' | 'stay' | null; lastRank: number | null };
   settings: { sound: boolean; haptics: boolean };
   tutorialDone: boolean;
-  counters: { noHintWins: number; fails: number; bossWins: number };
+  counters: { noHintWins: number; fails: number; bossWins: number; questDays: number };
+  boosters: Record<BoosterId, number>;
+  /** Double XP armé pour la prochaine partie. */
+  doubleArmed: boolean;
+  quests: QuestState;
+  season: SeasonState;
+  skins: SkinId[];
+  skin: SkinId;
 }
 
 export interface ModeRecord {
@@ -63,7 +71,13 @@ export function emptySave(): Save {
     league: { week: null, tier: 0, xp: 0, last: null, lastRank: null },
     settings: { sound: true, haptics: true },
     tutorialDone: false,
-    counters: { noHintWins: 0, fails: 0, bossWins: 0 },
+    counters: { noHintWins: 0, fails: 0, bossWins: 0, questDays: 0 },
+    boosters: { freeze: 1, shield: 1, reveal: 1, double: 0 },
+    doubleArmed: false,
+    quests: { day: null, progress: {}, claimed: [], bonusClaimed: false },
+    season: { id: 0, xp: 0, claimed: [], claimedPremium: [] },
+    skins: ['ivory'],
+    skin: 'ivory',
   };
 }
 
@@ -73,7 +87,7 @@ export function loadSave(): Save {
     if (!raw) return emptySave();
     const d = emptySave();
     const p = JSON.parse(raw);
-    return { ...d, ...p, settings: { ...d.settings, ...p.settings }, counters: { ...d.counters, ...p.counters }, league: { ...d.league, ...p.league } };
+    return { ...d, ...p, settings: { ...d.settings, ...p.settings }, counters: { ...d.counters, ...p.counters }, league: { ...d.league, ...p.league }, boosters: { ...d.boosters, ...p.boosters } };
   } catch {
     return emptySave();
   }
