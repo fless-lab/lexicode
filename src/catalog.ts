@@ -81,10 +81,10 @@ export const ITEMS: Item[] = [
   it('decor', 'observatory', N('La coupole', 'The dome', 'La cúpula'), { unlock: { chapter: 5 } }),
   // Packs de grilles
   it('pack', 'proverbs', N('Proverbes', 'Proverbs', 'Refranes'), { sku: SKUS.packProverbs }),
-  it('pack', 'cinema', N('Cinéma', 'Cinema', 'Cine'), { soon: true }),
-  it('pack', 'football', N('Football', 'Football', 'Fútbol'), { soon: true }),
-  it('pack', 'geography', N('Géographie', 'Geography', 'Geografía'), { soon: true }),
-  it('pack', 'africa', N("Contes et cultures d'Afrique", 'Tales and cultures of Africa', 'Cuentos y culturas de África'), { soon: true }),
+  it('pack', 'cinema', N('Cinéma', 'Cinema', 'Cine'), { sku: SKUS.packCinema }),
+  it('pack', 'football', N('Football', 'Football', 'Fútbol'), { sku: SKUS.packFootball }),
+  it('pack', 'geography', N('Géographie', 'Geography', 'Geografía'), { sku: SKUS.packGeography }),
+  it('pack', 'africa', N("Contes et cultures d'Afrique", 'Tales and cultures of Africa', 'Cuentos y culturas de África'), { sku: SKUS.packAfrica }),
 ];
 
 export const item = (id: string) => ITEMS.find((i) => i.id === id);

@@ -26,6 +26,8 @@ export interface GameState {
   shield: number;
   /** Paires numéro|lettre déjà comptées comme erreur. */
   counted: Record<string, true>;
+  /** Journal des coups [ms depuis le début, numéro, lettre] : le serveur le rejoue pour valider la partie. */
+  log: [number, number, string][];
 }
 
 export function initGame(puzzle: Puzzle, now = Date.now(), lives: number | null = null): GameState {
@@ -53,6 +55,7 @@ export function initGame(puzzle: Puzzle, now = Date.now(), lives: number | null 
     maxCombo: 0,
     shield: 0,
     counted: {},
+    log: [],
   };
   s.sel = firstEmpty(s);
   return s;
@@ -151,6 +154,7 @@ export function typeLetter(s: GameState, letter: string, now = Date.now()): Game
   if (code === null || s.locked[code]) return { ...s, sel: advance(s, s.sel) };
   const right = letter === s.puzzle.codeToLetter[code];
   if (right && s.guesses[code] === letter) return { ...s, sel: advance(s, s.sel) };
+  s = { ...s, log: [...s.log, [Math.max(0, now - s.startedAt), code, letter]] };
   let { mistakes, shield, combo, maxCombo } = s;
   const counted = { ...s.counted };
   const key = `${code}|${letter}`;
@@ -167,7 +171,7 @@ export function typeLetter(s: GameState, letter: string, now = Date.now()): Game
   } else combo = 0;
   const next: GameState = { ...s, guesses, mistakes, counted, combo, maxCombo };
   if (s.lives !== null && mistakes >= s.lives) return failGame(next, 'mistakes', now);
-  const sel = letter === s.puzzle.codeToLetter[code] ? advance(next, s.sel) : s.sel;
+  const sel = letter === s.puzzle.codeToLetter[code] ? advance(next, s.sel!) : s.sel;
   return finish({ ...next, sel }, now);
 }
 
@@ -184,7 +188,7 @@ export function revealCode(s: GameState, code: number, now = Date.now()): GameSt
   if (isOver(s)) return s;
   const guesses = { ...s.guesses, [code]: s.puzzle.codeToLetter[code] };
   const locked = { ...s.locked, [code]: true as const };
-  const next = { ...s, guesses, locked, hints: s.hints + 1, combo: 0 };
+  const next = { ...s, guesses, locked, hints: s.hints + 1, combo: 0, log: [...s.log, [Math.max(0, now - s.startedAt), code, '?'] as [number, number, string]] };
   return finish({ ...next, sel: s.sel ? advance(next, s.sel) : null }, now);
 }
 
@@ -268,4 +272,36 @@ export function oracleSearch(pattern: string, lexicon: string[], limit = 12): st
 
 export function wordPattern(s: GameState, w: number): string {
   return s.puzzle.words[w].codes.map((c) => (isCorrect(s, c) ? s.guesses[c] : '_')).join('');
+}
+
+/** Case qui porte ce numéro (dans un mot de préférence, sinon dans la phrase). */
+export function selFor(p: Puzzle, code: number): Sel | null {
+  for (let w = 0; w < p.words.length; w++) {
+    const i = p.words[w].codes.indexOf(code);
+    if (i >= 0) return { kind: 'word', w, i };
+  }
+  const i = p.phrase.findIndex((c) => c.kind === 'letter' && c.code === code);
+  return i >= 0 ? { kind: 'phrase', i } : null;
+}
+
+/**
+ * Rejoue une partie à partir de son journal, avec exactement les règles du jeu.
+ * Utilisé par le serveur pour recalculer le résultat au lieu de croire le téléphone.
+ */
+export function replay(puzzle: Puzzle, log: [number, number, string][], lives: number | null = null): GameState {
+  let s = initGame(puzzle, 0, lives);
+  let last = -1;
+  for (const [t, code, letter] of log) {
+    if (isOver(s)) break;
+    if (t < last) return failGame(s, 'mistakes', last);
+    last = t;
+    if (letter === '?') {
+      s = revealCode(s, code, t);
+      continue;
+    }
+    const sel = selFor(puzzle, code);
+    if (!sel) continue;
+    s = typeLetter(select(s, sel), letter, t);
+  }
+  return s;
 }

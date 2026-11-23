@@ -36,6 +36,10 @@ export const SKUS = {
   frameFlame: { id: 'frame_flame', kind: 'permanent', fallback: '0,99 €' },
   decorTrain: { id: 'decor_train', kind: 'permanent', fallback: '1,99 €' },
   packProverbs: { id: 'pack_proverbs', kind: 'permanent', fallback: '2,99 €' },
+  packCinema: { id: 'pack_cinema', kind: 'permanent', fallback: '2,99 €' },
+  packFootball: { id: 'pack_football', kind: 'permanent', fallback: '2,99 €' },
+  packGeography: { id: 'pack_geography', kind: 'permanent', fallback: '2,99 €' },
+  packAfrica: { id: 'pack_africa', kind: 'permanent', fallback: '2,99 €' },
 } as const satisfies Record<string, Sku>;
 
 export type PurchaseResult = 'ok' | 'cancelled' | 'error';

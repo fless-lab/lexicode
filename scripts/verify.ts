@@ -143,4 +143,27 @@ for (const pack of Object.values(PACKS)) {
 }
 
 console.log(`\n${total} grilles générées, ${failures} problème(s).`);
+
+// Rejeu : une partie parfaite rejouée depuis son journal doit redonner exactement le même résultat.
+{
+  const { replay, initGame: init, select: sel, typeLetter: type, selFor, computeScore } = await import('../src/engine/game');
+  const { PACKS: P } = await import('../src/content/index');
+  const { dailyPuzzle: dp } = await import('../src/engine/generator');
+  let bad = 0;
+  for (const lang of ['fr', 'en', 'es'] as const) {
+    for (let d = 0; d < 30; d++) {
+      const date = new Date(Date.UTC(2026, 10, 1) + d * 86400000).toISOString().slice(0, 10);
+      const pz = dp(P[lang], date);
+      let g = init(pz, 0);
+      let t = 0;
+      const codes = [...new Set(pz.phrase.filter((c) => c.kind === 'letter').map((c) => (c as { code: number }).code))].filter((c) => !g.locked[c]);
+      for (const c of codes) { t += 700; g = type(sel(g, selFor(pz, c)!), pz.codeToLetter[c], t); }
+      const r = replay(pz, g.log);
+      if (!r.finished || r.elapsedMs !== g.elapsedMs || computeScore(r) !== computeScore(g)) bad++;
+    }
+  }
+  if (bad) { console.log(`rejeu : ${bad} parties ne se rejouent pas à l'identique`); failures++; }
+  else console.log('rejeu : 90 parties rejouées à l\'identique');
+}
+
 process.exit(failures ? 1 : 0);

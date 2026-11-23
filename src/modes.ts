@@ -77,17 +77,17 @@ export function rulesFor(m: Mode): Rules {
   const base: Rules = { timeMs: null, lives: null, noHints: false, cheapHints: false, mistakePenaltyMs: 0, mult: 1, boosters: true };
   switch (m.kind) {
     case 'timeattack':
-      return { ...base, timeMs: TIME_LIMIT[m.d], mult: 1.25 };
+      return { ...base, timeMs: TIME_LIMIT[m.d], mult: 1.25, boosters: false };
     case 'sudden':
-      return { ...base, lives: 1, mult: 1.5 };
+      return { ...base, lives: 1, mult: 1.5, boosters: false };
     case 'survival':
-      return { ...base, lives: 3, mult: 1.2 };
+      return { ...base, lives: 3, mult: 1.2, boosters: false };
     case 'marathon':
-      return { ...base, timeMs: MARATHON_START_MS, mistakePenaltyMs: 5_000 };
+      return { ...base, timeMs: MARATHON_START_MS, mistakePenaltyMs: 5_000, boosters: false };
     case 'hardcore':
       return { ...base, timeMs: 300_000, lives: 1, noHints: true, mult: 2, boosters: false };
     case 'cryptogram':
-      return { ...base, mult: 1.6 };
+      return { ...base, mult: 1.6, boosters: false };
     case 'daily':
       return { ...base, boosters: false };
     case 'zen':
