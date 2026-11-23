@@ -1,5 +1,7 @@
 // Design sonore entièrement synthétisé : aucun fichier audio à charger.
 // Chaîne : voix -> (sec + réverbération générée) -> compresseur -> sortie.
+// La réverbération est calculée par morceaux pendant les temps morts, jamais au premier appui ;
+// le contexte audio est suspendu quand le jeu passe en arrière-plan ou reste muet 20 s.
 
 let ctx: AudioContext | null = null;
 let out: GainNode | null = null;
@@ -10,6 +12,80 @@ let haptics = true;
 export function setSound(on: boolean, vib: boolean) {
   enabled = on;
   haptics = vib;
+  if (!on) suspend();
+  else if (!ctx) prepareReverb(48000); // fréquence la plus courante ; recalculée si le contexte en a une autre
+}
+
+// ---------- Réverbération : bruit stéréo à décroissance exponentielle, 1,8 s ----------
+
+const VERB_SECONDS = 1.8;
+let irRate = 0;
+let irData: Float32Array[] | null = null;
+let irDone = 0;
+
+type Idle = (cb: (d?: { timeRemaining(): number }) => void, o?: { timeout: number }) => number;
+const idle: Idle =
+  typeof window !== 'undefined' && 'requestIdleCallback' in window
+    ? (cb, o) => (window as unknown as { requestIdleCallback: Idle }).requestIdleCallback(cb, o)
+    : (cb) => setTimeout(cb, 16) as unknown as number;
+
+/** Calcule la réponse impulsionnelle pour `rate` par petits morceaux, puis la branche si le contexte est prêt. */
+function prepareReverb(rate: number) {
+  if (irRate === rate) return;
+  const job = rate;
+  irRate = rate;
+  irDone = 0;
+  const len = Math.floor(rate * VERB_SECONDS);
+  irData = [new Float32Array(len), new Float32Array(len)];
+  const step = (deadline?: { timeRemaining(): number }) => {
+    if (irRate !== job || !irData) return; // remplacé par un calcul à une autre fréquence
+    const until = performance.now() + Math.max(4, Math.min(12, deadline?.timeRemaining() ?? 8));
+    while (irDone < 2 * len && performance.now() < until) {
+      const end = Math.min(irDone + 4096, (Math.floor(irDone / len) + 1) * len);
+      const d = irData[Math.floor(irDone / len)];
+      for (let k = irDone; k < end; k++) {
+        const i = k % len;
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2);
+      }
+      irDone = end;
+    }
+    if (irDone < 2 * len) idle(step, { timeout: 500 });
+    else attachReverb();
+  };
+  idle(step, { timeout: 2000 });
+}
+
+function attachReverb() {
+  if (!ctx || !verb || verb.buffer || !irData || irRate !== ctx.sampleRate || irDone < 2 * irData[0].length) return;
+  const ir = ctx.createBuffer(2, irData[0].length, ctx.sampleRate);
+  ir.copyToChannel(irData[0] as Float32Array<ArrayBuffer>, 0);
+  ir.copyToChannel(irData[1] as Float32Array<ArrayBuffer>, 1);
+  verb.buffer = ir;
+  irData = null; // le tampon du convolueur garde sa propre copie
+}
+
+// ---------- Mise en veille ----------
+
+const IDLE_MS = 20_000;
+let lastUse = 0;
+let idleTimer: ReturnType<typeof setTimeout> | null = null;
+
+function suspend() {
+  if (ctx && ctx.state === 'running') void ctx.suspend().catch(() => {});
+}
+
+function checkIdle() {
+  idleTimer = null;
+  const left = IDLE_MS - (performance.now() - lastUse);
+  if (left > 0) idleTimer = setTimeout(checkIdle, left);
+  else suspend();
+}
+
+if (typeof document !== 'undefined') {
+  // Au retour, rien à faire : le prochain son relance le contexte.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) suspend();
+  });
 }
 
 function init(): AudioContext | null {
@@ -23,24 +99,36 @@ function init(): AudioContext | null {
       out = ctx.createGain();
       out.gain.value = 0.9;
       out.connect(comp).connect(ctx.destination);
-      // Réverbération : bruit stéréo à décroissance exponentielle.
-      const len = Math.floor(ctx.sampleRate * 1.8);
-      const ir = ctx.createBuffer(2, len, ctx.sampleRate);
-      for (let ch = 0; ch < 2; ch++) {
-        const d = ir.getChannelData(ch);
-        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2);
-      }
+      // Le convolueur reste muet jusqu'à ce que sa réponse soit prête (quelques sons au plus).
       verb = ctx.createConvolver();
-      verb.buffer = ir;
       const wet = ctx.createGain();
       wet.gain.value = 0.22;
       verb.connect(wet).connect(out);
+      if (irRate === ctx.sampleRate && irData && irDone >= 2 * irData[0].length) idle(attachReverb, { timeout: 300 });
+      else prepareReverb(ctx.sampleRate);
     }
-    if (ctx.state === 'suspended') void ctx.resume();
+    if (ctx.state === 'suspended') void ctx.resume().catch(() => {});
+    lastUse = performance.now();
+    if (!idleTimer) idleTimer = setTimeout(checkIdle, IDLE_MS);
     return ctx;
   } catch {
     return null;
   }
+}
+
+/** Petits tampons de bruit des clics : trois variantes par longueur, qu'on fait tourner. */
+const noiseCache = new Map<number, { bufs: AudioBuffer[]; next: number }>();
+function noise(c: AudioContext, len: number): AudioBuffer {
+  let e = noiseCache.get(len);
+  if (!e) noiseCache.set(len, (e = { bufs: [], next: 0 }));
+  if (e.bufs.length < 3) {
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
+    e.bufs.push(buf);
+    return buf;
+  }
+  return e.bufs[e.next++ % 3];
 }
 
 function route(node: AudioNode, send = 0.5) {
@@ -108,12 +196,8 @@ function click(at = 0, vol = 0.18, hp = 1800, dur = 0.028) {
   const c = init();
   if (!c) return;
   const t = c.currentTime + at;
-  const len = Math.floor(c.sampleRate * dur);
-  const buf = c.createBuffer(1, len, c.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
   const src = c.createBufferSource();
-  src.buffer = buf;
+  src.buffer = noise(c, Math.floor(c.sampleRate * dur));
   const f = c.createBiquadFilter();
   f.type = 'highpass';
   f.frequency.value = hp;
