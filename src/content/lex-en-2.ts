@@ -174,7 +174,7 @@ TIME||Kill it while waiting;Of your life, a great experience
 DAY||Call it one, then stop working;Seize it, Carpe diem
 NIGHT||Owl who stays up late;Knight sounds the same
 TOMORROW||Is another day, said Scarlett;Annie sings that the sun will come out then
-YESTERDAY||Not born then means not naive;Beatles song about lost love
+YESTERDAY||Being born then means being naive;Beatles song about lost love
 NEVER||Neverland is where boys don't grow up;Say it never again
 ALWAYS||Coca-Cola's old slogan;Look on the bright side of life
 DREAM||Team of the best;American one promises success

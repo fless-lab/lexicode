@@ -1,6 +1,6 @@
 // Indices malins supplémentaires : MOT|moyens en plus|malins en plus (séparés par « ; »)
 export const EXTRA_FR = `
-CHAT||Il a neuf vies, dit-on;Quand il n'est pas là, les souris dansent;Botté, il fait la fortune de son maître
+CHAT||Il a sept vies, dit-on;Quand il n'est pas là, les souris dansent;Botté, il fait la fortune de son maître
 CHIEN||Celui de faïence fixe sans bouger;Un temps à ne pas le mettre dehors
 CHEVAL||Il est de bataille quand on y revient sans cesse;On le monte sur ses grands quand on s'emporte
 LAPIN||Le blanc d'Alice est toujours en retard;Chaud, on l'est quand on est très motivé
@@ -29,10 +29,10 @@ KANGOUROU||Il ne sait pas marcher à reculons;Emblème de l'Australie avec l'ém
 MOUTON||Le petit Prince en voulait un dessiné;Celui à cinq pattes est introuvable
 VACHE||Elle est folle quand la maladie frappe;Il pleut comme elle pisse
 COCHON||Il est d'Inde mais n'est pas indien;Celui de la tirelire garde les pièces
-POULE||On se couche avec elle quand on se couche tôt;Celle aux oeufs d'or est tuée par l'avare
+POULE||On se couche avec elle quand on se couche tôt;Celle aux œufs d'or est tuée par l'avare
 CANARD||Celui de Donald est en colère;Il est boiteux dans un groupe qui traîne
 SERPENT||Celui de mer revient chaque été dans les journaux;Ka hypnotise Mowgli
-CROCODILE||Il a avalé le réveil du capitaine Crochet;Dundee en était un en Australie
+CROCODILE||Il a avalé la main du capitaine Crochet;Dundee en était un en Australie
 ELEPHANT||Il est dans la pièce quand tout le monde l'ignore;Dumbo vole avec ses oreilles
 SOURIS||Mickey en est une célèbre;Celle de la petite rapporte une pièce
 ARAIGNEE||Celle du matin apporte le chagrin, dit-on;Peter Parker a été mordu par elle
@@ -54,13 +54,13 @@ FLEUVE||Le Mississippi en est un, et Huckleberry Finn le descend;Roman qui n'en 
 FORET||Celle de Brocéliande cache Merlin;Le Petit Chaperon rouge y croise le loup
 ARBRE||Celui de Noël a des boules;Généalogique, il montre la famille
 FLEUR||Celle de l'âge, c'est la jeunesse;Les siennes du mal sont de Baudelaire
-ROSE||Le Petit Prince en a une sous un globe;Pas de lui sans épines
+ROSE||Le Petit Prince en a une sous un globe;Il n'y a pas de rose sans épines
 MONTAGNE||Celle de Sainte-Victoire est peinte par Cézanne;Elle est russe dans les fêtes foraines
 VOLCAN||Le Vésuve a enseveli Pompéi;Etna ou Fuji
 DESERT||Le Petit Prince y atterrit en avion;Traversée sans eau, ou passage à vide
 PLAGE||Celle du Débarquement s'appelle Omaha;Celle horaire est un créneau
 ILE||Celle au trésor a son roman;Celle de Pâques a ses statues
-RIVIERE||Elle ne se jette pas à la mer, contrairement à sa grande soeur;Côte d'Azur, en un mot
+RIVIERE||Elle ne se jette pas à la mer, contrairement à sa grande sœur;Côte d'Azur, en un mot
 JARDIN||Celui d'Éden est perdu;Celui des Plantes est à Paris
 HIVER||Le Général était le meilleur allié de la Russie;Vivaldi lui consacre la quatrième saison
 ETE||Saison indienne quand il revient en automne;Mot qui se lit à l'envers comme à l'endroit
@@ -81,9 +81,9 @@ FRAISE||Dent de dentiste qui tourne;Col plissé à la Renaissance
 CITRON||On lui presse le jus jusqu'à la dernière goutte;Il est vert quand il donne son nom à une couleur acide
 BANANE||Glisser dessus, c'est tomber bêtement;Sacoche qu'on porte à la taille
 ORANGE||Mécanique chez Kubrick;Elle est bleue comme elle, dit Éluard
-CAROTTE||Le bâton et elle, pour faire avancer l'âne;Rousse, elle donne le surnom de Poil de...
+CAROTTE||Le bâton et elle, pour faire avancer l'âne;Poil de Carotte, le roman de Jules Renard
 TOMATE||Rouge comme elle quand on rougit;Fruit qui se croit légume
-OEUF||Celui de Colomb tient debout;Qui le vole vole un boeuf
+OEUF||Celui de Colomb tient debout;Qui le vole vole un bœuf
 SUCRE||Casser du sucre, c'est critiquer en cachette;Il fond comme lui au soleil
 SEL||Le sel de la vie lui donne du goût;Statue de lui, la femme de Loth
 MIEL||Celui sur les lèvres rend les paroles douces;Winnie l'ourson en raffole
@@ -99,7 +99,7 @@ CERISE||Le temps des cerises est une chanson de la Commune;On la garde pour la f
 OLIVE||Popeye en est amoureux;Son mont est à Jérusalem
 NOIX||À la noix, c'est de mauvaise qualité;Celle de coco a trois yeux
 PIZZA||Les Tortues Ninja en raffolent;Quatre saisons sur une seule pâte
-VIN||In ... veritas, disaient les Romains;Mettre de l'eau dans son vin, c'est se modérer
+VIN||Quand le vin est tiré, il faut le boire;Mettre de l'eau dans son vin, c'est se modérer
 EAU||On y est comme un poisson quand on est à l'aise;Celle de rose parfume les pâtisseries
 FARINE||Elle fait le pain, et parfois la poudre aux yeux;Elle est de la même quand on se ressemble
 LIVRE||Il se lit comme un roman quand c'est captivant;Celui d'or rassemble les témoignages
@@ -110,14 +110,14 @@ LAMPE||Celle de poche éclaire dans le noir;S'en mettre plein elle, c'est trop m
 MIROIR||Alice passe de l'autre côté;Aux alouettes, il attire les naïfs
 HORLOGE||Celle biologique règle le sommeil;Le temps qu'elle donne n'est jamais rendu
 CHAISE||Celle musicale fait tourner les invités;Le cul entre deux, c'est l'indécision
-TABLE||Celle de multiplication s'apprend par coeur;Faire table rase, c'est tout recommencer
+TABLE||Celle de multiplication s'apprend par cœur;Faire table rase, c'est tout recommencer
 LIT||Celui de la rivière contient son eau;Le lit de Procuste ajuste les gens à sa taille
 VALISE||Mot inventé en assemblant deux mots;On a des valises sous les yeux quand on est fatigué
 PARAPLUIE||Mary Poppins vole avec lui;Ouvrir le sien, c'est se protéger de toute responsabilité
 LUNETTES||Celles de Harry Potter sont rondes;On voit le monde à travers des roses
 CRAYON||Celui de papier est en graphite;Un coup de lui, c'est une esquisse rapide
 CISEAUX||Feuille, pierre et eux;Ils font des coups dans le contrat
-BOUGIE||On la souffle en faisant un voeu;Elle s'allume à chaque anniversaire de plus
+BOUGIE||On la souffle en faisant un vœu;Elle s'allume à chaque anniversaire de plus
 TELEPHONE||Celui de la maison d'E.T.;Le coup de fil en est le geste
 ECRAN||Celui de fumée détourne l'attention;Crever lui, c'est être charismatique au cinéma
 CLAVIER||Azerty ou Qwerty;Il se tempère chez Bach
@@ -141,9 +141,9 @@ CINEMA||Les frères Lumière l'ont inventé;Toile de la salle obscure
 MARCHE||Celui aux puces vend des vieilleries;Faire son marché, c'est choisir
 GARE||Celle du Nord est à Paris;À la gare, on dit au revoir sur le quai
 PORT||Celui d'arme est un permis;Arriver à bon port, c'est arriver sans encombre
-COEUR||Avoir le coeur sur la main;Joli coeur, c'est un séducteur
+COEUR||Avoir le cœur sur la main;Joli cœur, c'est un séducteur
 TETE||Elle est de turc quand tout le monde s'en moque;Celle de linotte oublie tout
-MAIN||Celle verte réussit les plantes;Celle de Fatma protège du mauvais oeil
+MAIN||Celle verte réussit les plantes;Celle de Fatma protège du mauvais œil
 PIED||Celui de nez se fait en douce;Être au pied du mur, c'est ne plus avoir le choix
 OEIL||Celui du cyclone est calme;Coûter les yeux de la tête, c'est très cher
 NEZ||Mener par le bout de lui, c'est manipuler;Celui de Pinocchio s'allonge
@@ -163,10 +163,10 @@ FACTEUR||Le Facteur Cheval a bâti un palais idéal;Le facteur temps compte dans
 POMPIER||Celui de Paris est militaire;Il sauve aussi les chats perchés
 PROFESSEUR||Celui de La Casa de papel organise le casse;Sa salle sent la craie
 ROI||Le Petit Prince en rencontre un sans sujets;Celui de la jungle n'y vit pas
-REINE||Celle des neiges glace le coeur de Kay;Celle d'Angleterre a régné soixante-dix ans
+REINE||Celle des neiges glace le cœur de Kay;Celle d'Angleterre a régné soixante-dix ans
 PRINCE||Celui charmant réveille la belle endormie;Celui de Machiavel est un manuel du pouvoir
 PIRATE||Jack Sparrow en est un;Il a un crochet et un perroquet
-CHEF||Celui de gare fait partir les trains;Celui d'oeuvre est le meilleur travail
+CHEF||Celui de gare fait partir les trains;Celui d'œuvre est le meilleur travail
 AMI||Celui d'enfance reste pour la vie;Faux, c'est un mot trompeur entre deux langues
 ENFANT||Celui terrible se tient mal;Celui prodigue revient à la maison
 BEBE||Celui-éprouvette est né en laboratoire;Rosemary en attend un dans un film d'horreur
@@ -180,7 +180,7 @@ JAMAIS||Il ne faut pas dire, fontaine, je ne boirai pas de ton eau;Plus que lui,
 TOUJOURS||Ils vécurent heureux, pour lui;Pour toujours, c'est l'éternité en deux mots
 REVE||Le Rêve américain promet la réussite;Freud en fait la voie royale de l'inconscient
 ESPOIR||Il fait vivre, dit l'adage;Le jeune espoir est un talent prometteur
-COURAGE||Courage, fuyons ! dit la réplique;Celui de ses opinions, on l'a ou pas
+COURAGE||« Courage, fuyons ! », s'écrie le lâche;Celui de ses opinions, on l'a ou pas
 SILENCE||Celui des agneaux est un thriller;Qui ne dit mot consent
 SOURIRE||Celui du chat du Cheshire flotte dans l'air;On le garde aux lèvres
 SECRET||Celui défense est militaire;Celui des dieux est bien gardé
@@ -253,7 +253,7 @@ PIANO||Celui à queue trône au salon;Il a des marteaux cachés
 VIOLON||Accorder ses violons, c'est se mettre d'accord;Le joueur de violon sur le toit
 TAMBOUR||Sans tambour ni trompette, c'est discrètement;Il bat la retraite
 TROMPETTE||Le nez en trompette est retroussé;Celle de Jéricho fit tomber les murs
-CHAUD||Il fait chaud au coeur quand c'est touchant;Avoir chaud, c'est avoir eu peur
+CHAUD||Il fait chaud au cœur quand c'est touchant;Avoir chaud, c'est avoir eu peur
 FROID||Il fait froid dans le dos quand on a peur;Guerre qui ne l'était pas vraiment
 GRAND||Le grand méchant loup;Celui de ce monde a beaucoup de pouvoir
 PETIT||Celui de Nicolas a des copains;Le Petit Prince en est un
@@ -336,7 +336,7 @@ ECHARPE|Autour du cou|Elle tient chaud en hiver|Celle du maire est tricolore
 GANT|Pour la main|Il couvre les doigts|On le jette pour défier en duel
 BOTTE|Grande chaussure|Chaussure qui monte haut|Celle de sept lieues fait des pas de géant
 MANTEAU|Vêtement chaud|Il se porte par-dessus|Sous lui, c'est en cachette
-CRAVATE|Autour du col|Accessoire de costume|Le noeud qu'on y fait a son nom : Windsor
+CRAVATE|Autour du col|Accessoire de costume|Le nœud Windsor se fait sur elle
 FOUR|On y cuit|Appareil de cuisine chaud|Il est noir comme lui quand on n'y voit rien
 FRIGO|Il garde au frais|Réfrigérateur|On y met quelque chose quand on le reporte
 CUILLERE|Pour la soupe|Couvert pour les liquides|Ne pas y aller avec le dos de celle-ci, c'est y aller fort
@@ -376,5 +376,5 @@ POUMON|On respire avec|Organe de la respiration|L'Amazonie est celui de la plan�
 ESTOMAC|Il digère|Poche de la digestion|Avoir de l'estomac, c'est avoir du cran
 COUDE|Milieu du bras|Articulation du bras|Se serrer les coudes, c'est s'entraider
 EPAULE|Haut du bras|Articulation du bras et du tronc|Avoir la tête sur elles, c'est être raisonnable
-SOURCIL|Au-dessus de l'oeil|Poils du front|Le froncer, c'est désapprouver
+SOURCIL|Au-dessus de l'œil|Poils du front|Le froncer, c'est désapprouver
 `;

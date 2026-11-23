@@ -16,8 +16,8 @@ ANT|Tiny worker of the colony|It refused to feed the grasshopper|You have them i
 BUTTERFLY|A caterpillar, all grown up|Insect with colorful wings|Swimming stroke, or nervous stomach feeling
 OWL|Night bird with big eyes|Bird that hoots|Night one stays up very late
 DOLPHIN|Sea mammal that jumps|It talks in clicks and whistles|Flipper was one
-WHALE|Giant of the sea|Largest animal on Earth|You have one of a time when it's great fun
-SHARK|Predator with sharp teeth|Jaws was one|A loan one charges terrible interest
+WHALE|Giant of the sea|Largest animal on Earth|A whale of a time means great fun
+SHARK|Predator with sharp teeth|Jaws was one|A loan … charges sky-high interest
 EAGLE|Bird of prey with sharp eyes|National bird of the United States|Two under par on a golf hole
 FOX|Sly animal with a bushy tail|It found the grapes too sour|Quick and brown, it jumps over the lazy dog
 WOLF|It howls at the moon|Wild ancestor of the dog|Cry it too often and nobody comes
@@ -27,7 +27,7 @@ FROG|It croaks|Green jumper of the pond|You have one in your throat when your vo
 OCTOPUS|Eight arms|Sea creature that squirts ink|It has three hearts and blue blood
 KANGAROO|It hops with a pouch|Marsupial of Australia|Court that ignores the rules
 SHEEP|It goes baa|You count it to fall asleep|The black one stands out in the family
-COW|It moos|It gives milk|It's holy when you're surprised
+COW|It moos|It gives milk|"Holy …!" you might gasp in surprise
 PIG|It rolls in the mud|Pink farm animal|When it flies, it will never happen
 HEN|It lays eggs|It clucks in the coop|Party for the bride before the wedding
 DUCK|It quacks|Swimmer of the pond|Lame one has no power left
@@ -58,8 +58,8 @@ ROSE|Flower with thorns|Flower of lovers|Smell it by any other name
 MOUNTAIN|Snowy peak|Very high land|Make one out of a molehill
 VOLCANO|It spits lava|Mountain with a crater|Vesuvius or Etna
 DESERT|Sand everywhere|Very dry region|A dessert with one S less
-BEACH|Sand and umbrellas|Seaside place to swim|Not the only pebble on it
-ISLAND|Land surrounded by water|Crusoe was stranded on one|No man is one, wrote John Donne
+BEACH|Sand and umbrellas|Seaside place to swim|Copacabana is a famous one
+ISLAND|Land surrounded by water|Crusoe was stranded on one|No man is an …, wrote John Donne
 GARDEN|Where flowers grow|Green space by a house|Led up its path, you're deceived
 WINTER|Cold season|Season of snow in the north|It is coming, in Westeros
 SUMMER|Hot season|Season of long holidays|One swallow doesn't make it
@@ -92,8 +92,8 @@ PANCAKE|Flat breakfast treat|Stack it with syrup|Flat as one means very flat
 SALAD|Green leaves|Lettuce with dressing|Days of youthful inexperience
 RICE|White grain|Grain of sushi|Thrown at weddings, once
 COFFEE|Black morning drink|Espresso is one|Wake up and smell it
-TEA|Hot drink in a bag|Leaves in hot water|Not your cup of it
-MILK|Cows give it|White drink in a glass|No use crying over the spilled kind
+TEA|Hot drink in a bag|Leaves in hot water|Not my cup of …: not to my taste
+MILK|Cows give it|White drink in a glass|A spilled drink stars in a proverb
 BUTTER|You spread it on toast|Made from cream|Fingers like this drop everything
 CHERRY|Small red fruit with a pit|Red fruit on a stem|It goes on top to finish
 OLIVE|Small fruit for oil|Green or black fruit in a martini|Its branch means peace
@@ -125,9 +125,9 @@ BICYCLE|Two wheels and pedals|You ride and pedal it|Like riding one, you never f
 TRAIN|It runs on rails|Engine and carriages|Get on it late and you jump aboard
 PLANE|It flies|Aircraft|Flat surface, or a woodworker's tool
 BOAT|It floats|It sails on water|Don't rock it
-CAR|Four wheels|Automobile|Pool of it to save gas
+CAR|Four wheels|Automobile|Its trunk is called a boot in Britain
 TRUCK|Big vehicle|Heavy road hauler|Keep on doing this, sang the hippies
-ROCKET|It goes to space|It launches upward|Not exactly science of this kind
+ROCKET|It goes to space|It launches upward|It isn't exactly rocket science
 BRIDGE|It crosses a river|Structure over water|Burn it and you can't go back
 TUNNEL|Passage underground|Passage under a mountain|Light at the end of it
 LIGHTHOUSE|It guides ships|Coastal tower with a beam|Virginia Woolf went to it
@@ -166,21 +166,21 @@ QUEEN|Wife of the king|Female monarch|Most powerful piece in chess
 PRINCE|Son of the king|Heir to the throne|The Little one came from asteroid B612
 PIRATE|Attacks ships|Sea bandit|Copies movies illegally online
 CHEF|Cooks|Head of the kitchen|Too many of them spoil the broth
-FRIEND|Not an enemy|Someone you like|One in need is one indeed
+FRIEND|Someone dear to you|Someone you like|One in need is one indeed
 CHILD|Young person|Boy or girl|It takes a village to raise one
 BABY|Newborn|It wears a diaper|Don't throw it out with the bathwater
 NEIGHBOR|Lives next door|Person next door|Their grass is always greener
 TIME|It passes|Measured in hours|It's money, they say
-DAY|Not night|Twenty-four hours|Rome wasn't built in one
-NIGHT|Not day|When you sleep|Ships passing in it never meet again
-TOMORROW|Not yesterday|The day after|Never put off until then
-YESTERDAY|Not tomorrow|The day before|All my troubles seemed so far away, sang the Beatles
-NEVER|Not ever|At no time|Better late than this
-ALWAYS|Not never|At all times|Look on the bright side, sang Monty Python
+DAY|A full twenty-four hours|Twenty-four hours|Rome wasn't built in one
+NIGHT|Hours after sunset|When you sleep|Ships passing in it never meet again
+TOMORROW|The day after today|The day after|Never put off until then
+YESTERDAY|The day before today|The day before|All my troubles seemed so far away, sang the Beatles
+NEVER|At no point|At no time|Better late than this
+ALWAYS|Every time|At all times|Look on the bright side, sang Monty Python
 DREAM|You have it in your sleep|Night images|Martin Luther King had one
 HOPE|Opposite of despair|Confident wish|Last thing left in Pandora's box
 COURAGE|It helps you face fear|Bravery|The Cowardly Lion wanted it
-SILENCE|No sound|Total quiet|It's golden
+SILENCE|Quiet all around|Total quiet|It's golden
 SMILE|It lights up a face|Happy expression|The Mona Lisa's is a mystery
 SECRET|You keep it|Something not told|An open one, everybody knows
 MUSIC|Notes and melody|Art of sound|Face it when it's time for consequences
@@ -193,12 +193,12 @@ STORY|A tale|Narrative|Long one cut short
 ADVENTURE|Full of surprises|Risky journey|Alice's in Wonderland
 GIFT|You unwrap it|Present|Talent you were born with
 JOURNEY|A long trip|Travel from place to place|More important than the destination, they say
-PEACE|Not war|No conflict|The dove brings it
-WAR|Not peace|Armed conflict|All is fair in love and this
-TRUTH|Not a lie|What is true|Naked one is plain and simple
-LIE|Not the truth|False statement|Pinocchio's nose grows when he tells one
+PEACE|Absence of conflict|A dove with an olive branch stands for it|The dove brings it
+WAR|Armed clash|Armed conflict|All is fair in love and this
+TRUTH|A fact stated plainly|What is true|Naked one is plain and simple
+LIE|A false statement|False statement|Pinocchio's nose grows when he tells one
 SPEED|What the speedometer measures|Rapidity|Thriller on a bus that can't slow down
-LIGHT|It chases away the dark|Brightness|Not heavy, or a way to start a fire
+LIGHT|It chases away the dark|Brightness|Easy to carry, or a way to start a fire
 RED|Color of tomatoes|Color of blood|You see it when you're angry
 BLUE|Color of the sky|Color of the ocean|Feeling down, or once in this kind of moon
 GREEN|Color of grass|Color of leaves|With envy, or a thumb that grows plants
@@ -250,11 +250,11 @@ PIANO|Black and white keys|Grand instrument|Soft, in Italian music terms
 VIOLIN|Played with a bow|String instrument of the quartet|Nero played it while Rome burned, legend says
 DRUM|You beat it|Instrument with a stretched skin|March to the beat of your own
 TRUMPET|Brass with valves|Instrument of the fanfare|Blow your own to boast
-HOT|Not cold|High temperature|Potato no one wants to hold
-COLD|Not hot|Low temperature|Feet you get before the wedding
-BIG|Not small|Large|Apple of New York
-TINY|Not huge|Very small|Tim in a Christmas Carol
-FAST|Not slow|Quick|Not eating, or holding firm
+HOT|Warm to the touch|High temperature|Potato no one wants to hold
+COLD|Chilly to the touch|Low temperature|Feet you get before the wedding
+BIG|Large in size|Large|Apple of New York
+TINY|Very, very small|Very small|Tim in a Christmas Carol
+FAST|Moving at high speed|Quick|Going without food, or holding firm
 SLOW|Not fast|Lacking speed|Steady wins the race
 FULL|Not empty|Filled up|Moon that's completely round
 EMPTY|Not full|With nothing inside|Nest when the kids leave

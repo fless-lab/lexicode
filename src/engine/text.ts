@@ -1,6 +1,7 @@
 /** Retire les accents et passe en majuscules : "é" devient "E". */
 export function norm(s: string): string {
-  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+  // Les ligatures ne se décomposent pas en NFD : « cœur » doit bien donner COEUR (sinon la réponse reste lisible dans l'indice).
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/œ/g, 'oe').replace(/Œ/g, 'OE').replace(/æ/g, 'ae').replace(/Æ/g, 'AE').toUpperCase();
 }
 
 export function isAZ(c: string): boolean {

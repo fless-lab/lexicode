@@ -24,12 +24,12 @@ LOUP|Il hurle à la lune|Ancêtre sauvage du chien|Il apparaît dès qu'on parle
 OURS|Gros animal qui hiberne|Il adore le miel et dort tout l'hiver|Mal léché, il n'est pas très sociable
 ESCARGOT|Il porte sa maison sur son dos|Mollusque lent à coquille|Courrier qui prend tout son temps
 GRENOUILLE|Elle coasse|Amphibien qui saute dans la mare|De bénitier quand elle prie sans cesse
-PIEUVRE|Animal marin à huit bras|Céphalopode qui crache de l'encre|Elle a trois coeurs et le sang bleu
+PIEUVRE|Animal marin à huit bras|Céphalopode qui crache de l'encre|Elle a trois cœurs et le sang bleu
 KANGOUROU|Il saute avec une poche|Marsupial d'Australie|Il boxe et voyage avec son bébé en poche
 MOUTON|Il bêle|On le compte pour s'endormir|Il suit le troupeau sans réfléchir
 VACHE|Elle meugle|Elle donne le lait|Elle regarde passer les trains
 COCHON|Il se roule dans la boue|Animal rose de la ferme|Tout est bon chez lui, dit-on
-POULE|Elle pond des oeufs|Elle caquette dans le poulailler|Elle aura des dents quand ça n'arrivera jamais
+POULE|Elle pond des œufs|Elle caquette dans le poulailler|Elle aura des dents quand ça n'arrivera jamais
 CANARD|Il fait coin-coin|Palmipède de la mare|Fausse note, ou journal satirique
 SERPENT|Il rampe et siffle|Reptile sans pattes|Il souffle à Ève une idée de fruit
 CROCODILE|Grand reptile du fleuve|Il a une mâchoire redoutable|Ses larmes ne sont pas sincères
@@ -37,15 +37,15 @@ ELEPHANT|Il a une trompe|Le plus grand animal terrestre|Sa mémoire ne lui fait 
 SOURIS|Le chat la chasse|Petit rongeur gris|Elle glisse sur un tapis à côté du clavier
 ARAIGNEE|Elle tisse sa toile|Huit pattes, et pas un insecte|On en a une au plafond quand on déraisonne
 MOUSTIQUE|Il pique la nuit|Insecte qui bourdonne à l'oreille|Tout petit, il vous empêche pourtant de dormir
-SOLEIL|Étoile de notre système|Il se lève à l'est|Il a donné son surnom à Louis XIV
+SOLEIL|Étoile de notre système|Il se lève à l'est|Louis XIV lui doit son surnom
 LUNE|Elle brille la nuit|Satellite naturel de la Terre|On la demande quand on exige l'impossible
-ETOILE|Elle scintille la nuit|Astre qui brille de sa propre lumière|On fait un voeu quand elle file
+ETOILE|Elle scintille la nuit|Astre qui brille de sa propre lumière|On fait un vœu quand elle file
 NUAGE|Il flotte dans le ciel|Masse de gouttelettes en altitude|On y a la tête quand on rêvasse
 PLUIE|Elle tombe du ciel|Elle mouille et fait pousser|Après elle vient le beau temps
 NEIGE|Flocons blancs|Elle tombe en hiver et tient au sol|En boule, elle finit par tout emporter
 ORAGE|Tonnerre et éclairs|Pluie violente avec des éclairs|Il y en a dans l'air quand la dispute menace
 VENT|Il souffle|Air en mouvement|Qui le sème récolte la tempête
-FEU|Il brûle|Flammes dans la cheminée|Pas de fumée sans lui
+FEU|Il brûle|Flammes dans la cheminée|Il n'y a pas de fumée sans feu
 GLACE|Eau gelée|Elle fond au soleil|Elle se mange en cornet ou se regarde au mur
 TERRE|Notre planète|Troisième planète du Soleil|Elle tourne, même si Galilée a dû se taire
 MER|Grande étendue d'eau salée|Elle a des vagues et des marées|Ce n'est pas elle qu'il faut boire
@@ -126,7 +126,7 @@ VELO|Deux roues et des pédales|On pédale dessus|Une fois appris, il ne s'oubli
 TRAIN|Il roule sur des rails|Locomotive et wagons|On le prend en marche quand on arrive en retard
 AVION|Il vole|Engin à ailes et réacteurs|On le plie en papier au fond de la classe
 BATEAU|Il flotte|Il navigue sur l'eau|On vous mène dedans quand on vous ment
-VOITURE|Quatre roues|Automobile|En ..., Simone
+VOITURE|Quatre roues|Automobile|En voiture, Simone !
 CAMION|Gros véhicule|Poids lourd de la route|Poids lourd qui n'est pas boxeur
 FUSEE|Elle va dans l'espace|Engin qui décolle à la verticale|Tintin y monte pour aller sur la Lune
 PONT|Il traverse la rivière|Ouvrage au-dessus de l'eau|Il fait le lien entre un jour férié et le week-end
@@ -135,7 +135,7 @@ PHARE|Il guide les bateaux|Tour lumineuse sur la côte|Celui de la voiture écla
 CHATEAU|Demeure des rois|Bâtisse avec des tours|On en bâtit en Espagne quand on rêve
 PYRAMIDE|Monument égyptien|Tombeau de pharaon|Celle des âges, ou celle du Louvre
 ECOLE|On y apprend|Lieu de la maîtresse et des élèves|On la fait buissonnière
-MUSEE|On y voit des oeuvres|Lieu d'expositions d'art|Le Louvre ou le Prado
+MUSEE|On y voit des œuvres|Lieu d'expositions d'art|Le Louvre ou le Prado
 HOPITAL|On y soigne|Établissement de santé|Il se moque de la charité
 CINEMA|Grand écran|Salle obscure|On en fait quand on exagère pour attirer l'attention
 MARCHE|On y achète des légumes|Étals en plein air|Il est conclu quand on tope là
@@ -167,24 +167,24 @@ REINE|Épouse du roi|Monarque au féminin|Pièce la plus puissante de l'échiqui
 PRINCE|Fils du roi|Héritier du trône|Le Petit vient d'une autre planète
 PIRATE|Il attaque les navires|Bandit des mers|Il vole aussi sur internet
 CHEF|Il dirige|Celui qui commande|Il porte une toque en cuisine
-AMI|Pas un ennemi|Personne qu'on aime bien|Les bons comptes le font bon
+AMI|Copain très proche|Personne qu'on aime bien|Les bons comptes le font bon
 ENFANT|Petit humain|Garçon ou fille jeune|Gâté, il devient roi
 BEBE|Nouveau-né|Il porte une couche|On le jette avec l'eau du bain
 VOISIN|Il habite à côté|Celui d'à côté|Son herbe est toujours plus verte
 TEMPS|Il passe|Il se mesure en heures|C'est de l'argent, dit-on
-JOUR|Pas la nuit|Vingt-quatre heures|Paris ne s'est pas fait en un
-NUIT|Pas le jour|Quand on dort|Elle porte conseil
-DEMAIN|Pas hier|Le jour d'après|Il ne faut pas lui remettre ce qu'on peut faire aujourd'hui
-HIER|Pas demain|Le jour d'avant|On n'est pas né de lui quand on est malin
-JAMAIS|Pas toujours|À aucun moment|Mieux vaut tard que lui
-TOUJOURS|Pas jamais|Sans cesse|Promesse éternelle des amoureux
+JOUR|Lundi en est un|Vingt-quatre heures|Paris ne s'est pas fait en un jour
+NUIT|Le moment des étoiles|Quand on dort|Elle porte conseil
+DEMAIN|Le jour qui suit aujourd'hui|Le jour d'après|Ne remets pas à demain ce que tu peux faire aujourd'hui
+HIER|Le jour qui précède aujourd'hui|Le jour d'avant|Je ne suis pas né d'hier, on ne me la fait pas
+JAMAIS|Zéro fois|À aucun moment|Mieux vaut tard que jamais
+TOUJOURS|À chaque fois, sans exception|Sans cesse|Promesse éternelle des amoureux
 REVE|On le fait en dormant|Images de la nuit|Martin Luther King en avait un
 ESPOIR|Contraire du désespoir|Attente confiante de l'avenir|Le dernier à sortir de la boîte de Pandore
 COURAGE|Il aide à affronter la peur|Bravoure|On le prend à deux mains
 SILENCE|Absence de bruit|Calme total|Il est d'or, la parole d'argent
 SOURIRE|Il illumine le visage|Expression de joie discrète|Celui de la Joconde est énigmatique
 SECRET|On le garde|Ce qu'on ne dit pas|Celui de Polichinelle, tout le monde le connaît
-MUSIQUE|Notes et mélodie|Art des sons|Elle adoucit les moeurs
+MUSIQUE|Notes et mélodie|Art des sons|Elle adoucit les mœurs
 CHANSON|On la chante|Paroles et musique|C'est toujours la même quand on se répète
 DANSE|On la fait en rythme|Valse ou tango|Quand le chat n'est pas là, les souris la mènent
 JEU|On y joue|Partie avec des règles|Il n'en vaut pas la chandelle
@@ -194,10 +194,10 @@ HISTOIRE|Récit|Récit du passé|On en raconte pour endormir les enfants
 AVENTURE|Pleine de surprises|Expérience risquée|On part à elle sans plan
 CADEAU|On le déballe|Présent offert|Ce n'en est pas un quand c'est difficile
 VOYAGE|Départ vers ailleurs|Déplacement lointain|Il forme la jeunesse
-PAIX|Pas la guerre|Absence de conflit|La colombe la porte
-GUERRE|Pas la paix|Conflit armé|C'est de bonne ... quand c'est loyal
-VERITE|Pas le mensonge|Ce qui est vrai|Elle sort de la bouche des enfants
-MENSONGE|Pas la vérité|Ce qui est faux|Il fait grandir le nez de Pinocchio
+PAIX|Fin des combats|Absence de conflit|La colombe la porte
+GUERRE|Armées qui s'affrontent|Conflit armé|C'est de bonne guerre : on ne peut pas lui en vouloir
+VERITE|Au tribunal, on jure de la dire|Ce qui est vrai|Elle sort de la bouche des enfants
+MENSONGE|Ce qu'on dit pour tromper|Ce qui est faux|Il fait grandir le nez de Pinocchio
 VITESSE|Ce que mesure le compteur|Rapidité|On la confond avec précipitation
 LUMIERE|Elle chasse l'ombre|Clarté|Le siècle des philosophes en porte le nom
 ROUGE|Couleur de la tomate|Couleur du sang|On y voit quand la colère monte
@@ -221,7 +221,7 @@ COURSE|On la gagne en étant rapide|Compétition de vitesse|On la fait au superm
 MATCH|Rencontre sportive|Affrontement entre équipes|Il est nul quand personne ne gagne
 PLANETE|Mars ou Vénus|Astre qui tourne autour du Soleil|La bleue, c'est la nôtre
 ATOME|Petite particule|Plus petit morceau d'un élément|Crochus, ils rapprochent les gens
-AIMANT|Il attire le fer|Il colle au frigo|Participe présent d'un verbe de coeur
+AIMANT|Il attire le fer|Il colle au frigo|Participe présent d'un verbe de cœur
 CERVEAU|Il pense|Organe de la pensée|Celui du gang organise le coup
 OXYGENE|On le respire|Gaz vital|On en prend une bouffée pour se détendre
 ORDINATEUR|Il calcule|Machine à écran et clavier|Mot inventé en France pour IBM en 1955
@@ -253,28 +253,28 @@ PIANO|Touches noires et blanches|Instrument à queue|Qui va doucement va ainsi, 
 VIOLON|Il a un archet|Instrument à cordes du quatuor|Celui d'Ingres est un loisir
 TAMBOUR|On frappe dessus|Instrument à peau tendue|On mène l'affaire en le battant
 TROMPETTE|Instrument à pistons|Cuivre de la fanfare|Certains nez en ont la forme
-CHAUD|Pas froid|Température élevée|Il souffle avec le froid quand on hésite
-FROID|Pas chaud|Basse température|Il jette un blanc quand on se tait d'un coup
-GRAND|Pas petit|De haute taille|Il le voit ainsi quand on a de l'ambition
-PETIT|Pas grand|De faible taille|Le Poucet en est un célèbre
-RAPIDE|Pas lent|Qui va vite|Train qui ne s'arrête pas partout
-LENT|Pas rapide|Qui manque de vitesse|Comme une tortue, ou un escargot
-PLEIN|Pas vide|Rempli|On fait celui d'essence à la station
-VIDE|Pas plein|Sans rien dedans|La nature en a horreur
-FACILE|Pas difficile|Simple à faire|C'est du gâteau, en un mot
-HEUREUX|Pas triste|Qui ressent du bonheur|Comme Ulysse qui a fait un beau voyage
-RICHE|Pas pauvre|Qui a beaucoup d'argent|Crésus l'était, dit-on
-JEUNE|Pas vieux|Qui n'a pas beaucoup d'années|On ne l'est qu'une fois, paraît-il
-PROPRE|Pas sale|Bien lavé|Mis ainsi, un brouillon devient lisible
-DEBUT|Pas la fin|Commencement|Il précède la suite, et parfois la fin
-DEHORS|Pas dedans|À l'extérieur|On y met quelqu'un qu'on renvoie
-VRAI|Pas faux|Exact|Plus que nature, il ressemble au réel
-MAXIMUM|Pas le minimum|Le plus possible|On en fait le plus quand on se donne à fond
-SECOURS|Aide en urgence|Ce qu'on crie au danger|Roue de ..., elle dépanne
+CHAUD|Comme une soupe qui fume|Température élevée|Souffler le chaud et le froid, c'est changer d'attitude sans cesse
+FROID|Comme la neige au toucher|Basse température|Jeter un froid, c'est gêner tout le monde
+GRAND|Comme une girafe|De haute taille|Voir grand, c'est avoir de l'ambition
+PETIT|Comme une souris|De faible taille|Le Poucet en est un célèbre
+RAPIDE|Comme un guépard|Qui va vite|Train qui ne s'arrête pas partout
+LENT|Qui prend tout son temps|Qui manque de vitesse|Comme une tortue, ou un escargot
+PLEIN|Comme un verre à ras bord|Rempli|La fête bat son plein
+VIDE|Comme un verre qu'on a fini|Sans rien dedans|La nature en a horreur
+FACILE|Simple comme bonjour|Simple à faire|C'est du gâteau, en un mot
+HEUREUX|Rempli de joie|Qui ressent du bonheur|Comme Ulysse qui a fait un beau voyage
+RICHE|Qui roule sur l'or|Qui a beaucoup d'argent|Crésus l'était, dit-on
+JEUNE|Qui n'a que peu d'années|Qui n'a pas beaucoup d'années|On ne l'est qu'une fois, paraît-il
+PROPRE|Comme un sou neuf|Bien lavé|Mettre au propre un brouillon, c'est le recopier lisiblement
+DEBUT|Le tout premier moment|Commencement|Il précède la suite, et parfois la fin
+DEHORS|À l'extérieur de la maison|À l'extérieur|On y met quelqu'un qu'on renvoie
+VRAI|Le contraire de faux|Exact|Plus vrai que nature
+MAXIMUM|Le plus qu'on puisse faire|Le plus possible|Faire le maximum, c'est se donner à fond
+SECOURS|Aide en urgence|Ce qu'on crie au danger|La roue de secours sauve d'une crevaison
 TRESOR|Coffre plein d'or|Richesses cachées|L'île de Stevenson le cache
 CARTE|Elle montre le chemin|Plan d'un pays|On la joue quand on tente sa chance
 BOUSSOLE|Elle indique le nord|Instrument d'orientation|On la perd quand on s'affole
-ENIGME|Devinette difficile|Problème à résoudre|Le Sphinx en pose une à Oedipe
+ENIGME|Devinette difficile|Problème à résoudre|Le Sphinx en pose une à Œdipe
 INDICE|Il met sur la piste|Signe qui aide à trouver|Le détective le relève sur la scène
 CODE|Il chiffre un message|Suite secrète de chiffres|Celui de la route s'apprend avant le permis
 CHIFFRE|Un, deux, trois|Symbole d'un nombre|Le message qu'on doit casser en est un
@@ -296,7 +296,7 @@ BOUTEILLE|Contenant en verre|On y met le vin|On la jette à la mer avec un messa
 COFFRE|On y range des trésors|Grande boîte à couvercle|Celui de la voiture reçoit les valises
 PLUME|L'oiseau en a|On écrivait avec elle|Poids le plus léger en boxe
 ENCRE|Pour écrire|Liquide du stylo|La pieuvre en crache, l'écrivain aussi
-SERRURE|On y met la clé|Mécanisme de la porte|Les curieux y collent leur oeil
+SERRURE|On y met la clé|Mécanisme de la porte|Les curieux y collent leur œil
 SIGNAL|Il avertit|Message convenu|Le feu vert en est un
 RADIO|On l'écoute|Poste qui diffuse|On en passe une pour voir les os
 NOMBRE|Il se compte|Ensemble de chiffres|Celui d'or a fasciné les architectes

@@ -7,12 +7,12 @@ CONEJO|Le encantan las zanahorias|Animal de orejas largas que salta|El mago lo s
 PAJARO|Tiene plumas y alas|Construye su nido en un árbol|Más vale uno en mano que ciento volando
 PEZ|Nada con aletas|Respira por branquias|Está como él en el agua quien se siente a gusto
 TORTUGA|Lenta, con caparazón|Reptil que vive muchos años|Le gana la carrera a la liebre en la fábula
-LEON|Rey de la sabana|Gran felino con melena|No es tan fiero como lo pintan
+LEON|Rey de la sabana|Gran felino con melena|Monarca de la selva en los cuentos
 MONO|Le encantan los plátanos|Trepa árboles y hace muecas|Aunque se vista de seda, se queda así
 JIRAFA|El cuello más largo|Come las hojas altas de las acacias|Siempre tiene la cabeza en las nubes sin soñar
 CEBRA|Caballo rayado|Rayas negras y blancas en la sabana|Paso de peatones que lleva su nombre
 ABEJA|Hace la miel|Obrera de la colmena|Trabajadora que no cuenta sus horas de vuelo
-HORMIGA|Pequeña obrera de la colonia|No le presta comida a la cigarra|Se mueve en fila india
+HORMIGA|Pequeña obrera de la colonia|Obrera de la colonia|Se mueve en fila india
 MARIPOSA|Oruga ya adulta|Insecto de alas de colores|Estilo de natación, o nervios en el estómago
 BUHO|Ave nocturna de ojos grandes|Rapaz que ulula de noche|Símbolo de sabiduría con gafas en los dibujos
 DELFIN|Mamífero marino que salta|Se comunica con silbidos|Sucesor elegido para tomar el relevo
@@ -48,13 +48,13 @@ VIENTO|Sopla|Aire en movimiento|Ir con él en popa es ir de maravilla
 FUEGO|Quema|Llamas en la chimenea|Donde hay humo, lo hay
 HIELO|Agua congelada|Se derrite al sol|Romperlo es empezar una conversación
 TIERRA|Nuestro planeta|Tercer planeta del Sistema Solar|Deseas que te trague cuando pasas vergüenza
-MAR|Gran masa de agua salada|Tiene olas y mareas|Llover a ellos es llover muchísimo
+MAR|Gran masa de agua salada|Tiene olas y mareas|Hacerse a la … es zarpar
 OCEANO|Más grande que un mar|El Atlántico es uno|Pacífico pero no siempre tranquilo
 RIO|Desemboca en el mar|El Ebro o el Amazonas|A él revuelto, ganancia de pescadores
 BOSQUE|Reino de los árboles|Gran zona arbolada|Los árboles no te dejan verlo
 ARBOL|Tiene tronco y ramas|El roble es uno|Quien a buen arrimo se arrima, buena sombra le cobija
 FLOR|La rosa es una|Tiene pétalos|Echar una es piropear
-ROSA|Flor con espinas|Flor de los enamorados|No hay ninguna sin espinas
+ROSA|Flor con espinas|Flor de los enamorados|Todas tienen espinas, según el refrán
 MONTANA|Pico nevado|Gran elevación del terreno|Rusa en el parque de atracciones
 VOLCAN|Escupe lava|Montaña con cráter|Bailar sobre él es arriesgarse
 DESIERTO|Arena por todas partes|Región muy seca|Predicar en él es hablar sin que nadie escuche
@@ -122,7 +122,7 @@ BICICLETA|Dos ruedas y pedales|Se pedalea|Lo que se aprende y no se olvida
 TREN|Circula sobre raíles|Locomotora y vagones|Vivir a todo él es vivir con lujo
 AVION|Vuela|Aparato con alas y motores|Se hace de papel en clase
 BARCO|Flota|Navega sobre el agua|Estar en el mismo es compartir suerte
-COCHE|Cuatro ruedas|Automóvil|El de San Fernando es ir a pie
+COCHE|Cuatro ruedas|Automóvil|Ir en el … de San Fernando es ir a pie
 CAMION|Vehículo grande|Transporte pesado de mercancías|Estar como uno es ser muy atractivo
 COHETE|Va al espacio|Despega en vertical|Salir como uno es irse muy rápido
 PUENTE|Cruza el río|Obra sobre el agua|Une un festivo con el fin de semana
@@ -146,8 +146,8 @@ NARIZ|En medio de la cara|Órgano del olfato|La de Pinocho crece con las mentira
 BOCA|Para comer|Tiene labios|Cerrada, no entran moscas
 DIENTE|Muerde|Se lo lleva el ratoncito Pérez|A caballo regalado no se le mira
 OREJA|Oye|Órgano del oído|Calentársela a alguien es reñirle
-DEDO|Cinco por mano|El índice es uno|No mover uno es no hacer nada
-PELO|Crece en la cabeza|Cabello|No tener ninguno en la lengua es ser franco
+DEDO|Cinco por mano|El índice es uno|No mover un … es no hacer nada
+PELO|Crece en la cabeza|Cabello|Venir al … es llegar en el momento justo
 LENGUA|Saborea|Músculo de la boca|Tenerla en la punta es casi recordar algo
 RODILLA|Articulación de la pierna|Se hinca para pedir matrimonio|De ellas se pide perdón
 ESPALDA|Parte de atrás|Lleva la mochila|Cubrírsela es protegerse
@@ -163,17 +163,17 @@ REINA|Esposa del rey|Monarca mujer|La pieza más poderosa del ajedrez
 PRINCIPE|Hijo del rey|Heredero del trono|El Principito venía del asteroide B612
 PIRATA|Ataca barcos|Bandido del mar|Copia películas sin permiso
 JEFE|Dirige|El que manda|El de cocina lleva gorro blanco
-AMIGO|No enemigo|Persona querida|Quien tiene uno tiene un tesoro
+AMIGO|Compañero de confianza|Persona querida|Quien tiene uno tiene un tesoro
 NINO|Persona pequeña|Persona de corta edad|Fenómeno climático del Pacífico con nombre de bebé
 BEBE|Recién nacido|Lleva pañal|Del verbo beber, en tercera persona
 VECINO|Vive al lado|El de al lado|Cualquier hijo de él es cualquiera
 TIEMPO|Pasa|Se mide en horas|Es oro, dicen
-DIA|No noche|Veinticuatro horas|Roma no se hizo en uno
-NOCHE|No día|Cuando se duerme|Pasarla en blanco es no dormir
-MANANA|No ayer|El día siguiente|No dejes para él lo que puedas hacer hoy
-AYER|No mañana|El día anterior|No haber nacido en él es ser listo
-NUNCA|No siempre|En ningún momento|Más vale tarde que esto
-SIEMPRE|No nunca|En todo momento|Promesa eterna de los enamorados
+DIA|Una jornada completa|Veinticuatro horas|Roma no se hizo en uno
+NOCHE|Horas sin sol|Cuando se duerme|Pasarla en blanco es no dormir
+MANANA|Día que viene|El día siguiente|No dejes para él lo que puedas hacer hoy
+AYER|El día antes de hoy|El día anterior|No haber nacido en él es ser listo
+NUNCA|En ningún momento|En ningún momento|Más vale tarde que esto
+SIEMPRE|A todas horas|En todo momento|Promesa eterna de los enamorados
 SUENO|Se tiene al dormir|Imágenes de la noche|Martin Luther King tenía uno
 ESPERANZA|Contraria a la desesperación|Confianza en el futuro|Es lo último que se pierde
 CORAJE|Ayuda a vencer el miedo|Valentía|También es rabia, en otro sentido
@@ -190,11 +190,11 @@ HISTORIA|Relato|Relato del pasado|Se cuenta para dormir a los niños
 AVENTURA|Llena de sorpresas|Experiencia arriesgada|Las de Tom Sawyer son famosas
 REGALO|Se desenvuelve|Obsequio|Llovido del cielo, inesperado
 VIAJE|Salida a otro lugar|Desplazamiento lejano|Se hace de ida y vuelta
-PAZ|No guerra|Sin conflicto|La trae la paloma
-GUERRA|No paz|Conflicto armado|Dar ella es dar mucha lata
-VERDAD|No mentira|Lo cierto|Los niños y los borrachos siempre la dicen
-MENTIRA|No verdad|Lo falso|Tiene las patas muy cortas
-VELOCIDAD|Lo que mide el velocímetro|Rapidez|No hay que confundirla con tocino
+PAZ|Acuerdo entre rivales|Sin conflicto|La trae la paloma
+GUERRA|Enfrentamiento armado|Conflicto armado|Dar ella es dar mucha lata
+VERDAD|Lo contrario de la mentira|Lo cierto|Los niños y los borrachos siempre la dicen
+MENTIRA|Lo que dice Pinocho cuando le crece la nariz|Lo falso|Tiene las patas muy cortas
+VELOCIDAD|Lo que mide el velocímetro|Rapidez|Se confunde con el tocino en el refrán
 LUZ|Ahuyenta la oscuridad|Claridad|Dar a ella es parir
 ROJO|Color del tomate|Color de la sangre|Ponerse así es sonrojarse
 AZUL|Color del cielo|Color del océano|La sangre de los nobles
@@ -244,19 +244,19 @@ PIANO|Teclas blancas y negras|Instrumento de cola|Despacio, en italiano
 VIOLIN|Se toca con arco|Instrumento de cuerda del cuarteto|Paganini era un mago con él
 TAMBOR|Se golpea|Instrumento de piel tensada|El de Granaderos suena en los desfiles
 TROMPETA|Instrumento de pistones|Metal de la fanfarria|Miles Davis la tocaba
-CALIENTE|No frío|Temperatura alta|Patata que nadie quiere sostener
-FRIO|No caliente|Temperatura baja|Dejar así es dejar sin palabras
-GRANDE|No pequeño|De gran tamaño|Así le queda el traje a quien no está a la altura
-PEQUENO|No grande|De poco tamaño|El Principito no lo es tanto
-RAPIDO|No lento|Que va deprisa|Tren que no para en todas las estaciones
-LENTO|No rápido|Sin prisa|Como la tortuga, que al final gana
-LLENO|No vacío|Completo|Teatro sin una butaca libre
-VACIO|No lleno|Sin nada dentro|La naturaleza le tiene horror
-FACIL|No difícil|Sencillo de hacer|Pan comido
-FELIZ|No triste|Contento|Y comieron perdices
-RICO|No pobre|Con mucho dinero|Sabroso, cuando hablas de comida
-JOVEN|No anciano|De pocos años|Juventud, divino tesoro, decía Rubén Darío
-LIMPIO|No sucio|Lavado|Jugar así es jugar sin trampas
+CALIENTE|Que quema al tocar|Temperatura alta|Patata que nadie quiere sostener
+FRIO|Que hace tiritar|Temperatura baja|Dejar así es dejar sin palabras
+GRANDE|De dimensiones amplias|De gran tamaño|Así le queda el traje a quien no está a la altura
+PEQUENO|De tamaño reducido|De poco tamaño|El Principito no lo es tanto
+RAPIDO|A toda velocidad|Que va deprisa|Tren que no para en todas las estaciones
+LENTO|Sin apuro|Sin prisa|Como la tortuga, que al final gana
+LLENO|Que no admite nada más|Completo|Teatro sin una butaca libre
+VACIO|Sin contenido|Sin nada dentro|La naturaleza le tiene horror
+FACIL|Que no cuesta|Sencillo de hacer|Pan comido
+FELIZ|De buen ánimo|Contento|Y comieron perdices
+RICO|Adinerado|Con mucho dinero|Sabroso, cuando hablas de comida
+JOVEN|De edad temprana|De pocos años|Juventud, divino tesoro, decía Rubén Darío
+LIMPIO|Sin manchas|Lavado|Jugar así es jugar sin trampas
 INICIO|No el final|Comienzo|Botón que enciende el menú
 FUERA|No dentro|En el exterior|Lo que grita el público al árbitro
 VERDADERO|No falso|Cierto|Amigo de verdad, no de los otros
