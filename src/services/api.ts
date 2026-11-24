@@ -11,6 +11,9 @@ const KEY = 'lexicode.session';
 export const apiEnabled = BASE !== '';
 export const API_BASE = BASE;
 
+/** Adresse publique du jeu, pour les liens d'invitation (sur téléphone, l'origine locale ne sert à rien). */
+export const PUBLIC_URL = ((import.meta.env.VITE_PUBLIC_URL as string | undefined) || (typeof location !== 'undefined' ? location.origin + location.pathname.replace(/[^/]*$/, '') : '')).replace(/\/?$/, '/');
+
 type Session = { id: string; token: string };
 type Log = [number, number, string][];
 
@@ -136,3 +139,13 @@ export const challenges = {
 
 export const findRoomByCode = (code: string) => call<{ roomId: string; kind: 'party' | 'coop' }>(`/v1/rooms/${encodeURIComponent(code)}`);
 export const myMulti = () => call<{ duelRating: number; stats: Record<string, { played: number; wins: number }> }>('/v1/me/multi');
+
+export type FriendRow = { id: string; name: string; place: string; look: Record<string, string> };
+export type FriendsInfo = { code: string; friends: FriendRow[]; incoming: FriendRow[]; outgoing: FriendRow[] };
+
+export const friends = {
+  list: () => call<FriendsInfo>('/v1/friends'),
+  add: (code: string) => call<{ status: 'sent' | 'accepted' | 'already'; name: string }>('/v1/friends/add', { method: 'POST', body: JSON.stringify({ code }) }),
+  act: (id: string, action: 'accept' | 'decline' | 'remove') => call<{ ok: true }>(`/v1/friends/${id}/${action}`, { method: 'POST' }),
+  board: (lang: Lang, key: string) => call<{ rows: BoardRow[] }>(`/v1/friends/board/${lang}/${encodeURIComponent(key)}`),
+};

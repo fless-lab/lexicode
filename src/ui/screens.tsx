@@ -14,6 +14,7 @@ import {
 } from '../meta';
 import { fmt } from './Play';
 import { sfx } from '../sound';
+import { FRIEND_STRINGS } from '../i18n-friends';
 import { Icon, MODE_ICON, BOOSTER_ICON, achIcon } from './Icon';
 import { AdventureCard, ExpeditionCard } from './adventure';
 import { Scene } from './scenes';
@@ -23,7 +24,7 @@ import { SHOP_STRINGS } from '../i18n-shop';
 import { MULTI_STRINGS } from '../i18n-multi';
 import type { SeasonalEvent } from '../events';
 
-export type Screen = 'home' | 'play' | 'arena' | 'season' | 'ranking' | 'profile' | 'album' | 'league' | 'settings' | 'premium' | 'adventure' | 'shop' | 'wardrobe' | 'event' | 'packs' | 'archive' | 'multi';
+export type Screen = 'home' | 'play' | 'arena' | 'season' | 'ranking' | 'profile' | 'album' | 'league' | 'settings' | 'premium' | 'adventure' | 'shop' | 'wardrobe' | 'event' | 'packs' | 'archive' | 'multi' | 'friends';
 type SetSave = React.Dispatch<React.SetStateAction<Save>>;
 
 const fill = (s: string, n: number | string) => s.replace('{n}', String(n));
@@ -464,7 +465,7 @@ export function Season({ t, save, day, go, claimTier, setSave }: { t: Strings; s
 
 // ---------------- Écrans secondaires ----------------
 
-function Sub({ title, back, backLabel, children }: { title: string; back: () => void; backLabel: string; children: React.ReactNode }) {
+export function Sub({ title, back, backLabel, children }: { title: string; back: () => void; backLabel: string; children: React.ReactNode }) {
   return (
     <div>
       <header className="subhead">
@@ -517,7 +518,7 @@ export function Ranking({ t, save, lang, day, go }: { t: Strings; save: Save; la
       <div className="seg">
         {scopes.map(([s, l]) => <button key={s} className={scope === s ? 'on' : ''} onClick={() => setScope(s)}>{l}</button>)}
       </div>
-      <ol className="board">
+      {rows.length > 0 && <ol className="board">
         {rows.map((r, i) => (
           <li key={i} className={r.isYou ? 'you' : ''}>
             <span className="pos">{i + 1}</span>
@@ -525,7 +526,14 @@ export function Ranking({ t, save, lang, day, go }: { t: Strings; save: Save; la
             <span className="sc">{r.score}{b.count ? ` ${b.kind === 'expedition' ? '' : t.grids}` : ''}<small>{fmt(r.ms)}</small></span>
           </li>
         ))}
-      </ol>
+      </ol>}
+      {scope === 'friends' && !ranking.demo && rows.filter((r) => !r.isYou).length === 0 && <p className="demo-note">{FRIEND_STRINGS[lang].emptyBoard}</p>}
+      {scope === 'friends' && (
+        <button className="rowlink" onClick={() => go('friends')}>
+          <span className="rl-icon"><Icon name="users" size={22} /></span>
+          <span className="rl-main"><b>{FRIEND_STRINGS[lang].manage}</b><small>{FRIEND_STRINGS[lang].sub}</small></span>
+        </button>
+      )}
       {ranking.demo && <p className="demo-note">{t.demoBoard}</p>}
     </div>
   );
@@ -584,7 +592,7 @@ export function Album({ t, save, lang, back }: { t: Strings; save: Save; lang: L
   );
 }
 
-export function Profile({ t, save, lang, day, go }: { t: Strings; save: Save; lang: Lang; day: string; go: (s: Screen) => void }) {
+export function Profile({ t, save, lang, day, go, friendRequests = 0 }: { t: Strings; save: Save; lang: Lang; day: string; go: (s: Screen) => void; friendRequests?: number }) {
   const s = save.stats;
   const lp = levelProgress(save.xp);
   const have = new Set(save.achievements);
@@ -624,6 +632,11 @@ export function Profile({ t, save, lang, day, go }: { t: Strings; save: Save; la
           <span className="rl-main"><b>{SHOP_STRINGS[lang].plusTitle}</b><small>{save.premium ? t.premiumActive : t.premiumTrial}</small></span>
         </button>
       </div>
+      <button className="rowlink" onClick={() => go('friends')}>
+        <span className="rl-icon"><Icon name="users" size={22} /></span>
+        <span className="rl-main"><b>{FRIEND_STRINGS[lang].title}</b><small>{friendRequests ? FRIEND_STRINGS[lang].requests.replace('{n}', String(friendRequests)) : FRIEND_STRINGS[lang].sub}</small></span>
+        {friendRequests > 0 && <span className="dot" />}
+      </button>
       <div className="pair">
         <button className="rowlink" onClick={() => go('wardrobe')}>
           <span className="rl-icon loupi-ico"><Loupi bust size={40} /></span>

@@ -1353,3 +1353,16 @@ button.ptag { cursor: pointer; }
 
 /* En partie, Loupi reste immobile tant qu'il n'a rien à exprimer : ses animations de repos coûtaient à chaque image. */
 .loupi.buddy.m-idle, .loupi.buddy.m-idle * { animation: none; }
+
+/* Amis */
+.friendcode { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 16px; margin: 12px 0; border-radius: 20px; background: var(--deep); border: 3px solid var(--outline); box-shadow: 0 5px 0 var(--outline); }
+.friendcode small { flex-basis: 100%; color: var(--mist); font-size: 13px; font-weight: 800; }
+.friendcode b { flex: 1; min-width: 0; font-family: var(--serif); font-weight: 400; font-size: 30px; letter-spacing: .22em; color: var(--brass-hi); }
+.flist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.flist li { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 16px; background: var(--deep); }
+.flist .who { flex: 1; min-width: 0; display: flex; flex-direction: column; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.flist .who small { color: var(--mist); font-weight: 600; font-size: 12.5px; }
+.flist .acts { display: flex; gap: 6px; align-items: center; color: var(--mist); }
+.flist .btn.warn { color: var(--cinnabar); border-color: var(--cinnabar); }
+.rowlink { position: relative; }
+.rowlink > .dot { position: absolute; top: 10px; right: 12px; width: 10px; height: 10px; border-radius: 50%; background: var(--cinnabar); box-shadow: 0 0 0 2px var(--outline); }

@@ -2,6 +2,7 @@
 import express, { type Request, type Response } from 'express';
 import { q, tx } from './db';
 import { tokenFor, requireAuth, rateLimit, type Authed } from './auth';
+import { randomInt } from 'node:crypto';
 import { LANGS, boardKey, checkMode, judge, judgeChallenge, arenaNonce, type Log } from './validate';
 import { findRoom, roomCode } from './rooms';
 import { matchMaker } from 'colyseus';
@@ -14,6 +15,27 @@ const isLang = (x: unknown): x is Lang => LANGS.includes(x as Lang);
 const clean = (s: unknown, max: number) => (typeof s === 'string' ? s.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, max) : '');
 /** Un identifiant mal formé ferait échouer la requête SQL (erreur 500) : on le refuse avant. */
 const isUuid = (x: unknown): x is string => typeof x === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x);
+
+/** Code ami : 6 caractères sans les lettres et chiffres qu'on confond (0/O, 1/I/L). */
+const FRIEND_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+export const MAX_FRIENDS = 100;
+const isFriendCode = (x: unknown): x is string => typeof x === 'string' && /^[A-HJKMNP-Z2-9]{6}$/.test(x);
+
+/** Code ami du joueur, créé à la première demande. */
+async function friendCode(playerId: string): Promise<string> {
+  const { rows } = await q<{ friend_code: string | null }>('select friend_code from players where id = $1', [playerId]);
+  if (rows[0]?.friend_code) return rows[0].friend_code;
+  for (let i = 0; i < 8; i++) {
+    const code = Array.from({ length: 6 }, () => FRIEND_ALPHABET[randomInt(FRIEND_ALPHABET.length)]).join('');
+    const r = await q<{ friend_code: string }>(
+      `update players set friend_code = coalesce(friend_code, $2) where id = $1
+       and not exists (select 1 from players where friend_code = $2) returning friend_code`,
+      [playerId, code],
+    ).catch(() => ({ rows: [] as { friend_code: string }[] }));
+    if (r.rows[0]) return r.rows[0].friend_code;
+  }
+  throw new Error('code ami indisponible');
+}
 
 /** Fantômes gardés par langue, tableau et tranche de 100 points de cote : les plus récents. */
 export const GHOSTS_PER_BUCKET = 50;
@@ -202,6 +224,89 @@ export function createApp() {
       [id],
     );
     res.json({ duelRating: rows[0]?.duel_rating ?? 1000, stats: Object.fromEntries(stats.map((s) => [s.kind, { played: Number(s.played), wins: Number(s.wins) }])) });
+  });
+
+
+  // ---------- Amis ----------
+
+  /** Mon code, mes amis, les demandes reçues et envoyées. */
+  app.get('/v1/friends', requireAuth, async (req, res) => {
+    const id = (req as Authed).playerId;
+    const code = await friendCode(id);
+    const pub = "p.id, coalesce(nullif(p.name, ''), 'Anonyme') as name, coalesce(nullif(p.city, ''), p.country) as place, p.look";
+    const [friends, incoming, outgoing] = await Promise.all([
+      q(`select ${pub} from friendships f join players p on p.id = f.friend_id where f.player_id = $1 order by lower(p.name)`, [id]),
+      q(`select ${pub} from friend_requests r join players p on p.id = r.from_id where r.to_id = $1 order by r.created_at desc limit 50`, [id]),
+      q(`select ${pub} from friend_requests r join players p on p.id = r.to_id where r.from_id = $1 order by r.created_at desc limit 50`, [id]),
+    ]);
+    res.json({ code, friends: friends.rows, incoming: incoming.rows, outgoing: outgoing.rows });
+  });
+
+  /** Ajoute un ami par son code : la demande attend son accord, sauf s'il m'avait déjà demandé. */
+  app.post('/v1/friends/add', requireAuth, rateLimit('friend', 30, 3_600_000), async (req, res) => {
+    const id = (req as Authed).playerId;
+    const code = String(req.body?.code ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (!isFriendCode(code)) return res.status(400).json({ error: 'code invalide' });
+    const { rows } = await q<{ id: string; name: string }>("select id, coalesce(nullif(name, ''), 'Anonyme') as name from players where friend_code = $1", [code]);
+    const other = rows[0];
+    if (!other) return res.status(404).json({ error: 'code inconnu' });
+    if (other.id === id) return res.status(400).json({ error: 'c\'est ton propre code' });
+    const out = await tx(async (c) => {
+      const already = await c.query('select 1 from friendships where player_id = $1 and friend_id = $2', [id, other.id]);
+      if (already.rowCount) return 'already';
+      const { rows: n } = await c.query<{ n: string }>('select count(*) as n from friendships where player_id = $1', [id]);
+      if (Number(n[0].n) >= MAX_FRIENDS) return 'full';
+      const back = await c.query('delete from friend_requests where from_id = $1 and to_id = $2', [other.id, id]);
+      if (back.rowCount) {
+        await c.query('insert into friendships (player_id, friend_id) values ($1, $2), ($2, $1) on conflict do nothing', [id, other.id]);
+        return 'accepted';
+      }
+      await c.query('insert into friend_requests (from_id, to_id) values ($1, $2) on conflict do nothing', [id, other.id]);
+      return 'sent';
+    });
+    if (out === 'full') return res.status(409).json({ error: 'liste d\'amis pleine' });
+    res.json({ status: out, name: other.name });
+  });
+
+  /** Accepte ou refuse une demande reçue, ou retire un ami (dans les deux sens). */
+  app.post('/v1/friends/:id/:action', requireAuth, async (req, res) => {
+    const id = (req as Authed).playerId;
+    const other = req.params.id;
+    const action = String(req.params.action);
+    if (!isUuid(other) || !['accept', 'decline', 'remove'].includes(action)) return res.status(404).json({ error: 'action inconnue' });
+    if (action === 'remove') {
+      await q('delete from friendships where (player_id = $1 and friend_id = $2) or (player_id = $2 and friend_id = $1)', [id, other]);
+      await q('delete from friend_requests where from_id = $1 and to_id = $2', [id, other]);
+      return res.json({ ok: true });
+    }
+    const ok = await tx(async (c) => {
+      const r = await c.query('delete from friend_requests where from_id = $1 and to_id = $2', [other, id]);
+      if (!r.rowCount) return false;
+      if (action === 'accept') {
+        const { rows: n } = await c.query<{ n: string }>('select count(*) as n from friendships where player_id = $1', [id]);
+        if (Number(n[0].n) >= MAX_FRIENDS) throw Object.assign(new Error('full'), { full: true });
+        await c.query('insert into friendships (player_id, friend_id) values ($1, $2), ($2, $1) on conflict do nothing', [id, other]);
+      }
+      return true;
+    }).catch((e) => (e.full ? 'full' : Promise.reject(e)));
+    if (ok === 'full') return res.status(409).json({ error: 'liste d\'amis pleine' });
+    if (!ok) return res.status(404).json({ error: 'demande introuvable' });
+    res.json({ ok: true });
+  });
+
+  /** Classement entre amis : mes amis et moi sur un tableau. */
+  app.get('/v1/friends/board/:lang/:key', requireAuth, async (req, res) => {
+    const id = (req as Authed).playerId;
+    const { lang, key } = req.params;
+    if (!isLang(lang)) return res.status(400).json({ error: 'langue inconnue' });
+    const { rows } = await q(
+      `select p.id, p.name, coalesce(nullif(p.city, ''), p.country) as place, s.score, s.ms
+       from scores s join players p on p.id = s.player_id
+       where s.lang = $1 and s.board_key = $2 and (s.player_id = $3 or s.player_id in (select friend_id from friendships where player_id = $3))
+       order by s.score desc, s.ms asc limit 101`,
+      [lang, key, id],
+    );
+    res.json({ rows: rows.map((r) => ({ name: r.name || 'Anonyme', place: r.place, score: r.score, ms: r.ms, isYou: r.id === id })) });
   });
 
   // ---------- Défis entre amis ----------

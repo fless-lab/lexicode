@@ -11,7 +11,7 @@ import { BOOSTERS } from '../meta';
 import { puzzleFor, type Mode } from '../modes';
 import { challengePuzzle, lettersToFind, multiPuzzle } from '../multi/match';
 import { MULTI_RULES, PLAYER_COLORS, type Emote, type Look, type PlayerPub, type RoomKind, type RoomState, type ServerMsg, type TrapKind } from '../multi/protocol';
-import { apiEnabled, challenges, ensureSession, fetchGhost, myMulti, type ChallengeInfo, type Ghost } from '../services/api';
+import { PUBLIC_URL, apiEnabled, challenges, ensureSession, fetchGhost, myMulti, type ChallengeInfo, type Ghost } from '../services/api';
 import { createRoom, findDuel, joinByCode, onlineCount, type Conn } from '../services/multi';
 import type { Save } from '../storage';
 import { sfx } from '../sound';
@@ -57,8 +57,6 @@ type View =
 
 const RULES = { timeMs: MULTI_RULES.timeMs, lives: null, noHints: true, cheapHints: false, mistakePenaltyMs: 0, mult: 1, boosters: false };
 const NO_BOOSTERS = Object.fromEntries(BOOSTERS.map((b) => [b, 0])) as Save['boosters'];
-/** Adresse publique du jeu, pour les liens d'invitation (sur téléphone, l'origine locale ne sert à rien). */
-const PUBLIC_URL = ((import.meta.env.VITE_PUBLIC_URL as string | undefined) || (typeof location !== 'undefined' ? location.origin + location.pathname.replace(/[^/]*$/, '') : '')).replace(/\/?$/, '/');
 
 /** Difficulté proposée selon le niveau du joueur. */
 const dFor = (rating: number): Difficulty => (rating < 950 ? 2 : rating < 1100 ? 3 : 4);

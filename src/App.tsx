@@ -22,7 +22,7 @@ import { loadPrices, entitlements } from './services/billing';
 import { SHOP_STRINGS, fmtS } from './i18n-shop';
 import { EVENTS } from './events';
 import { RANKED } from './modes';
-import { apiEnabled, openGame, finishGame, syncProfile } from './services/api';
+import { apiEnabled, openGame, finishGame, syncProfile, ensureSession, friends } from './services/api';
 import { installHiddenPause } from './ui/useOffscreenPause';
 import type { FlowStart, RewardInfo } from './ui/MultiFlow';
 import type { Gains } from './ui/multi';
@@ -32,6 +32,7 @@ import { AdventureScreen, ChapterIntro, RelicPicker, themeOf, MOD_ICON, RELIC_IC
 // Le jeu à plusieurs (Colyseus et ses écrans) n'est chargé qu'à la demande : il ne pèse plus sur le démarrage.
 const loadMulti = () => import('./ui/MultiFlow');
 const MultiFlow = lazy(() => loadMulti().then((m) => ({ default: m.MultiFlow })));
+const Friends = lazy(() => import('./ui/friends').then((m) => ({ default: m.Friends })));
 const MultiPreview = lazy(() => import('./ui/multi-preview').then((m) => ({ default: m.MultiPreview })));
 import { levelInfo, LEVELS_PER_CHAPTER } from './chapters';
 import { STORY } from './content/story';
@@ -84,6 +85,7 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>(() => {
     const qp = new URLSearchParams(location.search);
     if (qp.get('salon') || qp.get('defi')) return 'multi';
+    if (qp.get('ami')) return 'friends';
     // Seules les maquettes connues sont acceptées ; une valeur inconnue ramène à l'accueil.
     const preview = qp.get('preview') as Screen | null;
     return preview && PREVIEWS.includes(preview) ? preview : 'home';
@@ -106,6 +108,9 @@ export default function App() {
   /** Partie classée ouverte sur le serveur, et journaux des grilles déjà finies (marathon). */
   const serverGame = useRef<string | null>(null);
   const marathonLogs = useRef<[number, number, string][][]>([]);
+  /** Lien ?ami=CODE : la demande d'ami part à l'ouverture de l'écran Amis. */
+  const [friendLink, setFriendLink] = useState(() => new URLSearchParams(location.search).get('ami') ?? undefined);
+  const [friendRequests, setFriendRequests] = useState(0);
   const saveRef = useRef(save);
   saveRef.current = save;
 
@@ -117,6 +122,18 @@ export default function App() {
     return () => clearTimeout(id);
   }, [save.name, save.city, save.country, save.lang]);
   useEffect(() => { window.scrollTo(0, 0); }, [screen]);
+  // Demandes d'ami reçues : relues en arrivant sur l'accueil ou le profil (pastille de l'onglet Profil).
+  useEffect(() => {
+    if (!apiEnabled || !save.lang || (screen !== 'home' && screen !== 'profile')) return;
+    const id = setTimeout(() => {
+      ensureSession({ name: save.name, city: save.city, country: save.country })
+        .then((ok) => (ok ? friends.list() : null))
+        .then((i) => i && setFriendRequests(i.incoming.length))
+        .catch(() => undefined);
+    }, 1200);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen, save.lang]);
 
   // Une seule pastille à la fois : les suivantes attendent leur tour au lieu de s'empiler sur la grille.
   const toast = useCallback((text: string, kind: Toast['kind'] = 'info', icon?: string, sub?: string) => {
@@ -677,7 +694,25 @@ export default function App() {
       {screen === 'adventure' && <AdventureScreen t={t} save={save} lang={lang} onStart={start} back={() => setScreen('home')} />}
       {screen === 'season' && <Season t={t} save={save} day={day} go={setScreen} claimTier={claimTier} setSave={setSave} />}
       {screen === 'ranking' && <Ranking t={t} save={save} lang={lang} day={day} go={setScreen} />}
-      {screen === 'profile' && <Profile t={t} save={save} lang={lang} day={day} go={setScreen} />}
+      {screen === 'profile' && <Profile t={t} save={save} lang={lang} day={day} go={setScreen} friendRequests={friendRequests} />}
+      {screen === 'friends' && (
+        <Suspense fallback={<div className="lazy-wait" />}>
+          <Friends
+            lang={lang}
+            save={save}
+            toast={toast}
+            initialCode={friendLink}
+            onCount={setFriendRequests}
+            back={() => {
+              if (friendLink) {
+                setFriendLink(undefined);
+                history.replaceState(null, '', location.pathname);
+              }
+              setScreen('profile');
+            }}
+          />
+        </Suspense>
+      )}
       {screen === 'album' && <Album t={t} save={save} lang={lang} back={() => setScreen('profile')} />}
       {screen === 'league' && <League t={t} save={save} lang={lang} back={() => setScreen('home')} />}
       {screen === 'settings' && <Settings t={t} save={save} setSave={setSave} back={() => setScreen('home')} />}
@@ -703,7 +738,7 @@ export default function App() {
         </Suspense>
       )}
       {screen === 'premium' && <Premium t={t} save={save} setSave={setSave} back={() => setScreen('home')} />}
-      {TAB_SCREENS.includes(screen) && <TabBar t={t} screen={screen} go={setScreen} badges={{ home: questReady, season: tierReady }} />}
+      {TAB_SCREENS.includes(screen) && <TabBar t={t} screen={screen} go={setScreen} badges={{ home: questReady, season: tierReady, profile: friendRequests > 0 }} />}
 
       {screen === 'play' && puzzle && rules && mode && (
         <Play

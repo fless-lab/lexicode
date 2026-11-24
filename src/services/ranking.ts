@@ -1,6 +1,6 @@
 import { rngFromSeed } from '../engine/rng';
 import type { Lang } from '../engine/types';
-import { apiEnabled, fetchBoard } from './api';
+import { apiEnabled, fetchBoard, friends } from './api';
 
 export type Scope = 'city' | 'country' | 'world' | 'friends';
 
@@ -82,7 +82,13 @@ export class RemoteRanking implements RankingService {
     // Rien à faire : le score part avec le journal de la partie (services/api.ts, finishGame).
   }
   async board(lang: Lang, key: string, scope: Scope, me: MyResult | null, profile: { city: string; country: string }): Promise<RankRow[]> {
-    if (scope === 'friends') return me ? [{ name: me.name || 'Toi', place: me.city, score: me.score, ms: me.ms, isYou: true }] : [];
+    if (scope === 'friends') {
+      try {
+        return (await friends.board(lang, key)).rows;
+      } catch {
+        return me && me.score > 0 ? [{ name: me.name || 'Toi', place: me.city, score: me.score, ms: me.ms, isYou: true }] : [];
+      }
+    }
     const place = scope === 'city' ? profile.city : scope === 'country' ? profile.country : '';
     if (scope !== 'world' && !place) return [];
     try {
