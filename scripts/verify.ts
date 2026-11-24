@@ -1,7 +1,7 @@
 // Génère et vérifie des milliers de grilles pour chaque langue.
 // Usage : npm run verify
 import { PACKS } from '../src/content/index';
-import { buildPacks } from '../src/content/build';
+import { buildPacks, sourceEntries } from '../src/content/build';
 import { dailyPuzzle, practicePuzzle, reservedPuzzle, isReservedCat } from '../src/engine/generator';
 import { reservedIndices } from '../src/content/index';
 import { EVENT_PHRASES, PACK_PHRASES } from '../src/content/extra';
@@ -21,6 +21,18 @@ for (const lang of Object.keys(built) as (keyof typeof built)[]) {
     failures++;
     console.log(`[${lang}] paquet périmé : lancer npm run packs`);
   }
+}
+
+// Un indice des sources sans décision de validation serait écarté sans bruit, et un mot sans aucun indice
+// validé disparaîtrait du jeu : les deux cas doivent se voir ici.
+const sources = sourceEntries();
+for (const lang of Object.keys(sources) as (keyof typeof sources)[]) {
+  const keys = new Set(Object.keys(REVIEWS[lang] ?? {}));
+  const unread = sources[lang].flatMap((e) => allClues(e).filter((c) => !keys.has(`${e.w}|${c}`)).map((c) => `${e.w} « ${c} »`));
+  if (unread.length) { failures += unread.length; console.log(`[${lang}] indices sans décision de validation :`, unread.slice(0, 20)); }
+  const inPack = new Set(PACKS[lang].entries.map((e) => e.w));
+  const lost = [...new Set(sources[lang].map((e) => e.w))].filter((w) => !inPack.has(w));
+  if (lost.length) { failures += lost.length; console.log(`[${lang}] mots sans aucun indice validé, absents du jeu :`, lost); }
 }
 
 for (const pack of Object.values(PACKS)) {

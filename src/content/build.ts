@@ -55,17 +55,29 @@ export function applyExtras(entries: Entry[], src: string): Entry[] {
 }
 
 /** Le lexique à trois niveaux remplace les anciennes entrées du même mot, les autres restent en indice facile. */
-function build(base: LangPack, lex: string, extras = ''): LangPack {
+function sources(base: LangPack, lex: string, extras = ''): Entry[] {
   const rich = applyExtras(parseLex(lex), extras);
   const have = new Set(rich.map((e) => e.w));
   const usedClues = new Set(rich.flatMap((e) => allClues(e)));
-  const legacy = base.entries.filter((e) => !have.has(e.w) && !usedClues.has(e.c));
+  return [...rich, ...base.entries.filter((e) => !have.has(e.w) && !usedClues.has(e.c))];
+}
+
+/** Entrées brutes (avant validation) : le vérificateur s'assure que chaque indice a été relu. */
+export function sourceEntries(): Record<Lang, Entry[]> {
+  return {
+    fr: sources(fr, LEX_FR + LEX_FR_MORE, EXTRA_FR),
+    en: sources(en, LEX_EN + LEX_EN_MORE, EXTRA_EN),
+    es: sources(es, LEX_ES + LEX_ES_MORE, EXTRA_ES),
+  };
+}
+
+function build(base: LangPack, lex: string, extras = ''): LangPack {
   const story = STORY[base.lang].chapters.map((c) => ({ t: c.phrase, k: 'story' }));
   // Messages d'événements et packs : réservés, jamais tirés au hasard ailleurs.
   const events = Object.entries(EVENT_PHRASES).flatMap(([id, m]) => m[base.lang].map((t) => ({ t, k: `event:${id}` })));
   const packs = Object.entries(PACK_PHRASES).flatMap(([id, m]) => m[base.lang].map((t) => ({ t, k: `pack:${id}` })));
   // Seuls les indices validés (ou corrigés) arrivent en jeu.
-  return { ...base, entries: applyReview(base.lang, [...rich, ...legacy]), phrases: [...base.phrases, ...story, ...events, ...packs] };
+  return { ...base, entries: applyReview(base.lang, sources(base, lex, extras)), phrases: [...base.phrases, ...story, ...events, ...packs] };
 }
 
 /**
