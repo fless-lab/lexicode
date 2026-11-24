@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Difficulty, Lang, PhraseCell, Puzzle } from '../engine/types';
 import { PACKS, LANGS, detectLang } from '../content';
 import { STRINGS, COUNTRIES, type Strings } from '../i18n';
@@ -116,10 +117,54 @@ export function TabBar({ t, screen, go, badges }: { t: Strings; screen: Screen; 
   );
 }
 
+/** Jours (AAAA-MM-JJ) de la semaine écoulée, du plus ancien à aujourd'hui. */
+function lastDays(day: string, n: number): string[] {
+  const [y, m, d] = day.split('-').map(Number);
+  return Array.from({ length: n }, (_, k) => new Date(Date.UTC(y, m - 1, d - (n - 1 - k))).toISOString().slice(0, 10));
+}
+
+function StreakSheet({ t, save, day, onClose, onPlay }: { t: Strings; save: Save; day: string; onClose: () => void; onPlay: () => void }) {
+  const n = liveStreak(save, day);
+  const played = (d: string) => Object.values(save.daily).some((byLang) => !!byLang?.[d]);
+  const doneToday = played(day);
+  const wd = new Intl.DateTimeFormat(save.lang ?? 'fr', { weekday: 'narrow', timeZone: 'UTC' });
+  return (
+    <div className="modal" onClick={onClose}>
+      <div className="sheet streaksheet" onClick={(e) => e.stopPropagation()}>
+        <div className="sk-head">
+          <Icon name="flame" size={44} />
+          <b>{n}</b>
+          <span>{n === 1 ? t.streakUnit1 : t.streakUnit}</span>
+        </div>
+        <p className="lead">{doneToday ? t.streakDone : t.streakTodo}</p>
+        <div className="sk-week" aria-label={t.streakWeek}>
+          {lastDays(day, 7).map((d) => (
+            <span key={d} className={`${played(d) ? 'on' : ''} ${d === day ? 'today' : ''}`}>
+              <i>{played(d) ? <Icon name="check" size={16} /> : null}</i>
+              <small>{wd.format(new Date(`${d}T12:00:00Z`))}</small>
+            </span>
+          ))}
+        </div>
+        <div className="sk-stats">
+          <div><b>{save.streak.best}</b><small>{t.best}</small></div>
+          <div><b><Icon name="shield" size={18} /> {save.streak.freezes}</b><small>{t.freezes}</small></div>
+        </div>
+        <p className="small muted">{t.streakFreezeInfo}</p>
+        <div className="row">
+          {!doneToday && <button className="btn primary" onClick={onPlay}>{t.streakGo}</button>}
+          <button className="btn ghost" onClick={onClose}>{t.close}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StatusBar({ t, save, day, go }: { t: Strings; save: Save; day: string; go: (s: Screen) => void }) {
   const lp = levelProgress(save.xp);
+  const [streakOpen, setStreakOpen] = useState(false);
   return (
     <header className="status">
+      {streakOpen && createPortal(<StreakSheet t={t} save={save} day={day} onClose={() => setStreakOpen(false)} onPlay={() => { setStreakOpen(false); go('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />, document.body)}
       <button className="me" onClick={() => go('profile')}>
         <span className={`lvbadge ${save.equip.frame ? `framed fr-${save.equip.frame}` : ''}`}>{lp.level}</span>
         <span className="who">
@@ -128,7 +173,7 @@ function StatusBar({ t, save, day, go }: { t: Strings; save: Save; day: string; 
         </span>
       </button>
       <div className="counters">
-        <span className="counter fire" title={t.streak}><Icon name="flame" size={16} />{liveStreak(save, day)}</span>
+        <button className="counter fire" onClick={() => { sfx.tap(); setStreakOpen(true); }} aria-label={t.streak}><Icon name="flame" size={16} />{liveStreak(save, day)}</button>
         <button className="counter gold" onClick={() => go('shop')} title={t.tokens}><Icon name="token" size={16} />{save.premium ? '∞' : save.tokens}</button>
         <button className="iconbtn shopbtn" onClick={() => go('shop')} aria-label={t.shopLabel}><Icon name="shop" /></button>
       </div>
