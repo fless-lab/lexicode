@@ -190,6 +190,30 @@ export function Play(props: Props) {
   // Le curseur affiché enjambe les lettres déjà en place (la saisie accepte encore qu'on les retape).
   const shown = useMemo(() => shownSel(g), [g]);
   const selCode = shown ? codeAt(puzzle, shown) : null;
+
+  // Le mot (ou la case de la phrase) où va le curseur reste visible : entre les barres collées en haut
+  // et le clavier fixé en bas, on fait défiler juste ce qu'il faut quand il change.
+  const playRef = useRef<HTMLDivElement>(null);
+  const focusKey = !shown || isOver(g) ? '' : shown.kind === 'word' ? `w${shown.w}` : `p${shown.i}`;
+  useEffect(() => {
+    const root = playRef.current;
+    if (!focusKey || !root) return;
+    const el = root.querySelector<HTMLElement>(focusKey[0] === 'w' ? `[data-w="${focusKey.slice(1)}"]` : `[data-p="${focusKey.slice(1)}"]`);
+    if (!el) return;
+    const id = requestAnimationFrame(() => {
+      const r = el.getBoundingClientRect();
+      const half = innerHeight / 2;
+      const top = Math.max(0, ...[...root.querySelectorAll<HTMLElement>('.playbar, .race, .team, .rivals')].map((x) => x.getBoundingClientRect().bottom).filter((b) => b < half));
+      const dock = root.querySelector<HTMLElement>('.dock');
+      const bottom = dock ? dock.getBoundingClientRect().top : innerHeight;
+      const m = 12;
+      let dy = 0;
+      if (r.top < top + m) dy = r.top - top - m;
+      else if (r.bottom > bottom - m) dy = Math.min(r.bottom - bottom + m, r.top - top - m);
+      if (Math.abs(dy) > 2) window.scrollBy({ top: dy, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [focusKey]);
   const selWord = shown?.kind === 'word' ? shown.w : null;
   const used = useMemo(() => usedLetters(g), [g]);
   const lexicon = useMemo(() => PACKS[puzzle.lang].entries.map((e) => e.w), [puzzle.lang]);
@@ -325,7 +349,7 @@ export function Play(props: Props) {
   let li = 0;
 
   return (
-    <div className={`play ${urgent ? 'urgent' : ''} ${props.palette ? 'themed' : ''}`} style={props.palette}>
+    <div ref={playRef} className={`play ${urgent ? 'urgent' : ''} ${props.palette ? 'themed' : ''}`} style={props.palette}>
       <header className="playbar">
         <button className="iconbtn" onClick={onExit} aria-label={t.back}><Icon name="back" /></button>
         <div className="ttl">
@@ -376,6 +400,7 @@ export function Play(props: Props) {
               return (
                 <button
                   key={i}
+                  data-p={i}
                   style={{ '--i': idx, '--mate': marks[c.code] } as React.CSSProperties}
                   className={cellClass(c.code, isSel) + (good ? ' good' : '') + (g.failed && !good ? ' reveal' : '') + (fogged && !g.failed ? ' fogged' : '')}
                   onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}
@@ -410,7 +435,7 @@ export function Play(props: Props) {
             const owner = !solved && !g.failed ? props.clueOwner?.(wi) ?? null : null;
             const blot = !solved && !!props.blotted?.includes(wi);
             return (
-              <div key={wi} className={`wrow ${selWord === wi ? 'active' : ''} ${solved ? 'done' : ''} ${flashWord === wi ? 'pop' : ''} ${sealed ? 'sealed' : ''} ${blot ? 'blot' : ''}`}>
+              <div key={wi} data-w={wi} className={`wrow ${selWord === wi ? 'active' : ''} ${solved ? 'done' : ''} ${flashWord === wi ? 'pop' : ''} ${sealed ? 'sealed' : ''} ${blot ? 'blot' : ''}`}>
                 <div className="clue" onClick={() => { if (!solved && !sealed && !isOver(g)) { sfx.tap(); setG((s) => select(s, { kind: 'word', w: wi, i: 0 })); } }}>
                   {sealed ? (
                     <span className="sealedclue"><Icon name="lock" size={14} />{t.chainLocked}</span>
