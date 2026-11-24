@@ -52,7 +52,7 @@ MER||Celle de la Tranquillité est sur la Lune;Elle est d'huile quand elle est c
 OCEAN||Vingt mille lieues sous lui, Nemo navigue;Une goutte dedans ne change rien
 FLEUVE||Le Mississippi en est un, et Huckleberry Finn le descend;Roman qui n'en finit pas
 FORET||Celle de Brocéliande cache Merlin;Le Petit Chaperon rouge y croise le loup
-ARBRE||Celui de Noël a des boules;Généalogique, il montre la famille
+ARBRE||Il peut être généalogique;Généalogique, il montre la famille
 FLEUR||Celle de l'âge, c'est la jeunesse;Les siennes du mal sont de Baudelaire
 ROSE||Le Petit Prince en a une sous un globe;Il n'y a pas de rose sans épines
 MONTAGNE||Celle de Sainte-Victoire est peinte par Cézanne;Elle est russe dans les fêtes foraines
@@ -75,7 +75,7 @@ CIEL||Le septième est le comble du bonheur;Tomber de lui, c'est être stupéfai
 AUBE||Celle d'un nouveau jour ouvre une ère;Rimbaud l'a embrassée dans un poème
 PAIN||Il a sa planche quand on a beaucoup de travail;Il se gagne à la sueur du front
 FROMAGE||Il fait tout un plat de rien;Entre la poire et lui, on bavarde
-CHOCOLAT||Il est chaud quand l'hiver arrive;Celui de Willy Wonka a une usine
+CHOCOLAT||On le croque en tablette;Celui de Willy Wonka a une usine
 POMME||Celle d'Adam est dans la gorge;Celle de discorde a déclenché la guerre de Troie
 FRAISE||Dent de dentiste qui tourne;Col plissé à la Renaissance
 CITRON||On lui presse le jus jusqu'à la dernière goutte;Il est vert quand il donne son nom à une couleur acide
@@ -161,7 +161,7 @@ PILOTE||Celui automatique conduit tout seul;Le Petit Prince en rencontre un dans
 BOULANGER||La femme du boulanger est un film de Pagnol;Il fait sa fournée avant l'aube
 FACTEUR||Le Facteur Cheval a bâti un palais idéal;Le facteur temps compte dans l'équation
 POMPIER||Celui de Paris est militaire;Il sauve aussi les chats perchés
-PROFESSEUR||Celui de La Casa de papel organise le casse;Sa salle sent la craie
+PROFESSEUR||Celui de La Casa de papel organise le casse;Il fait cours au lycée
 ROI||Le Petit Prince en rencontre un sans sujets;Celui de la jungle n'y vit pas
 REINE||Celle des neiges glace le cœur de Kay;Celle d'Angleterre a régné soixante-dix ans
 PRINCE||Celui charmant réveille la belle endormie;Celui de Machiavel est un manuel du pouvoir
@@ -211,7 +211,7 @@ GRIS||L'éminence grise conseille en secret;Le Gandalf du début porte cette cou
 FOOTBALL||Il se joue sur un terrain de cent mètres;La Coupe du monde en est le sommet
 TENNIS||Le jeu de paume en est l'ancêtre;Ses balles sont jaunes
 JUDO||Son créateur s'appelle Jigoro Kano;On y fait des ippons
-BOXE||Rocky en a fait son métier;Ali y piquait comme une abeille
+BOXE||Rocky en a fait son métier;Sport des gants et du ring
 YOGA||La salutation au soleil en fait partie;On y fait le lotus
 ECHECS||Kasparov contre une machine;Le mat met fin à la partie
 DES||Le hasard les fait rouler;Dieu n'y joue pas, selon Einstein
@@ -233,7 +233,7 @@ KAYAK||Il chavire et se redresse en esquimautage;Canoë des eaux vives
 KIWI||Le Néo-Zélandais en porte le surnom;Il a plus de vitamine C que l'orange
 WAGON||Celui-lit permet de dormir;Raccrocher les wagons, c'est comprendre enfin
 WEEKEND||Il est prolongé par un jour férié;Deux jours sans école
-XYLOPHONE||Il a des lames de bois;Lettre X des imagiers
+XYLOPHONE||On joue ses lames au maillet;Lettre X des imagiers
 YAOURT||Il se mange à la cuillère au dessert;Le pot de lui finit souvent en pot à crayons
 JAZZ||Le Duke en était le roi;Il swingue
 QUAI||Celui des Orfèvres abrite la police judiciaire;On y lit les bouquinistes à Paris
@@ -253,7 +253,7 @@ PIANO||Celui à queue trône au salon;Il a des marteaux cachés
 VIOLON||Accorder ses violons, c'est se mettre d'accord;Le joueur de violon sur le toit
 TAMBOUR||Sans tambour ni trompette, c'est discrètement;Il bat la retraite
 TROMPETTE||Le nez en trompette est retroussé;Celle de Jéricho fit tomber les murs
-CHAUD||Il fait chaud au cœur quand c'est touchant;Avoir chaud, c'est avoir eu peur
+CHAUD||Ça fait chaud au cœur quand c'est touchant;Avoir chaud, c'est avoir eu peur
 FROID||Il fait froid dans le dos quand on a peur;Guerre qui ne l'était pas vraiment
 GRAND||Le grand méchant loup;Celui de ce monde a beaucoup de pouvoir
 PETIT||Celui de Nicolas a des copains;Le Petit Prince en est un
@@ -311,7 +311,7 @@ PHOQUE|Animal de la banquise|Mammifère marin moustachu|Il est chauve et fait un
 CYGNE|Oiseau blanc au long cou|Il danse sur le lac de Tchaïkovski|Celui noir est un événement imprévisible
 CORBEAU|Oiseau noir|Il croasse|Il lâche son fromage pour un compliment
 PERROQUET|Il répète ce qu'on dit|Oiseau coloré qui parle|Il est sur l'épaule du pirate
-CHOUETTE|Oiseau de nuit|Rapace sans aigrettes|Adjectif qui veut dire sympa
+CHOUETTE|Oiseau de nuit|Rapace sans aigrettes|Oiseau de nuit d'Athéna
 TIGRE|Grand félin rayé|Il vit en Asie|Il est de papier quand il ne fait pas peur
 PANTHERE|Félin noir|Grand félin tacheté ou noir|Elle est rose chez l'inspecteur Clouseau
 CHAMEAU|Deux bosses|Il traverse le désert|Insulte pour une personne méchante
@@ -325,22 +325,22 @@ LICORNE|Cheval à corne|Créature magique blanche|Start-up valant plus d'un mill
 SIRENE|Mi-femme, mi-poisson|Elle chante pour attirer les marins|Celle de l'ambulance hurle
 FANTOME|Il fait peur|Esprit qui hante un château|Celui de l'Opéra porte un masque
 SORCIERE|Elle a un balai|Elle prépare des potions|La chasse à elle est une persécution injuste
-GEANT|Très grand|Personnage immense des contes|Celui de fer est un robot de dessin animé
+GEANT|Immense personnage de conte|Personnage immense des contes|Celui de fer est un robot de dessin animé
 NAIN|Très petit|Compagnon de Blanche-Neige|Celui de jardin a un bonnet rouge
 TRAMWAY|Train dans la ville|Véhicule sur rails urbains|Celui nommé Désir est une pièce
 METRO|Train sous la ville|Transport souterrain|Il fait boulot-dodo avec lui
 HELICOPTERE|Il a des pales|Il décolle à la verticale|Léonard de Vinci en avait dessiné un
 MONTGOLFIERE|Ballon à air chaud|Les frères qui l'ont inventée lui ont donné leur nom|Elle vole sans moteur grâce au feu
 CHAPEAU|Sur la tête|Couvre-chef|Le lapin du magicien en sort
-ECHARPE|Autour du cou|Elle tient chaud en hiver|Celle du maire est tricolore
+ECHARPE|Autour du cou|Le supporter la noue à son cou aux couleurs du club|Celle du maire est tricolore
 GANT|Pour la main|Il couvre les doigts|On le jette pour défier en duel
 BOTTE|Grande chaussure|Chaussure qui monte haut|Celle de sept lieues fait des pas de géant
 MANTEAU|Vêtement chaud|Il se porte par-dessus|Sous lui, c'est en cachette
-CRAVATE|Autour du col|Accessoire de costume|Le nœud Windsor se fait sur elle
+CRAVATE|Elle se noue avec le costume|Accessoire de costume|Le nœud Windsor se fait sur elle
 FOUR|On y cuit|Appareil de cuisine chaud|Il est noir comme lui quand on n'y voit rien
 FRIGO|Il garde au frais|Réfrigérateur|On y met quelque chose quand on le reporte
 CUILLERE|Pour la soupe|Couvert pour les liquides|Ne pas y aller avec le dos de celle-ci, c'est y aller fort
-FOURCHETTE|Couvert à dents|On pique avec|Coup de elle, c'est un gros appétit
+FOURCHETTE|Couvert à dents|Couvert posé à gauche de l'assiette|Coup de elle, c'est un gros appétit
 COUTEAU|Il coupe|Couvert tranchant|Celui suisse a mille fonctions
 ASSIETTE|On mange dedans|Elle est plate ou creuse|Ne pas être dans la sienne, c'est être mal
 CASSEROLE|Elle a un manche|Récipient de cuisson|Traîner une casserole, c'est avoir une affaire gênante
@@ -348,7 +348,7 @@ BALAI|Pour nettoyer|On l'utilise avec une pelle|La sorcière vole dessus
 ECHELLE|Pour grimper|Barreaux en hauteur|Celle de Richter mesure les séismes
 MARTEAU|Il tape sur les clous|Outil du forgeron|Être entre lui et l'enclume, c'est être coincé
 SCIE|Elle coupe le bois|Outil à dents|Refrain qui revient sans cesse
-CORDE|On grimpe avec|Elle sert à attacher|Être sur elle raide, c'est être en équilibre précaire
+CORDE|On grimpe avec|Sauter à la corde|Être sur elle raide, c'est être en équilibre précaire
 BALLON|On le gonfle|On joue avec au foot|Celui d'essai teste l'opinion
 POUPEE|Jouet d'enfant|Elle a des cheveux et des vêtements|Celle russe en cache une autre
 TOUPIE|Elle tourne|Jouet qui pivote|Vieille, elle désigne une femme désagréable

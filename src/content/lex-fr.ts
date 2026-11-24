@@ -24,7 +24,7 @@ LOUP|Il hurle à la lune|Ancêtre sauvage du chien|Il apparaît dès qu'on parle
 OURS|Gros animal qui hiberne|Il adore le miel et dort tout l'hiver|Mal léché, il n'est pas très sociable
 ESCARGOT|Il porte sa maison sur son dos|Mollusque lent à coquille|Courrier qui prend tout son temps
 GRENOUILLE|Elle coasse|Amphibien qui saute dans la mare|De bénitier quand elle prie sans cesse
-PIEUVRE|Animal marin à huit bras|Céphalopode qui crache de l'encre|Elle a trois cœurs et le sang bleu
+PIEUVRE|Animal marin à huit bras|Huit bras, trois cœurs|Elle a trois cœurs et le sang bleu
 KANGOUROU|Il saute avec une poche|Marsupial d'Australie|Il boxe et voyage avec son bébé en poche
 MOUTON|Il bêle|On le compte pour s'endormir|Il suit le troupeau sans réfléchir
 VACHE|Elle meugle|Elle donne le lait|Elle regarde passer les trains
@@ -46,7 +46,7 @@ NEIGE|Flocons blancs|Elle tombe en hiver et tient au sol|En boule, elle finit pa
 ORAGE|Tonnerre et éclairs|Pluie violente avec des éclairs|Il y en a dans l'air quand la dispute menace
 VENT|Il souffle|Air en mouvement|Qui le sème récolte la tempête
 FEU|Il brûle|Flammes dans la cheminée|Il n'y a pas de fumée sans feu
-GLACE|Eau gelée|Elle fond au soleil|Elle se mange en cornet ou se regarde au mur
+GLACE|Eau gelée|On la lèche en cornet|Elle se mange en cornet ou se regarde au mur
 TERRE|Notre planète|Troisième planète du Soleil|Elle tourne, même si Galilée a dû se taire
 MER|Grande étendue d'eau salée|Elle a des vagues et des marées|Ce n'est pas elle qu'il faut boire
 OCEAN|Plus vaste qu'une mer|L'Atlantique en est un|Pacifique, mais pas toujours paisible
@@ -70,15 +70,15 @@ ECLAIR|Lumière de l'orage|Il précède le tonnerre|Pâtisserie au café, avalé
 OMBRE|Elle suit nos pas au soleil|Zone sans lumière|On lâche la proie pour elle, dit la fable
 ROCHER|Gros bloc de pierre|On l'escalade au bord de la mer|Monaco en est un célèbre
 SABLE|Grains de la plage|On en fait des châteaux au bord de l'eau|Le marchand en apporte pour endormir les enfants
-VAGUE|Elle déferle|Mouvement de la mer|Floue, ou nouvelle au cinéma
+VAGUE|Elle déferle|Elle est mexicaine dans les stades|Floue, ou nouvelle au cinéma
 CIEL|Il est bleu le jour|Espace au-dessus de nos têtes|Aide-toi, il t'aidera
 AUBE|Lever du jour|Premières lueurs du matin|Victor Hugo partira à cette heure, demain
 PAIN|Le boulanger le fait|On en fait des tartines|Il est béni quand l'occasion est inespérée
 FROMAGE|Le camembert en est un|Il se sert avant le dessert|Le corbeau le laisse tomber
 CHOCOLAT|Fait avec du cacao|Douceur noire, au lait ou blanche|On l'est quand on s'est fait avoir
 POMME|Fruit du pommier|Elle est tombée sur Newton|On tombe dedans quand on s'évanouit
-FRAISE|Petit fruit rouge|Fruit rouge aux graines visibles|On la ramène quand on se mêle de tout
-CITRON|Agrume jaune et acide|On le presse pour une boisson|On le presse comme un employé exploité
+FRAISE|Fruit rouge piqué de petits grains|Fruit rouge aux graines visibles|On la ramène quand on se mêle de tout
+CITRON|Agrume jaune et acide|Il se presse sur les huîtres|On le presse comme un employé exploité
 BANANE|Fruit jaune courbé|Fruit que le singe épluche|Coiffure de rocker, ou sourire jusqu'aux oreilles
 ORANGE|Fruit et couleur|Agrume qu'on presse le matin|On l'apportait aux prisonniers, dit-on
 CAROTTE|Légume orange|Elle pousse sous la terre|Les jeux sont faits quand elles sont cuites
@@ -92,7 +92,7 @@ GATEAU|On y plante des bougies|Dessert d'anniversaire|La cerise se pose dessus p
 CREPE|Galette fine|On la fait sauter à la Chandeleur|Bretonne, elle se retourne sans changer d'avis
 SALADE|Feuilles vertes|Laitue assaisonnée|On en raconte quand on ment
 RIZ|Grain blanc|Céréale de la paella|On le jette sur les mariés
-CAFE|Boisson noire|Il réveille le matin|Au comptoir, on y refait le monde
+CAFE|Boisson noire|Petit noir du comptoir|Au comptoir, on y refait le monde
 LAIT|La vache le donne|Liquide blanc et nourrissant|Il monte sur le feu, comme la colère
 BEURRE|Il se tartine|On le fait avec la crème|On veut l'argent avec lui
 CERISE|Petit fruit rouge à noyau|Fruit rouge à queue|Elle se pose sur le gâteau pour finir en beauté
@@ -148,13 +148,13 @@ PIED|Au bout de la jambe|Il a cinq orteils|On se lève du mauvais
 OEIL|Il voit|Organe de la vue|On le garde sur quelqu'un pour le surveiller
 NEZ|Au milieu du visage|Organe de l'odorat|Celui de Cléopâtre aurait changé le monde
 BOUCHE|Pour manger|Elle a des lèvres|Fermée, les mouches n'y entrent pas
-DENT|Elle croque|La petite souris l'emporte|On l'a contre quelqu'un quand on lui en veut
+DENT|Elle peut avoir une carie|La petite souris l'emporte|On l'a contre quelqu'un quand on lui en veut
 OREILLE|Elle entend|Organe de l'ouïe|On y met la puce
 DOIGT|Cinq par main|L'index en est un|On s'en mord quand on regrette
 CHEVEU|Il pousse sur la tête|Poil du crâne|Il s'en faut d'un pour que ça rate
 LANGUE|Elle goûte|Muscle de la bouche|On la donne au chat
 GENOU|Articulation de la jambe|On s'y met pour demander en mariage|On le met à terre en signe de soumission
-DOS|Arrière du corps|Il porte le sac|On en a plein quand on en a assez
+DOS|Arrière du corps|Sac à dos du randonneur|On en a plein quand on en a assez
 SANG|Il coule dans les veines|Liquide rouge du corps|On se le fait d'encre quand on s'inquiète
 MEDECIN|Il soigne|Docteur|Une pomme par jour l'éloigne
 PILOTE|Il conduit l'avion|Aux commandes du cockpit|Épisode d'essai d'une série télé
@@ -167,11 +167,11 @@ REINE|Épouse du roi|Monarque au féminin|Pièce la plus puissante de l'échiqui
 PRINCE|Fils du roi|Héritier du trône|Le Petit vient d'une autre planète
 PIRATE|Il attaque les navires|Bandit des mers|Il vole aussi sur internet
 CHEF|Il dirige|Celui qui commande|Il porte une toque en cuisine
-AMI|Copain très proche|Personne qu'on aime bien|Les bons comptes le font bon
-ENFANT|Petit humain|Garçon ou fille jeune|Gâté, il devient roi
+AMI|Mon meilleur ami|Personne qu'on aime bien|Les bons comptes le font bon
+ENFANT|Fils ou fille|Garçon ou fille jeune|Gâté, il devient roi
 BEBE|Nouveau-né|Il porte une couche|On le jette avec l'eau du bain
 VOISIN|Il habite à côté|Celui d'à côté|Son herbe est toujours plus verte
-TEMPS|Il passe|Il se mesure en heures|C'est de l'argent, dit-on
+TEMPS|Il fait beau ou mauvais|Le temps, c'est de l'argent|C'est de l'argent, dit-on
 JOUR|Lundi en est un|Vingt-quatre heures|Paris ne s'est pas fait en un jour
 NUIT|Le moment des étoiles|Quand on dort|Elle porte conseil
 DEMAIN|Le jour qui suit aujourd'hui|Le jour d'après|Ne remets pas à demain ce que tu peux faire aujourd'hui
@@ -187,7 +187,7 @@ SECRET|On le garde|Ce qu'on ne dit pas|Celui de Polichinelle, tout le monde le c
 MUSIQUE|Notes et mélodie|Art des sons|Elle adoucit les mœurs
 CHANSON|On la chante|Paroles et musique|C'est toujours la même quand on se répète
 DANSE|On la fait en rythme|Valse ou tango|Quand le chat n'est pas là, les souris la mènent
-JEU|On y joue|Partie avec des règles|Il n'en vaut pas la chandelle
+JEU|Les échecs en sont un|Partie avec des règles|Il n'en vaut pas la chandelle
 QUESTION|Elle attend une réponse|Phrase interrogative|Être ou ne pas être, telle est-elle
 REPONSE|Elle suit la question|Ce qu'on dit en retour|De Normand, elle n'engage à rien
 HISTOIRE|Récit|Récit du passé|On en raconte pour endormir les enfants
@@ -253,11 +253,11 @@ PIANO|Touches noires et blanches|Instrument à queue|Qui va doucement va ainsi, 
 VIOLON|Il a un archet|Instrument à cordes du quatuor|Celui d'Ingres est un loisir
 TAMBOUR|On frappe dessus|Instrument à peau tendue|On mène l'affaire en le battant
 TROMPETTE|Instrument à pistons|Cuivre de la fanfare|Certains nez en ont la forme
-CHAUD|Comme une soupe qui fume|Température élevée|Souffler le chaud et le froid, c'est changer d'attitude sans cesse
+CHAUD|Comme une soupe qui fume|Comme un marron qui sort du brasero|Souffler le chaud et le froid, c'est changer d'attitude sans cesse
 FROID|Comme la neige au toucher|Basse température|Jeter un froid, c'est gêner tout le monde
 GRAND|Comme une girafe|De haute taille|Voir grand, c'est avoir de l'ambition
-PETIT|Comme une souris|De faible taille|Le Poucet en est un célèbre
-RAPIDE|Comme un guépard|Qui va vite|Train qui ne s'arrête pas partout
+PETIT|De taille réduite|De faible taille|Le Poucet en est un célèbre
+RAPIDE|Comme un guépard|Qui va vite|Comme un TGV
 LENT|Qui prend tout son temps|Qui manque de vitesse|Comme une tortue, ou un escargot
 PLEIN|Comme un verre à ras bord|Rempli|La fête bat son plein
 VIDE|Comme un verre qu'on a fini|Sans rien dedans|La nature en a horreur
@@ -272,13 +272,13 @@ VRAI|Le contraire de faux|Exact|Plus vrai que nature
 MAXIMUM|Le plus qu'on puisse faire|Le plus possible|Faire le maximum, c'est se donner à fond
 SECOURS|Aide en urgence|Ce qu'on crie au danger|La roue de secours sauve d'une crevaison
 TRESOR|Coffre plein d'or|Richesses cachées|L'île de Stevenson le cache
-CARTE|Elle montre le chemin|Plan d'un pays|On la joue quand on tente sa chance
+CARTE|Elle a une échelle et une légende|Plan d'un pays|On la joue quand on tente sa chance
 BOUSSOLE|Elle indique le nord|Instrument d'orientation|On la perd quand on s'affole
 ENIGME|Devinette difficile|Problème à résoudre|Le Sphinx en pose une à Œdipe
 INDICE|Il met sur la piste|Signe qui aide à trouver|Le détective le relève sur la scène
 CODE|Il chiffre un message|Suite secrète de chiffres|Celui de la route s'apprend avant le permis
 CHIFFRE|Un, deux, trois|Symbole d'un nombre|Le message qu'on doit casser en est un
-LETTRE|A ou B|Signe de l'alphabet|On la poste avec un timbre
+LETTRE|Le facteur l'apporte|Signe de l'alphabet|On la poste avec un timbre
 MOT|Assemblage de lettres|Unité de la phrase|Le dernier, on veut toujours l'avoir
 PHRASE|Suite de mots|Elle se termine par un point|On en fait trop quand on s'écoute parler
 ALPHABET|De A à Z|Vingt-six lettres|Il commence par deux lettres grecques
@@ -294,7 +294,7 @@ MIRAGE|Illusion du désert|Image trompeuse|Le voyageur assoiffé y voit une oasi
 LABYRINTHE|Dédale|Lieu où l'on se perd|Le Minotaure y était enfermé
 BOUTEILLE|Contenant en verre|On y met le vin|On la jette à la mer avec un message
 COFFRE|On y range des trésors|Grande boîte à couvercle|Celui de la voiture reçoit les valises
-PLUME|L'oiseau en a|On écrivait avec elle|Poids le plus léger en boxe
+PLUME|Léger comme une plume|On écrivait avec elle|Poids le plus léger en boxe
 ENCRE|Pour écrire|Liquide du stylo|La pieuvre en crache, l'écrivain aussi
 SERRURE|On y met la clé|Mécanisme de la porte|Les curieux y collent leur œil
 SIGNAL|Il avertit|Message convenu|Le feu vert en est un

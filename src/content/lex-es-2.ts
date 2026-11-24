@@ -22,7 +22,7 @@ AGUILA||Ser un águila es ser muy listo;Real, en el escudo de un país
 ZORRO||Viejo, dicho de alguien muy astuto;El de las uvas dijo que estaban verdes
 LOBO||Feroz en el cuento de Caperucita;Hombre que se transforma con la luna llena
 OSO||El de peluche se llama Teddy;Panda en China
-CARACOL||Su paso es muy lento;Arroba en algunos idiomas
+CARACOL||Deja un rastro de baba;Arroba en algunos idiomas
 RANA||Gustavo es una famosa en los Teleñecos;Cuando las ranas críen pelo, nunca
 PULPO||Paul acertaba los partidos del Mundial;A la gallega con pimentón
 CANGURO||Su cría se llama joey;No sabe andar hacia atrás
@@ -58,7 +58,7 @@ ROSA||No hay ninguna sin espinas;Verlo todo de color rosa es ser optimista
 MONTANA||La mágica es una novela de Thomas Mann;Hacer una de un grano de arena
 VOLCAN||Etna o Teide;Arrasó Pompeya
 DESIERTO||El de Tabernas sirvió para westerns;El Principito aterrizó en uno
-PLAYA||Bajo los adoquines, decían en el 68;Cancún tiene muchas
+PLAYA||Bajo los adoquines, decían en el 68;Copacabana o La Concha
 ISLA||La del tesoro tiene novela;La de Pascua tiene estatuas
 JARDIN||El del Edén se perdió;Meterse en un jardín es complicarse
 INVIERNO||Se acerca, en Juego de Tronos;Nuclear, tras una guerra
@@ -98,7 +98,7 @@ NUEZ||La de Adán en la garganta;Moscada para la bechamel
 PIZZA||Las Tortugas Ninja la adoran;Cuatro estaciones en una sola masa
 AGUA||Bendita en la iglesia;Ahogarse en un vaso de ella
 HARINA||Meterse en harina es ponerse a trabajar;Otra harina, otro costal
-LIBRO||Como un libro abierto, sin secretos;De familia, el registro
+LIBRO||Como un libro abierto, sin secretos;El Quijote, por ejemplo
 LLAVE||Inglesa para el fontanero;De judo para inmovilizar
 PUERTA||Grande, la de Alcalá;Darle con ella en las narices es rechazar
 VENTANA||Indiscreta, una película de Hitchcock;Tirar la casa por ella es derrochar
@@ -133,7 +133,7 @@ PIRAMIDE||Estafa en la que gana el de arriba;Keops tiene la mayor
 ESCUELA||La de la vida no da títulos;Hacer escuela es tener seguidores
 MUSEO||De cera con famosos;El del Prado en Madrid
 HOSPITAL||De campaña para heridos de guerra;Lugar de las series médicas
-CINE||De verano al aire libre;Los hermanos Lumière lo inventaron
+CINE||Sala con palomitas y pantalla;Los hermanos Lumière lo inventaron
 MERCADO||De abastos en cada barrio;Negro, ilegal
 ESTACION||Del año, como el otoño;De servicio para el coche
 PUERTO||Llegar a buen puerto es salir bien;De montaña para el ciclista
@@ -189,7 +189,7 @@ RESPUESTA||A todo es 42, según una novela;Rápida, sin pensar
 HISTORIA||Interminable con un dragón blanco;De terror junto al fuego
 AVENTURA||Las de Tintín duran desde 1929;Echarse a ella sin plan
 REGALO||Envenenado, con trampa;Caído del cielo
-VIAJE||Al centro de la Tierra, de Verne;De novios tras la boda
+VIAJE||Al centro de la Tierra, de Verne;¡Buen viaje!, en el andén
 PAZ||Guerra y ella, de Tolstói;Dejar en paz es no molestar
 GUERRA||De las galaxias;Fría, sin disparos
 VERDAD||A medias, una mentira;La hora de ella, el momento decisivo
@@ -229,12 +229,12 @@ KIWI||Ave que no vuela;Fruta con más vitamina C que la naranja
 WIFI||En el café se pide su clave;Sin cables para navegar
 XILOFONO||Láminas de madera golpeadas;Equis de los abecedarios
 YOGUR||Griego, más espeso;Natural en vasito
-JAZZ||Louis Armstrong;Improvisación y swing
+JAZZ||Música de Louis Armstrong;Improvisación y swing
 QUESADILLA||Tortilla doblada mexicana;Sin queso en algunas partes de México, curiosamente
 QUIOSCO||De la música en el parque;De prensa en la esquina
-JUGUETE||Roto, el que se desecha;Toy Story los hace vivir
+JUGUETE||Roto, el que se desecha;Peonza, muñeca o pelota
 PIJAMA||Fiesta de pijamas con amigos;A rayas en las películas antiguas
-TAXI||Driver, de Scorsese;Libre, dice la luz verde
+TAXI||Driver, de Scorsese;Lo paras alzando la mano
 COMODIN||Carta que vale por cualquiera;Gastar el comodín es pedir ayuda
 KARATE||Kid, aprendiendo a dar cera, pulir cera;Golpe con el canto de la mano
 GEMELO||Torres que se parecen;Malvado, el doble perverso
@@ -256,7 +256,7 @@ FACIL||Más fácil que el mecanismo de un chupete;Coser y cantar
 FELIZ||Navidad, por diciembre;Fueron felices y comieron perdices
 RICO||Nuevo rico, quien presume;Rico en vitaminas
 JOVEN||Eternamente joven;Corazón joven
-LIMPIO||Juego limpio;Pasar a limpio
+LIMPIO||Juego limpio, sin trampas;Pasar a limpio
 INICIO||Botón de encendido;Inicio de sesión
 FUERA||Fuera de juego en el fútbol;Fuera de serie
 VERDADERO||Verdadero o falso;Amor verdadero
@@ -310,9 +310,9 @@ PINGUINO|Ave blanca y negra que no vuela|Ave de la Antártida|Villano de Batman 
 DRAGON|Escupe fuego|Criatura alada|El de Komodo existe de verdad
 UNICORNIO|Caballo con cuerno|Criatura mágica blanca|Empresa que vale mil millones
 SIRENA|Mitad mujer, mitad pez|Canta a los marineros|La de la ambulancia aúlla
-FANTASMA|Asusta|Espíritu que vaga por un castillo|El de la Ópera lleva máscara
+FANTASMA|Asusta envuelto en una sábana|Espíritu que vaga por un castillo|El de la Ópera lleva máscara
 BRUJA|Vuela en escoba|Prepara pociones|La caza de brujas es una persecución
-GIGANTE|Muy grande|Personaje enorme de los cuentos|Contra molinos de viento luchaba don Quijote, creyendo que eran esto
+GIGANTE|Lo contrario de un enano|Personaje enorme de los cuentos|Contra molinos de viento luchaba don Quijote, creyendo que eran esto
 METRO|Tren bajo la ciudad|Transporte subterráneo|Cien centímetros
 HELICOPTERO|Tiene hélices arriba|Despega sin pista|Padre que vigila de cerca a sus hijos
 GLOBO|Se infla|Decoración de fiesta|Terráqueo, el mundo en una bola
@@ -320,12 +320,12 @@ SOMBRERO|En la cabeza|Prenda para la cabeza|Quitarse el sombrero es admirar
 BUFANDA|Alrededor del cuello|Abriga en invierno|Prenda del hincha con los colores del club
 GUANTE|Para la mano|Cubre los dedos|Recoger el guante es aceptar el reto
 BOTA|Zapato alto|Calzado que sube por la pierna|De vino en las fiestas
-ABRIGO|Prenda de invierno|Se pone encima de todo|Al abrigo de, protegido
+ABRIGO|Prenda de invierno|Se cuelga al entrar en casa|Al abrigo de, protegido
 CORBATA|Alrededor del cuello de la camisa|Complemento del traje|Ajustarse el nudo antes de una entrevista
 HORNO|Se cocina dentro|Aparato caliente de la cocina|No está el horno para bollos
 NEVERA|Guarda la comida fría|Frigorífico|Imán de recuerdo en la puerta
 CUCHARA|Para la sopa|Cubierto para líquidos|Meter cuchara es entrometerse
-TENEDOR|Cubierto con dientes|Se pincha con él|Ser buen tenedor es comer mucho
+TENEDOR|Cubierto con dientes|Tiene tres o cuatro púas|Ser buen tenedor es comer mucho
 CUCHILLO|Corta|Cubierto afilado|En casa de herrero, de palo
 PLATO|Se come en él|Llano u hondo|Pagar los platos rotos
 ESCOBA|Para barrer|Vehículo de la bruja|Coche que recoge a los rezagados en la carrera
@@ -342,12 +342,12 @@ TEATRO|Se representan obras|Escenario y butacas|Hacer teatro es exagerar
 CIRCO|Payasos y acróbatas|Espectáculo bajo carpa|Montar un circo es armar jaleo
 PAYASO|Hace reír|Lleva nariz roja|Hacer el payaso es hacer tonterías
 MAGO|Hace trucos|Saca un conejo del sombrero|Merlín era uno
-CABALLERO|Lleva armadura|Lucha a caballo|De la triste figura, don Quijote
+CABALLERO|Lleva armadura|Don Quijote se creía uno|De la triste figura, don Quijote
 ESPADA|Arma con hoja|Se usa en duelos|Entre ella y la pared
 ESCUDO|Protege|Lo lleva el caballero en el brazo|El del equipo en la camiseta
 CORONA|La lleva el rey|Aro de oro real|De laurel para el vencedor
 GALAXIA|Miles de millones de estrellas|La Vía Láctea es una|Guardianes de ella, en el cine
-ECLIPSE|El Sol se oculta|La Luna pasa delante del Sol|Eclipsarse es desaparecer
+ECLIPSE|La Luna tapa el Sol|La Luna pasa delante del Sol|Eclipsarse es desaparecer
 SATELITE|Gira alrededor de la Tierra|Aparato en órbita|La Luna es uno natural
 TELESCOPIO|Para ver lejos|Instrumento del astrónomo|El Hubble está en el espacio
 MICROBIO|Ser vivo diminuto|Bacteria invisible|Pasteur los combatió
@@ -355,7 +355,7 @@ ESQUELETO|Todos los huesos|Armazón del cuerpo|Mover el esqueleto es bailar
 MUSCULO|Te mueve|Se trabaja en el gimnasio|Sacar músculo es presumir de fuerza
 PULMON|Se respira con él|Órgano de la respiración|El Amazonas es el del planeta
 ESTOMAGO|Digiere|Bolsa de la digestión|Revolver el estómago, dar asco
-CODO|Mitad del brazo|Articulación del brazo|Hablar por los codos
+CODO|Articulación del brazo|Lo apoyamos en la barra del bar|Hablar por los codos
 HOMBRO|Arriba del brazo|Unión del brazo y el cuerpo|Arrimar el hombro es ayudar
 CEJA|Sobre el ojo|Pelos de la frente|Quemarse las cejas es estudiar mucho
 `;

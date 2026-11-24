@@ -203,7 +203,7 @@ RED||Handed, caught in the act;Carpet for celebrities
 BLUE||Out of the blue means unexpected;Moon rare
 GREEN||With envy;Light that means go
 YELLOW||Submarine of the Beatles;Cowardly, in slang
-BLACK||Friday shopping day;Board for chalk
+BLACK||Friday shopping day;The family's black sheep
 WHITE||Flag of surrender;House in Washington
 PURPLE||Rain of Prince;Prose that is overwritten
 GREY||Area that's unclear;Fifty shades of it
@@ -272,7 +272,7 @@ TREASURE||Hunt with a map;One person's trash is another's
 MAP||Off it means unreachable;Treasure one has an X
 COMPASS||Golden one in a fantasy novel;Moral one guides choices
 RIDDLE||Of the Sphinx;Wrapped in a mystery inside an enigma
-CLUE||Clueless means ignorant;Breadcrumb trail of hints
+CLUE||Clueless means ignorant
 CODE||Morse one taps;Dress one at the office
 NUMBER||Public enemy one;Your days are this
 LETTER||Love one is sealed with a kiss;To the letter means exactly
@@ -306,7 +306,7 @@ SWAN|White bird with a long neck|It dances on Tchaikovsky's lake|Black one is an
 CROW|Black bird|It caws|As it flies means in a straight line
 PARROT|It repeats what you say|Colorful talking bird|On a pirate's shoulder
 TIGER|Striped big cat|It lives in Asia|Paper one isn't scary
-PANTHER|Black big cat|Big cat, black or spotted|Pink one with Inspector Clouseau
+PANTHER|Black big cat|The Pink panther|Pink one with Inspector Clouseau
 CAMEL|Two humps|It crosses the desert|Straw that broke its back
 SQUIRREL|It loves nuts|Bushy-tailed tree rodent|It saves for winter like a careful saver
 HEDGEHOG|It has spines|Small animal that rolls into a ball|Sonic is one
@@ -322,17 +322,17 @@ GIANT|Very big|Huge figure of fairy tales|Gentle one is big but kind
 SUBWAY|Train under the city|Underground transport|Sandwich chain
 HELICOPTER|It has rotor blades|It takes off vertically|Parent who hovers over kids
 BALLOON|You blow it up|Party decoration|Hot air one floats
-HAT|On your head|Headwear|Rabbit comes out of the magician's
+HAT|On your head|A magician pulls a rabbit from it|Rabbit comes out of the magician's
 SCARF|Around the neck|Keeps you warm in winter|Scarf down means eat fast
 GLOVE|For the hand|Covers the fingers|Fits like one, perfectly
 BOOT|Tall shoe|Footwear up the leg|Start a computer
 COAT|Warm jacket|You wear it over everything|Of paint, a layer
-TIE|Around the collar|Business suit accessory|Draw in a game
+TIE|Knotted under a shirt collar|Business suit accessory|Draw in a game
 OVEN|You bake in it|Hot kitchen appliance|Bun in it means a baby on the way
 FRIDGE|Keeps food cold|Refrigerator|Magnets stick to it
-SPOON|For soup|Utensil for liquids|Born with a silver one
+SPOON|For soup|You stir your tea with it|Born with a silver one
 FORK|Utensil with prongs|You stab food with it|In the road, a choice
-KNIFE|It cuts|Sharp utensil|Swiss army one does everything
+KNIFE|It spreads butter|Sharp utensil|Swiss army one does everything
 PLATE|You eat off it|Dish|Too much on it means too busy
 BROOM|For sweeping|Witch's ride|New one sweeps clean
 LADDER|For climbing|Rungs going up|Corporate one to climb
@@ -344,20 +344,20 @@ KITE|It flies on a string|Paper toy in the wind|Go fly one means go away
 BASKET|Holds things|Woven container|Case is hopeless
 PAINTING|Hangs on the wall|Picture made with paint|The Mona Lisa is one
 STATUE|Sculpture|Stone or bronze figure|Of Liberty holds a torch
-THEATER|Where plays happen|Stage and seats|Of war, the battlefield
+THEATER|Broadway venue for plays|Stage and seats|Of war, the battlefield
 CIRCUS|Clowns and acrobats|Big top show|Three-ring one is chaos
 CLOWN|He makes you laugh|He has a red nose|Class one jokes in class
 MAGICIAN|Does tricks|Pulls a rabbit from a hat|Merlin was one
 KNIGHT|Wears armor|Fights on horseback|In shining armor, a rescuer
 SWORD|Bladed weapon|Used in a duel|Of Damocles hangs overhead
-SHIELD|It protects|Knight holds it|Captain America throws his
+SHIELD|It protects|Captain America's round weapon|Captain America throws his
 CROWN|King wears it|Gold royal circle|Jewel in it is the best part
 GALAXY|Billions of stars|The Milky Way is one|Guardians of it, in a film
-COMET|Star with a tail|Halley's returns every 76 years|Santa has a reindeer named this
+COMET|Star with a tail|Halley's returns every 76 years|Halley's, every 76 years
 ECLIPSE|The Sun hides|Moon passes before the Sun|Total one of the heart, sang Bonnie Tyler
 SATELLITE|Orbits Earth|Spacecraft in orbit|The Moon is a natural one
 TELESCOPE|To see far|Astronomer's tool|Hubble is in space
-GERM|Tiny living thing|Bacteria you can't see|Of an idea, its beginning
+GERM|What hand soap kills|Bacteria you can't see|Of an idea, its beginning
 SKELETON|All the bones|Frame of the body|In the closet, a hidden secret
 MUSCLE|It moves you|You work it at the gym|Memory that lets you do it without thinking
 LUNG|You breathe with it|Breathing organ|The Amazon is the planet's

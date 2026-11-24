@@ -30,7 +30,7 @@ SHEEP|It goes baa|You count it to fall asleep|The black one stands out in the fa
 COW|It moos|It gives milk|"Holy …!" you might gasp in surprise
 PIG|It rolls in the mud|Pink farm animal|When it flies, it will never happen
 HEN|It lays eggs|It clucks in the coop|Party for the bride before the wedding
-DUCK|It quacks|Swimmer of the pond|Lame one has no power left
+DUCK|It quacks|Donald, for one|Lame one has no power left
 SNAKE|It slithers|Reptile with no legs|One in the grass is a hidden traitor
 CROCODILE|Big river reptile|Its jaws are fearsome|Its tears are not sincere
 ELEPHANT|It has a trunk|Largest land animal|It never forgets, and it's sometimes in the room
@@ -69,7 +69,7 @@ LIGHTNING|Flash in a storm|It comes before thunder|It never strikes twice in the
 SHADOW|It follows you in the sun|Dark shape cast by light|Peter Pan lost his
 ROCK|Big stone|Hard piece of the ground|Music with guitars, or hard-boiled reliability
 SAND|Grains of the beach|Hourglass filler|The man who brings it makes you sleepy
-WAVE|It breaks on the shore|Movement of the sea|A hello with your hand
+WAVE|It breaks on the shore|A surfer rides it|A hello with your hand
 SKY|It is blue by day|Space above our heads|The limit, they say
 DAWN|Sunrise|First light of day|It's darkest just before it
 BREAD|The baker makes it|You make toast with it|The best thing since the sliced kind
@@ -84,7 +84,7 @@ CARROT|Orange vegetable|It grows underground|Offered with a stick
 TOMATO|Red fruit in ketchup|Often mistaken for a vegetable|You say it one way, I say it another
 EGG|The hen lays it|You crack it for an omelet|Don't put them all in one basket
 SUGAR|It sweetens coffee|White sweet crystals|Daddy who pays for everything
-SALT|It seasons|It comes from the sea|Take it with a grain of this
+SALT|It seasons|Pepper's partner|Take it with a grain of this
 HONEY|Made by bees|Golden sweet from the hive|Moon after the wedding
 SOUP|Hot dish eaten with a spoon|Broth in a bowl|Too many cooks spoil it
 CAKE|You put candles on it|Birthday dessert|A piece of it is very easy
@@ -100,11 +100,11 @@ OLIVE|Small fruit for oil|Green or black fruit in a martini|Its branch means pea
 NUT|Fruit with a shell|Squirrels store them|A tough one to crack
 PIZZA|Italian dish|Dough, tomato and cheese|The margherita was named after a queen
 WATER|You drink it|H two O|Under the bridge, it's in the past
-FLOUR|Ground wheat|Base of bread|Sounds like a bloom
+FLOUR|Ground wheat|Milled wheat|Sounds like a bloom
 BOOK|You read it|It has pages and a cover|Don't judge it by its cover
 KEY|It opens the door|You turn it in the lock|Low one is very discreet
-DOOR|You open it to come in|It has a handle|One closes, another opens
-WINDOW|You open it for air|Glass opening|Shopping without buying through it
+DOOR|You open it to come in|You knock before opening it|One closes, another opens
+WINDOW|You open it for air|Curtains frame it|Shopping without buying through it
 LAMP|It gives light|You switch it on at night|Aladdin rubbed his
 MIRROR|It reflects|Glass on the wall|It tells the queen who is fairest
 CLOCK|It tells the time|Face with hands|You race against it
@@ -124,7 +124,7 @@ ROBOT|Programmed machine|Metal android|Czech word for forced labor gave us this
 BICYCLE|Two wheels and pedals|You ride and pedal it|Like riding one, you never forget
 TRAIN|It runs on rails|Engine and carriages|Get on it late and you jump aboard
 PLANE|It flies|Aircraft|Flat surface, or a woodworker's tool
-BOAT|It floats|It sails on water|Don't rock it
+BOAT|It floats|Row, row, row your boat|Don't rock it
 CAR|Four wheels|Automobile|Its trunk is called a boot in Britain
 TRUCK|Big vehicle|Heavy road hauler|Keep on doing this, sang the hippies
 ROCKET|It goes to space|It launches upward|It isn't exactly rocket science
@@ -141,13 +141,13 @@ MARKET|Where you buy vegetables|Stalls in the open|Bull or bear, it moves
 STATION|Where you catch a train|Railway stop|Space one orbits Earth
 PORT|Ships dock there|Harbor|Sweet red wine, or the left side of a ship
 HEART|It beats|Organ that pumps blood|You wear it on your sleeve
-HEAD|On your shoulders|It holds your face|Over heels when in love
+HEAD|On your shoulders|head over heels in love|Over heels when in love
 HAND|Five fingers|It holds and grabs|Many of them make light work
 FOOT|End of the leg|It has five toes|Put it down to be firm
 EYE|It sees|Organ of sight|Keep one on someone
 NOSE|Middle of the face|Organ of smell|Pay through it when it's expensive
 MOUTH|For eating|It has lips|Word of it spreads news
-TOOTH|It bites|The fairy takes it|Sweet one loves dessert
+TOOTH|A dentist fills it|The fairy takes it|Sweet one loves dessert
 EAR|It hears|Organ of hearing|Play it by this, without a plan
 FINGER|Five per hand|The index is one|Cross them for luck
 HAIR|It grows on your head|Strand on your scalp|Let it down to relax
@@ -158,7 +158,7 @@ BLOOD|It runs in your veins|Red body fluid|Thicker than water
 DOCTOR|Treats the sick|Physician|Who, in a blue police box
 PILOT|Flies the plane|In the cockpit|Test episode of a TV show
 BAKER|Makes bread|Works at the oven|Street of Sherlock Holmes
-POSTMAN|Brings the mail|Mail carrier|He always rings twice, in a film title
+POSTMAN|Delivers letters in Britain|Mail carrier|He always rings twice, in a film title
 FIREFIGHTER|Puts out fires|Rescuer with a ladder|Hero who runs into the blaze
 TEACHER|Teaches|Educator|Pet of this one sits in front
 KING|Wears the crown|Monarch|The Lion one is Simba
@@ -166,11 +166,11 @@ QUEEN|Wife of the king|Female monarch|Most powerful piece in chess
 PRINCE|Son of the king|Heir to the throne|The Little one came from asteroid B612
 PIRATE|Attacks ships|Sea bandit|Copies movies illegally online
 CHEF|Cooks|Head of the kitchen|Too many of them spoil the broth
-FRIEND|Someone dear to you|Someone you like|One in need is one indeed
+FRIEND|Best friend forever|Someone you like|One in need is one indeed
 CHILD|Young person|Boy or girl|It takes a village to raise one
 BABY|Newborn|It wears a diaper|Don't throw it out with the bathwater
 NEIGHBOR|Lives next door|Person next door|Their grass is always greener
-TIME|It passes|Measured in hours|It's money, they say
+TIME|It passes|time flies when you're having fun|It's money, they say
 DAY|A full twenty-four hours|Twenty-four hours|Rome wasn't built in one
 NIGHT|Hours after sunset|When you sleep|Ships passing in it never meet again
 TOMORROW|The day after today|The day after|Never put off until then
@@ -192,7 +192,7 @@ ANSWER|It follows a question|Reply|Blowing in the wind, sang Dylan
 STORY|A tale|Narrative|Long one cut short
 ADVENTURE|Full of surprises|Risky journey|Alice's in Wonderland
 GIFT|You unwrap it|Present|Talent you were born with
-JOURNEY|A long trip|Travel from place to place|More important than the destination, they say
+JOURNEY|A long trip|Life's a journey, not a destination|More important than the destination, they say
 PEACE|Absence of conflict|A dove with an olive branch stands for it|The dove brings it
 WAR|Armed clash|Armed conflict|All is fair in love and this
 TRUTH|A fact stated plainly|What is true|Naked one is plain and simple
@@ -209,7 +209,7 @@ PURPLE|Red and blue mixed|Color of eggplant|Heart for wounded soldiers
 GREY|Color of a mouse|Mix of black and white|Cells Poirot puts to work
 FOOTBALL|Game with a ball|Eleven players a side|Soccer to Americans, the real thing to the English
 TENNIS|Racket sport|Wimbledon hosts it|Love means nothing in it
-JUDO|Martial art in a white uniform|Japanese grappling sport|The gentle way, by its name
+JUDO|Martial art in a white uniform|Throws and holds on a tatami|The gentle way, by its name
 BOXING|Sport with gloves|Fighting in a ring|Day after Christmas in Britain
 YOGA|Poses and breathing|Practice from India|Downward dog is part of it
 CHESS|Game of kings and queens|Strategy game on 64 squares|Checkmate ends it
@@ -235,12 +235,12 @@ WEEKEND|Saturday and Sunday|End of the week|Lost one is a long party
 XYLOPHONE|Instrument with bars|Struck with mallets|The X in alphabet books
 YOGURT|Creamy cup|Fermented milk|Frozen, it pretends to be ice cream
 JAZZ|Music from New Orleans|Improvised music|All that this, sang Chicago
-QUEST|Search|Heroic mission|The Holy Grail's is famous
+QUEST|Knight's search for the Grail|Heroic mission|The Holy Grail's is famous
 JUNGLE|Dense tropical forest|Tarzan's home|Concrete one is the city
 PAJAMAS|What you wear to bed|Nightwear|The cat's are the best
 TAXI|Car with a meter|Yellow cab in New York|Plane's slow drive to the runway
 JOKER|Card that replaces any other|Wild card|Batman's enemy
-KARATE|Japanese martial art|Empty-hand combat|The Kid learned wax on, wax off
+KARATE|Martial art of chops and kicks|Empty-hand combat|The Kid learned wax on, wax off
 WIFI|Wireless network|Cable-free connection|You ask for its password at friends' homes
 TOY|A child's plaything|Something to play with|Story of Woody and Buzz
 TWIN|Born the same day as a sibling|Identical sibling|Peaks in a David Lynch series
@@ -251,31 +251,31 @@ VIOLIN|Played with a bow|String instrument of the quartet|Nero played it while R
 DRUM|You beat it|Instrument with a stretched skin|March to the beat of your own
 TRUMPET|Brass with valves|Instrument of the fanfare|Blow your own to boast
 HOT|Warm to the touch|High temperature|Potato no one wants to hold
-COLD|Chilly to the touch|Low temperature|Feet you get before the wedding
+COLD|Like ice|Low temperature|Feet you get before the wedding
 BIG|Large in size|Large|Apple of New York
 TINY|Very, very small|Very small|Tim in a Christmas Carol
 FAST|Moving at high speed|Quick|Going without food, or holding firm
 SLOW|Not fast|Lacking speed|Steady wins the race
 FULL|Not empty|Filled up|Moon that's completely round
 EMPTY|Not full|With nothing inside|Nest when the kids leave
-EASY|Not hard|Simple to do|Peasy, lemon squeezy
+EASY|A piece of cake|Simple to do|Peasy, lemon squeezy
 HAPPY|Not sad|Full of joy|Clap along if you feel this, sang Pharrell
 RICH|Not poor|Wealthy|Crazy ones in Singapore
 YOUNG|Not old|Of few years|Forever, sang Alphaville
-CLEAN|Not dirty|Washed|Come this to confess
+CLEAN|Not dirty|Spick and span|Come this to confess
 START|Not the finish|Beginning|Head one is an early advantage
 OUTSIDE|Not inside|Exterior|Think this way to be creative
 TRUE|Not false|Correct|Story, or a blue friend
 MAXIMUM|Not the minimum|As much as possible|Security level of the toughest prison
 RESCUE|Help in danger|Saving someone|Comes to it like the cavalry
 TREASURE|Chest of gold|Hidden riches|Island by Stevenson
-MAP|It shows the way|Plan of a country|Put on it means made famous
+MAP|Atlas page|Plan of a country|Put on it means made famous
 COMPASS|It points north|Navigation tool|Moral one guides your choices
 RIDDLE|Hard puzzle|Question to solve|The Sphinx asked one
-CLUE|It points to the answer|Hint|Board game with Colonel Mustard
+CLUE|Every crossword answer has one|Hint|Board game with Colonel Mustard
 CODE|It hides a message|Secret system of symbols|Da Vinci's was a bestseller
-NUMBER|One, two, three|Figure|Your days are this when you're done
-LETTER|A or B|Character of the alphabet|Scarlet one in Hawthorne's novel
+NUMBER|Seven or twelve|You have the wrong number|Your days are this when you're done
+LETTER|One of 26 in the alphabet|Character of the alphabet|Scarlet one in Hawthorne's novel
 WORD|Group of letters|Unit of a sentence|Give your this as a promise
 SENTENCE|Group of words|It ends with a period|Judge's verdict for prison time
 ALPHABET|A to Z|Twenty-six letters|Soup with letters in it
@@ -294,5 +294,5 @@ FEATHER|Birds have them|Quill for writing|Birds of one flock together
 INK|For writing|Pen fluid|The octopus squirts it
 LOCK|You put a key in it|Mechanism of a door|Stock and barrel, everything
 SIGNAL|It warns|Agreed message|Smoke one sends news
-RADIO|You listen to it|Broadcast receiver|Video killed its star
+RADIO|You tune it to FM|Broadcast receiver|Video killed its star
 `;

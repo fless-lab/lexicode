@@ -86,7 +86,7 @@ export const es = makePack(
     ['MIEL', 'Dulce que produce la colmena'],
     ['PAN', 'El panadero lo hornea cada día'],
     ['CAFE', 'Bebida negra de la mañana'],
-    ['ZUMO', 'Se exprime de una naranja'],
+    ['ZUMO', 'Jugo, en España'],
     ['TAZA', 'Recipiente con asa para el café'],
     // Objetos y lugares
     ['LIBRO', 'Se lee página a página'],
