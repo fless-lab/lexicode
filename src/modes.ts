@@ -33,6 +33,8 @@ export interface Mode {
   /** Événement ou pack joué, et rang de la grille. */
   ref?: string;
   idx?: number;
+  /** Entraînement et zen (modes non classés) : mots des dernières grilles, à ne pas resservir. */
+  avoid?: string[];
 }
 
 /** Modes classés : aucune aide payante n'y compte, une partie aidée sort du classement. */
@@ -135,6 +137,8 @@ export function puzzleFor(pack: LangPack, m: Mode): Puzzle {
     case 'marathon':
       return generatePuzzle(pack, `marathon-${m.nonce}-${m.run ?? 0}`, marathonDifficulty(m.run ?? 0));
     default:
+      if ((m.kind === 'practice' || m.kind === 'zen') && m.avoid?.length)
+        return generatePuzzle(pack, `practice-${m.kind}-${m.nonce}`, m.d, { avoid: new Set(m.avoid) });
       return practicePuzzle(pack, m.d, `${m.kind}-${m.nonce}`);
   }
 }

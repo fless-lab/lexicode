@@ -66,24 +66,46 @@ export function levelMods(info: LevelInfo): ModSpec {
   return m;
 }
 
-export function adventurePuzzle(pack: LangPack, level: number): Puzzle {
+/** Mots des niveaux déjà générés, par langue : chaque niveau évite ceux des précédents. */
+const advWords = new Map<string, string[]>();
+const AVOID_LEVELS = 5;
+
+function adventureWords(pack: LangPack, level: number): string[] {
+  const key = `${pack.lang}|${level}`;
+  let w = advWords.get(key);
+  if (!w) {
+    w = adventureBase(pack, level).words.map((x) => x.answer);
+    advWords.set(key, w);
+  }
+  return w;
+}
+
+function adventureBase(pack: LangPack, level: number): Puzzle {
   const info = levelInfo(level);
   const def = info.def;
-  const tier: TierChoice = info.cycle >= 1 && def.tier !== 3 ? (def.tier === 1 ? 2 : 3) : def.tier;
+  let tier: TierChoice = info.cycle >= 1 && def.tier !== 3 ? (def.tier === 1 ? 2 : 3) : def.tier;
+  // Grilles moyennes : l'indice facile alterne avec l'indice moyen, pour ne pas revoir toujours la même définition.
+  if (tier === 1 && info.d >= 2) tier = 'mix12';
   const seed = `adv-${level}`;
   const story = info.finale ? storyPhraseIndex(pack, info.chapter) : undefined;
-  let p: Puzzle;
-  if (def.cryptogram) {
-    p = cryptogramPuzzle(pack, seed, info.d, story !== undefined && story >= 0 ? story : undefined);
-  } else {
-    const base = { 1: 4, 2: 3, 3: 2, 4: 1, 5: 0 }[info.d];
-    p = generatePuzzle(pack, seed, info.d, {
-      tier,
-      phraseIndex: story !== undefined && story >= 0 ? story : undefined,
-      given: def.fewerGiven ? Math.max(0, base - def.fewerGiven) : undefined,
-    });
-  }
-  return applyMods(p, levelMods(info));
+  if (def.cryptogram) return cryptogramPuzzle(pack, seed, info.d, story !== undefined && story >= 0 ? story : undefined);
+  // Les niveaux précédents sont calculés dans l'ordre (et mémorisés) pour ne pas resservir leurs mots.
+  for (let l = Math.max(1, level - AVOID_LEVELS); l < level; l++) adventureWords(pack, l);
+  const avoid = new Set<string>();
+  for (let l = Math.max(1, level - AVOID_LEVELS); l < level; l++) for (const x of advWords.get(`${pack.lang}|${l}`) ?? []) avoid.add(x);
+  const base = { 1: 4, 2: 3, 3: 2, 4: 1, 5: 0 }[info.d];
+  return generatePuzzle(pack, seed, info.d, {
+    tier,
+    phraseIndex: story !== undefined && story >= 0 ? story : undefined,
+    given: def.fewerGiven ? Math.max(0, base - def.fewerGiven) : undefined,
+    avoid,
+  });
+}
+
+export function adventurePuzzle(pack: LangPack, level: number): Puzzle {
+  const p = adventureBase(pack, level);
+  advWords.set(`${pack.lang}|${level}`, p.words.map((x) => x.answer));
+  return applyMods(p, levelMods(levelInfo(level)));
 }
 
 /** Chrono et vies du niveau. Les boss ont toujours un chrono et trois vies. */

@@ -70,16 +70,17 @@ function greedyCover(target: Set<string>, pool: Entry[], cfg: DiffCfg, rng: Rng)
   return { chosen, uncovered };
 }
 
-export type TierChoice = Tier | 'mix';
+/** 'mix' : moyen ou malin ; 'mix12' : facile ou moyen. */
+export type TierChoice = Tier | 'mix' | 'mix12';
 
 /** Niveau d'indice par défaut selon la difficulté. */
 export function tierFor(d: Difficulty): TierChoice {
-  return d <= 2 ? 1 : d === 3 ? 2 : d === 4 ? 'mix' : 3;
+  return d === 1 ? 1 : d === 2 ? 'mix12' : d === 3 ? 2 : d === 4 ? 'mix' : 3;
 }
 
 /** Choisit l'indice d'un mot au niveau voulu, en redescendant si ce niveau manque. */
 export function pickClue(e: Entry, choice: TierChoice, rng: Rng): { clue: string; tier: Tier } {
-  const want: Tier = choice === 'mix' ? (rng() < 0.5 ? 2 : 3) : choice;
+  const want: Tier = choice === 'mix' ? (rng() < 0.5 ? 2 : 3) : choice === 'mix12' ? (rng() < 0.5 ? 1 : 2) : choice;
   const by: Record<Tier, string[]> = {
     1: [e.c],
     2: [e.c2, ...(e.more2 ?? [])].filter((x): x is string => !!x),
@@ -105,6 +106,8 @@ export interface GenOptions {
   phraseIndex?: number;
   /** Restreint à une catégorie de phrases. */
   category?: string;
+  /** Mots à éviter (vus dans les grilles précédentes) ; repris seulement si la grille ne se construit pas sans eux. */
+  avoid?: ReadonlySet<string>;
 }
 
 /**
@@ -145,8 +148,9 @@ export function generatePuzzle(
     for (const pi of indices) {
       const phrase = pack.phrases[pi];
       const target = letterSet(phrase.t);
+      const avoid = relax < 2 ? opts.avoid : undefined;
       const pool = shuffle(
-        pack.entries.filter((e) => e.w.length >= cfg.minLen && e.w.length <= cfg.maxLen),
+        pack.entries.filter((e) => e.w.length >= cfg.minLen && e.w.length <= cfg.maxLen && !avoid?.has(e.w)),
         rng,
       );
       for (let attempt = 0; attempt < 6; attempt++) {

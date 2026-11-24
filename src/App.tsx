@@ -67,6 +67,10 @@ interface Toast {
   icon?: string;
 }
 
+/** Mots des dernières grilles d'entraînement de la session : la suivante ne les ressert pas. */
+const recentWords: string[] = [];
+const RECENT_WORDS = 30;
+
 const TAB_SCREENS: Screen[] = ['home', 'arena', 'season', 'ranking', 'profile'];
 const PREVIEWS: Screen[] = [...TAB_SCREENS, 'album', 'league', 'settings', 'premium', 'adventure', 'shop', 'wardrobe', 'event', 'packs', 'archive'];
 
@@ -174,6 +178,10 @@ export default function App() {
   }, [day]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const puzzle = useMemo(() => (mode ? puzzleFor(pack, mode) : null), [mode, pack]);
+  useEffect(() => {
+    if (puzzle && (mode?.kind === 'practice' || mode?.kind === 'zen')) recentWords.push(...puzzle.words.map((w) => w.answer));
+    if (recentWords.length > 4 * RECENT_WORDS) recentWords.splice(0, recentWords.length - RECENT_WORDS);
+  }, [puzzle, mode?.kind]);
   const rules = useMemo(() => (mode ? rulesFor(mode) : null), [mode]);
 
   const start = (m: Mode, skipIntro = false) => {
@@ -200,7 +208,8 @@ export default function App() {
     }
     launch(m);
   };
-  const launch = (m: Mode) => {
+  const launch = (m0: Mode) => {
+    const m = m0.kind === 'practice' || m0.kind === 'zen' ? { ...m0, avoid: recentWords.slice(-RECENT_WORDS) } : m0;
     const r = rulesFor(m);
     setMode(m);
     setEnd(null);

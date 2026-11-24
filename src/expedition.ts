@@ -72,13 +72,35 @@ export function makeFloor(seed: string, depth: number): Floor {
   return { depth, d, mods, place: Math.floor(rng() * 15), qual: Math.floor(rng() * 15), hue: Math.floor(rng() * 360), timeMs };
 }
 
+/** Mots des étages déjà générés : chaque étage évite ceux des cinq précédents de la même descente. */
+const floorWords = new Map<string, string[]>();
+const AVOID_FLOORS = 5;
+
+function wordsOfFloor(pack: LangPack, seed: string, depth: number): string[] {
+  const key = `${pack.lang}|${seed}|${depth}`;
+  let w = floorWords.get(key);
+  if (!w) {
+    const f = makeFloor(seed, depth);
+    w = f.mods.includes('cipher') ? [] : basePuzzle(pack, seed, f, 1).words.map((x) => x.answer);
+    floorWords.set(key, w);
+  }
+  return w;
+}
+
+function basePuzzle(pack: LangPack, runSeed: string, f: Floor, tier: TierChoice): Puzzle {
+  const avoid = new Set<string>();
+  for (let d = Math.max(0, f.depth - AVOID_FLOORS); d < f.depth; d++) for (const x of wordsOfFloor(pack, runSeed, d)) avoid.add(x);
+  return generatePuzzle(pack, `exp-${runSeed}-${f.depth}`, f.d, { tier, given: f.mods.includes('bare') ? 0 : undefined, avoid });
+}
+
 export function floorPuzzle(pack: LangPack, run: Run, f: Floor): Puzzle {
   const seed = `exp-${run.seed}-${f.depth}`;
   const has = (r: RelicId) => run.relics.includes(r);
   if (f.mods.includes('cipher')) return applyMods(cryptogramPuzzle(pack, seed, f.d), { fog: f.mods.includes('fog') && !has('compass') });
-  let tier: TierChoice = f.mods.includes('cryptic') ? 3 : f.d >= 4 ? 'mix' : f.d >= 3 ? 2 : 1;
-  if (has('prism') && tier !== 1) tier = 2;
-  const p = generatePuzzle(pack, seed, f.d, { tier, given: f.mods.includes('bare') ? 0 : undefined });
+  let tier: TierChoice = f.mods.includes('cryptic') ? 3 : f.d >= 4 ? 'mix' : f.d >= 3 ? 2 : f.d === 2 ? 'mix12' : 1;
+  if (has('prism') && tier !== 1 && tier !== 'mix12') tier = 2;
+  const p = basePuzzle(pack, run.seed, f, tier);
+  floorWords.set(`${pack.lang}|${run.seed}|${f.depth}`, p.words.map((x) => x.answer));
   const spec: ModSpec = {
     ink: f.mods.includes('ink') && !has('inkwell') ? Math.min(0.55, 0.25 + f.depth * 0.015) : undefined,
     fog: f.mods.includes('fog') && !has('compass'),
