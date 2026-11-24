@@ -67,6 +67,10 @@ interface Toast {
   icon?: string;
 }
 
+/** Jetons : le jeu en donne peu, pour que les objets gardent leur valeur. */
+const MULTI_PAID = 3;
+const LEVEL_UP_TOKENS = 2;
+
 /** Mots des dernières grilles d'entraînement de la session : la suivante ne les ressert pas. */
 const recentWords: string[] = [];
 const RECENT_WORDS = 30;
@@ -254,7 +258,7 @@ export default function App() {
     };
     const afterLvl = playerLevel(n.xp);
     if (afterLvl > beforeLvl) {
-      n.tokens += 5 * (afterLvl - beforeLvl);
+      n.tokens += LEVEL_UP_TOKENS * (afterLvl - beforeLvl);
       setTimeout(() => { sfx.unlock(); toast(`${t.levelUp} ${afterLvl}`, 'lvl', 'sparkle', t.titles[titleIndex(afterLvl)]); }, 900);
     }
     const afterTier = seasonTier(n.season.xp);
@@ -269,8 +273,8 @@ export default function App() {
   const multiReward = (r: RewardInfo): Gains => {
     const s0 = saveRef.current;
     const m = s0.multi?.day === day ? s0.multi : { day, paid: 0 };
-    const paid = m.paid < 5;
-    const tokens = paid ? (r.won ? 15 : 5) : 0;
+    const paid = m.paid < MULTI_PAID;
+    const tokens = paid ? (r.won ? 4 : 1) : 0;
     const score = r.won ? 900 : Math.max(200, 700 - r.rank * 100);
     const { save: n2, xp } = progressAfter(
       { ...s0, tokens: s0.tokens + tokens, multi: { day, paid: m.paid + (paid ? 1 : 0) }, stats: { ...s0.stats, played: s0.stats.played + 1, won: s0.stats.won + (r.won ? 1 : 0) } },

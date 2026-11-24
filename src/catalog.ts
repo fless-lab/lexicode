@@ -28,6 +28,8 @@ export interface Item {
   tokens?: number;
   sku?: Sku;
   unlock?: Unlock;
+  /** Niveau de joueur requis avant de pouvoir l'acheter en jetons (objets rares). */
+  minLevel?: number;
   /** Offert à tous dès le départ. */
   free?: boolean;
   /** Pas encore disponible (contenu en préparation). */
@@ -40,13 +42,13 @@ const it = (kind: ItemKind, value: string, name: Record<Lang, string>, extra: Pa
 export const ITEMS: Item[] = [
   // Tenues de Loupi
   it('hat', 'deerstalker', N('Casquette de détective', 'Detective cap', 'Gorra de detective'), { sku: SKUS.outfitDetective }),
-  it('hat', 'beret', N('Béret de peintre', "Painter's beret", 'Boina de pintor'), { tokens: 400 }),
+  it('hat', 'beret', N('Béret de peintre', "Painter's beret", 'Boina de pintor'), { tokens: 400, minLevel: 12 }),
   it('hat', 'conductor', N('Casquette de chef de gare', "Conductor's cap", 'Gorra de jefe de estación'), { unlock: { chapter: 3 } }),
   it('hat', 'tophat', N('Haut-de-forme', 'Top hat', 'Sombrero de copa'), { sku: SKUS.outfitTophat }),
   it('hat', 'santa', N('Bonnet de Noël', 'Santa hat', 'Gorro navideño'), { unlock: { event: 'xmas-2026' } }),
   it('neck', 'scarf', N('Écharpe ambrée', 'Amber scarf', 'Bufanda ámbar'), { free: true }),
   it('neck', 'none', N('Sans rien', 'Nothing', 'Nada'), { free: true }),
-  it('neck', 'bowtie', N('Nœud papillon', 'Bow tie', 'Pajarita'), { tokens: 200 }),
+  it('neck', 'bowtie', N('Nœud papillon', 'Bow tie', 'Pajarita'), { tokens: 200, minLevel: 3 }),
   it('neck', 'scarf_xmas', N('Écharpe de Noël', 'Holiday scarf', 'Bufanda navideña'), { unlock: { event: 'xmas-2026' } }),
   it('loupe', 'gold', N('Loupe dorée', 'Golden loupe', 'Lupa dorada'), { free: true }),
   it('loupe', 'crystal', N('Loupe de cristal', 'Crystal loupe', 'Lupa de cristal'), { sku: SKUS.loupeCrystal }),
@@ -54,37 +56,37 @@ export const ITEMS: Item[] = [
   it('back', 'cape', N('Cape du Cabinet noir', 'Black Cabinet cape', 'Capa del Gabinete negro'), { unlock: { adventureDone: true } }),
   // Tuiles (la possession des tuiles reste dans save.skins)
   it('skin', 'ivory', N('Ivoire', 'Ivory', 'Marfil'), { free: true }),
-  it('skin', 'frost', N('Givre', 'Frost', 'Escarcha'), { tokens: 300 }),
+  it('skin', 'frost', N('Givre', 'Frost', 'Escarcha'), { tokens: 300, minLevel: 10 }),
   it('skin', 'ruby', N('Rubis', 'Ruby', 'Rubí'), { sku: SKUS.skinRuby }),
-  it('skin', 'obsidian', N('Obsidienne', 'Obsidian', 'Obsidiana'), { tokens: 600 }),
+  it('skin', 'obsidian', N('Obsidienne', 'Obsidian', 'Obsidiana'), { tokens: 600, minLevel: 20 }),
   it('skin', 'gingerbread', N("Pain d'épices", 'Gingerbread', 'Jengibre'), { unlock: { event: 'xmas-2026' } }),
   // Claviers
   it('keyboard', 'classic', N('Classique', 'Classic', 'Clásico'), { free: true }),
-  it('keyboard', 'typewriter', N('Machine à écrire', 'Typewriter', 'Máquina de escribir'), { tokens: 500 }),
+  it('keyboard', 'typewriter', N('Machine à écrire', 'Typewriter', 'Máquina de escribir'), { tokens: 500, minLevel: 15 }),
   it('keyboard', 'wood', N('Bois verni', 'Varnished wood', 'Madera barnizada'), { sku: SKUS.kbWood }),
   it('keyboard', 'neon', N('Néon', 'Neon', 'Neón'), { sku: SKUS.kbNeon }),
   it('keyboard', 'frost', N('Givré', 'Frosted', 'Escarchado'), { unlock: { event: 'xmas-2026' } }),
   // Effets de victoire
   it('effect', 'letters', N('Pluie de lettres', 'Letter rain', 'Lluvia de letras'), { free: true }),
-  it('effect', 'ink', N("Éclaboussures d'encre", 'Ink splashes', 'Salpicaduras de tinta'), { tokens: 350 }),
+  it('effect', 'ink', N("Éclaboussures d'encre", 'Ink splashes', 'Salpicaduras de tinta'), { tokens: 350, minLevel: 8 }),
   it('effect', 'fireworks', N("Feu d'artifice", 'Fireworks', 'Fuegos artificiales'), { sku: SKUS.fxFireworks }),
   it('effect', 'snow', N('Victoire sous la neige', 'Snowfall victory', 'Victoria nevada'), { unlock: { event: 'xmas-2026' } }),
   // Cadres
-  it('frame', 'laurel', N('Lauriers', 'Laurels', 'Laureles'), { tokens: 250 }),
+  it('frame', 'laurel', N('Lauriers', 'Laurels', 'Laureles'), { tokens: 250, minLevel: 5 }),
   it('frame', 'star', N('Étoile', 'Star', 'Estrella'), { unlock: { league: 2 } }),
   it('frame', 'flame', N('Flammes', 'Flames', 'Llamas'), { sku: SKUS.frameFlame }),
   it('frame', 'northstar', N('Étoile du Nord', 'North Star', 'Estrella polar'), { unlock: { event: 'xmas-2026' } }),
   // Décors de l'accueil
   it('decor', 'home', N('Les toits', 'The rooftops', 'Los tejados'), { free: true }),
-  it('decor', 'tower', N('La tour du chiffre', 'Cipher Tower', 'La torre del cifrado'), { tokens: 800 }),
+  it('decor', 'tower', N('La tour du chiffre', 'Cipher Tower', 'La torre del cifrado'), { tokens: 800, minLevel: 25 }),
   it('decor', 'train', N('Le viaduc', 'The viaduct', 'El viaducto'), { sku: SKUS.decorTrain }),
   it('decor', 'observatory', N('La coupole', 'The dome', 'La cúpula'), { unlock: { chapter: 5 } }),
   // Packs de grilles
-  it('pack', 'proverbs', N('Proverbes', 'Proverbs', 'Refranes'), { sku: SKUS.packProverbs }),
-  it('pack', 'cinema', N('Cinéma', 'Cinema', 'Cine'), { sku: SKUS.packCinema }),
-  it('pack', 'football', N('Football', 'Football', 'Fútbol'), { sku: SKUS.packFootball }),
-  it('pack', 'geography', N('Géographie', 'Geography', 'Geografía'), { sku: SKUS.packGeography }),
-  it('pack', 'africa', N("Contes et cultures d'Afrique", 'Tales and cultures of Africa', 'Cuentos y culturas de África'), { sku: SKUS.packAfrica }),
+  it('pack', 'proverbs', N('Proverbes', 'Proverbs', 'Refranes'), { sku: SKUS.packProverbs, tokens: 1200 }),
+  it('pack', 'cinema', N('Cinéma', 'Cinema', 'Cine'), { sku: SKUS.packCinema, tokens: 1200 }),
+  it('pack', 'football', N('Football', 'Football', 'Fútbol'), { sku: SKUS.packFootball, tokens: 1200 }),
+  it('pack', 'geography', N('Géographie', 'Geography', 'Geografía'), { sku: SKUS.packGeography, tokens: 1200 }),
+  it('pack', 'africa', N("Contes et cultures d'Afrique", 'Tales and cultures of Africa', 'Cuentos y culturas de África'), { sku: SKUS.packAfrica, tokens: 1200 }),
 ];
 
 export const item = (id: string) => ITEMS.find((i) => i.id === id);

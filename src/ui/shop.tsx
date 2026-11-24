@@ -11,7 +11,7 @@ import { sfx } from '../sound';
 import { SHOP_STRINGS, fmtS, type ShopStrings } from '../i18n-shop';
 import { ITEMS, BUNDLES, TOKEN_PACKS, owns, grant, item, weeklyShowcase, outfitOf, type Item, type ItemKind } from '../catalog';
 import { SKUS, buy, priceOf, restore, isDemoStore, type Sku } from '../services/billing';
-import { weekKey } from '../progress';
+import { weekKey, levelProgress } from '../progress';
 import { PACK_PHRASES } from '../content/extra';
 
 type SetSave = React.Dispatch<React.SetStateAction<Save>>;
@@ -47,9 +47,10 @@ function useShop({ save, setSave, lang, toast }: ShopCtx) {
     } else toast(r === 'cancelled' ? S.cancelled : S.failed, 'info', 'close');
   };
 
-  const buyItem = (i: Item) => {
+  const buyItem = (i: Item, via: 'tokens' | 'sku' = i.tokens ? 'tokens' : 'sku') => {
     if (owns(save, i.id)) return equip(i);
-    if (i.tokens) {
+    if (via === 'tokens' && i.tokens) {
+      if (i.minLevel && levelProgress(save.xp).level < i.minLevel) return toast(fmtS(S.levelReq, { n: i.minLevel }), 'info', 'lock');
       if (save.tokens < i.tokens) return toast(S.notEnough, 'info', 'token');
       sfx.coin();
       setSave((s) => equipIn(grant({ ...s, tokens: s.tokens - i.tokens! }, [i.id]), i));
@@ -108,6 +109,15 @@ function Action({ ctx, i, shop }: { ctx: ShopCtx; i: Item; shop: ReturnType<type
     return isEquipped(ctx.save, i) ? <span className="ptag eq"><Icon name="check" size={14} />{S.equipped}</span> : <button className="ptag own" onClick={() => shop.equip(i)}>{S.equip}</button>;
   }
   if (i.unlock) return <span className="ptag lock"><Icon name="lock" size={13} />{lockLabel(ctx, i)}</span>;
+  const locked = !!i.minLevel && levelProgress(ctx.save.xp).level < i.minLevel;
+  if (i.tokens && i.sku)
+    return (
+      <span className="ptags">
+        <button className="ptag tok" onClick={() => shop.buyItem(i, 'tokens')}><Icon name="token" size={15} />{i.tokens}</button>
+        <button className="ptag eur" disabled={shop.busy === i.id} onClick={() => shop.buyItem(i, 'sku')}>{shop.busy === i.id ? '…' : priceOf(i.sku)}</button>
+      </span>
+    );
+  if (i.tokens && locked) return <span className="ptag lock"><Icon name="lock" size={13} />{fmtS(S.levelReq, { n: i.minLevel! })}</span>;
   if (i.tokens) return <button className="ptag tok" onClick={() => shop.buyItem(i)}><Icon name="token" size={15} />{i.tokens}</button>;
   if (i.sku) return <button className="ptag eur" disabled={shop.busy === i.id} onClick={() => shop.buyItem(i)}>{shop.busy === i.id ? '…' : priceOf(i.sku)}</button>;
   return null;

@@ -193,7 +193,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'depth_25', icon: 'f', test: (s) => best(s, 'expedition') >= 25 },
 ];
 
-export const ACH_REWARD = 4;
+export const ACH_REWARD = 2;
 
 export function newAchievements(s: Save, e: GameEvent | null): string[] {
   const have = new Set(s.achievements);

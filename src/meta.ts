@@ -41,7 +41,7 @@ export const QUESTS: QuestDef[] = [
   { id: 'daily1', target: 1, agg: 'sum', value: (e) => (e.won && e.kind === 'daily' ? 1 : 0), reward: { tokens: 2, xp: 30 } },
 ];
 
-export const QUEST_BONUS = { tokens: 8, booster: 'double' as BoosterId };
+export const QUEST_BONUS = { tokens: 4, booster: 'double' as BoosterId };
 
 /** Trois quêtes par jour, les mêmes pour tous, dont toujours une facile. */
 export function questsFor(day: string): QuestDef[] {

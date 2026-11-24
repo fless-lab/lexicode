@@ -22,7 +22,7 @@ const ICONS: Record<string, [string, Weight?]> = {
   share: ['Export'], play: ['Play', 'fill'], home: ['House'], sound: ['SpeakerHigh'], vibrate: ['Vibrate'], bolt: ['Lightning'],
   target: ['Target'], brain: ['Brain'], globe: ['Globe'], rotate: ['ArrowCounterClockwise', 'bold'], list: ['ListChecks'],
   flag: ['Flag'], palette: ['Palette'], snow: ['Snowflake'], eye: ['Eye'], double: ['Coins'], arena: ['Sword'],
-  chart: ['ChartBar'], user: ['User'], combo: ['TrendUp'], gift: ['Gift'],
+  chart: ['ChartBar'], user: ['User'], shop: ['Storefront'], combo: ['TrendUp'], gift: ['Gift'],
   users: ['UsersThree'], ghost: ['Ghost'], copy: ['Copy'], send: ['PaperPlaneTilt'], handshake: ['Handshake'], chat: ['ChatCircleDots'], offline: ['WifiSlash'], wave: ['HandWaving'],
   // Reliques et altérations
   lantern: ['Lamp'], quill: ['Feather'], inkwell: ['Drop'], compass: ['Compass'], prism: ['Diamond'], seal: ['Seal'],

@@ -129,7 +129,7 @@ function StatusBar({ t, save, day, go }: { t: Strings; save: Save; day: string; 
       <div className="counters">
         <span className="counter fire" title={t.streak}><Icon name="flame" size={16} />{liveStreak(save, day)}</span>
         <button className="counter gold" onClick={() => go('shop')} title={t.tokens}><Icon name="token" size={16} />{save.premium ? '∞' : save.tokens}</button>
-        <button className="iconbtn" onClick={() => go('settings')} aria-label={t.settings}><Icon name="gear" /></button>
+        <button className="iconbtn shopbtn" onClick={() => go('shop')} aria-label={t.shopLabel}><Icon name="shop" /></button>
       </div>
     </header>
   );

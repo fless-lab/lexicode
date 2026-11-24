@@ -978,6 +978,7 @@ h1, h2, h3 { font-weight: 400; letter-spacing: .01em; text-shadow: 0 2px 0 rgba(
 .ptag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-family: var(--serif); font-size: 14px; border: 2px solid var(--outline); white-space: nowrap; }
 .ptag.eur { background: var(--go); color: #fff; text-shadow: 0 1px 0 var(--go-lo); }
 .ptag.tok { background: var(--brass); color: #4a2a00; }
+.ptags { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .ptag.own { background: var(--tide); color: var(--mist); font-family: var(--sans); font-weight: 900; font-size: 12px; }
 .ptag.eq { background: #fff; color: var(--tile-ink); font-family: var(--sans); font-weight: 900; font-size: 12px; }
 .ptag.lock { background: var(--outline); color: var(--mist); font-family: var(--sans); font-weight: 800; font-size: 11.5px; }
@@ -1017,9 +1018,10 @@ h1, h2, h3 { font-weight: 400; letter-spacing: .01em; text-shadow: 0 2px 0 rgba(
 .icard.locked .loupi, .icard.locked .mini-tiles { filter: saturate(.25) brightness(.7); }
 .icard.on { box-shadow: inset 0 0 0 2.5px var(--brass), 0 4px 0 var(--outline); }
 .icard.row { width: auto; flex-direction: row; text-align: left; align-items: center; gap: 10px; padding: 12px; }
-.icard.row > span:last-child { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.icard.row > span:last-child { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+.icard.row .ptag.lock { font-size: 12.5px; padding: 3px 8px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .mini-tiles { display: inline-flex; gap: 3px; margin: 8px 0 4px; }
 .mini-tiles span { width: 26px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 17px; background: var(--tile); color: var(--tile-ink); box-shadow: inset 0 -3px 0 var(--tile-edge), 0 0 0 2px var(--outline); }
 .mini-keys { display: grid; grid-template-columns: repeat(2, 22px); gap: 4px; flex: none; }
