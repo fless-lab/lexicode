@@ -90,6 +90,17 @@ export function progress(s: GameState): number {
   return cells.length ? ok / cells.length : 0;
 }
 
+/** Première case encore à trouver, dans les mots puis dans la phrase. */
+function firstOpen(s: GameState): Sel | null {
+  const p = s.puzzle;
+  for (let w = 0; w < p.words.length; w++) {
+    const i = p.words[w].codes.findIndex((c) => !isCorrect(s, c));
+    if (i >= 0) return { kind: 'word', w, i };
+  }
+  const i = p.phrase.findIndex((c) => c.kind === 'letter' && !isCorrect(s, c.code));
+  return i >= 0 ? { kind: 'phrase', i } : null;
+}
+
 /**
  * Premier mot encore à trouver, curseur sur sa première case (même si elle est déjà donnée) : le joueur
  * tape le mot depuis le début, et la saisie enjambe ensuite les lettres déjà en place.
@@ -171,6 +182,29 @@ export function flowTarget(s: GameState, letter: string): Sel | null {
   return nextOpen(s, sel) ?? sel;
 }
 
+/**
+ * Case montrée comme curseur. Sur une lettre déjà en place, on montre la prochaine case à trouver :
+ * c'est là qu'ira la prochaine lettre nouvelle. Retaper la lettre en place reste permis (elle ne fait
+ * qu'avancer), sans ambiguïté possible : une même lettre porte toujours le même numéro, donc la case
+ * montrée attend forcément une autre lettre.
+ */
+export function shownSel(s: GameState): Sel | null {
+  if (!s.sel) return null;
+  const code = codeAt(s.puzzle, s.sel);
+  if (code === null || !isCorrect(s, code)) return s.sel;
+  const next = nextOpen(s, s.sel);
+  if (next) return next;
+  // Mot déjà complet : une lettre nouvelle partira au début du mot suivant encore à trouver.
+  if (s.sel.kind === 'word') {
+    const w = nextUnsolved(s, s.sel.w);
+    if (w !== null) {
+      const start: Sel = { kind: 'word', w, i: 0 };
+      return isCorrect(s, s.puzzle.words[w].codes[0]) ? (nextOpen(s, start) ?? start) : start;
+    }
+  }
+  return firstOpen(s) ?? s.sel;
+}
+
 /** Saisie au clavier du joueur (le rejeu, lui, passe directement par typeLetter). */
 export function typeFlow(s: GameState, letter: string, now = Date.now()): GameState {
   const sel = flowTarget(s, letter);
@@ -231,9 +265,11 @@ export function typeLetter(s: GameState, letter: string, now = Date.now()): Game
   return finish({ ...next, sel }, now);
 }
 
+/** Efface la case montrée comme curseur (jamais une lettre juste que le curseur enjambe). */
 export function erase(s: GameState): GameState {
-  if (isOver(s) || !s.sel) return s;
-  const code = codeAt(s.puzzle, s.sel);
+  const sel = shownSel(s);
+  if (isOver(s) || !sel) return s;
+  const code = codeAt(s.puzzle, sel);
   if (code === null || s.locked[code]) return s;
   const guesses = { ...s.guesses };
   delete guesses[code];
@@ -249,11 +285,16 @@ export function revealCode(s: GameState, code: number, now = Date.now()): GameSt
 }
 
 /** Révèle la lettre de la case sélectionnée (ou la première manquante). */
+/** Révèle la case montrée comme curseur, ou à défaut la première case encore à trouver : l'indice payé sert toujours. */
 export function revealSelected(s: GameState, now = Date.now()): GameState {
-  const sel = s.sel ?? firstEmpty(s);
-  if (!sel) return s;
-  const code = codeAt(s.puzzle, sel);
-  if (code === null || isCorrect(s, code)) return s;
+  if (isOver(s)) return s;
+  let sel = shownSel({ ...s, sel: s.sel ?? firstEmpty(s) });
+  let code = sel ? codeAt(s.puzzle, sel) : null;
+  if (!sel || code === null || isCorrect(s, code)) {
+    sel = firstOpen(s);
+    code = sel ? codeAt(s.puzzle, sel) : null;
+  }
+  if (!sel || code === null) return s;
   return revealCode({ ...s, sel }, code, now);
 }
 

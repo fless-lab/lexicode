@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Puzzle } from '../engine/types';
 import {
-  initGame, select, typeLetter, typeFlow, flowTarget, erase, revealSelected, revealWord, codeAt, isCorrect, isWrong,
+  initGame, select, typeLetter, typeFlow, flowTarget, shownSel, erase, revealSelected, revealWord, codeAt, isCorrect, isWrong,
   wordSolved, progress, usedLetters, computeScore, stars, oracleSearch, wordPattern, failGame,
   livesLeft, isOver, addShield, revealPhraseLetters, selFor, type GameState, type Sel,
 } from '../engine/game';
@@ -187,8 +187,10 @@ export function Play(props: Props) {
     return { letters: [...(withRepeat?.answer ?? '')], codes, shown };
   }, [puzzle]);
 
-  const selCode = g.sel ? codeAt(puzzle, g.sel) : null;
-  const selWord = g.sel?.kind === 'word' ? g.sel.w : null;
+  // Le curseur affiché enjambe les lettres déjà en place (la saisie accepte encore qu'on les retape).
+  const shown = useMemo(() => shownSel(g), [g]);
+  const selCode = shown ? codeAt(puzzle, shown) : null;
+  const selWord = shown?.kind === 'word' ? shown.w : null;
   const used = useMemo(() => usedLetters(g), [g]);
   const lexicon = useMemo(() => PACKS[puzzle.lang].entries.map((e) => e.w), [puzzle.lang]);
 
@@ -367,7 +369,7 @@ export function Play(props: Props) {
               const c = puzzle.phrase[i];
               if (c.kind === 'sep') return <span className="psep" key={i}>{c.ch}</span>;
               const sel: Sel = { kind: 'phrase', i };
-              const isSel = g.sel?.kind === 'phrase' && g.sel.i === i;
+              const isSel = shown?.kind === 'phrase' && shown.i === i;
               const good = isCorrect(g, c.code);
               const idx = li++;
               const fogged = !!puzzle.mods?.fog && !good && !puzzle.given.includes(c.code);
@@ -426,7 +428,7 @@ export function Play(props: Props) {
                 <div className="wcells">
                   {w.codes.map((code, ci) => {
                     const sel: Sel = { kind: 'word', w: wi, i: ci };
-                    const isSel = g.sel?.kind === 'word' && g.sel.w === wi && g.sel.i === ci;
+                    const isSel = shown?.kind === 'word' && shown.w === wi && shown.i === ci;
                     const inked = !!puzzle.mods?.ink?.includes(code) && !isCorrect(g, code) && !g.failed;
                     return (
                       <button key={ci} style={{ '--j': ci, '--mate': marks[code] } as React.CSSProperties} className={cellClass(code, isSel, solved) + (inked ? ' inked' : '')} onClick={() => { sfx.tap(); setG((s) => select(s, sel)); }}>
