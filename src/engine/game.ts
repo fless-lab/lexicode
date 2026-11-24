@@ -100,25 +100,78 @@ function firstEmpty(s: GameState): Sel | null {
   return i >= 0 ? { kind: 'phrase', i } : null;
 }
 
-/** Case suivante à remplir après une saisie. */
+/**
+ * Case suivante après une saisie. Dans un mot, le curseur avance d'une case sans sauter les lettres
+ * déjà trouvées : on peut taper le mot en entier. En fin de mot, il revient sur une case encore
+ * fausse du mot, sinon il passe au début du mot suivant non résolu.
+ */
 function advance(s: GameState, from: Sel): Sel | null {
+  const p = s.puzzle;
+  if (from.kind === 'word') {
+    const codes = p.words[from.w].codes;
+    if (from.i + 1 < codes.length) return { kind: 'word', w: from.w, i: from.i + 1 };
+    const open = codes.findIndex((c) => !isCorrect(s, c));
+    if (open >= 0) return { kind: 'word', w: from.w, i: open };
+    const w = nextUnsolved(s, from.w);
+    return w !== null ? { kind: 'word', w, i: 0 } : firstEmpty(s);
+  }
+  for (let k = from.i + 1; k < p.phrase.length; k++) {
+    const c = p.phrase[k];
+    if (c.kind === 'letter') return { kind: 'phrase', i: k };
+  }
+  return firstEmpty(s);
+}
+
+function nextUnsolved(s: GameState, from: number): number | null {
+  const p = s.puzzle;
+  for (let d = 1; d <= p.words.length; d++) {
+    const w = (from + d) % p.words.length;
+    if (p.words[w].codes.some((c) => !isCorrect(s, c))) return w;
+  }
+  return null;
+}
+
+/** Prochaine case encore à trouver dans le même mot (ou la phrase), après la case donnée, puis depuis le début. */
+function nextOpen(s: GameState, from: Sel): Sel | null {
   const p = s.puzzle;
   if (from.kind === 'word') {
     const codes = p.words[from.w].codes;
     for (let k = from.i + 1; k < codes.length; k++) if (!isCorrect(s, codes[k])) return { kind: 'word', w: from.w, i: k };
     for (let k = 0; k < from.i; k++) if (!isCorrect(s, codes[k])) return { kind: 'word', w: from.w, i: k };
-    for (let d = 1; d <= p.words.length; d++) {
-      const w = (from.w + d) % p.words.length;
-      const i = p.words[w].codes.findIndex((c) => !isCorrect(s, c));
-      if (i >= 0) return { kind: 'word', w, i };
-    }
-    return firstEmpty(s);
+    return null;
   }
   for (let k = from.i + 1; k < p.phrase.length; k++) {
     const c = p.phrase[k];
     if (c.kind === 'letter' && !isCorrect(s, c.code)) return { kind: 'phrase', i: k };
   }
-  return firstEmpty(s);
+  return null;
+}
+
+/**
+ * Case où ira la lettre tapée. Sur une case déjà trouvée, une autre lettre veut dire que le joueur
+ * saute cette case : elle part dans la prochaine case encore à trouver du mot.
+ */
+export function flowTarget(s: GameState, letter: string): Sel | null {
+  if (isOver(s) || !s.sel) return null;
+  let sel: Sel = s.sel;
+  const p = s.puzzle;
+  const code = codeAt(p, sel);
+  if (code === null || letter === p.codeToLetter[code] || !isCorrect(s, code)) return sel;
+  // Mot déjà complet et lettre qui ne suit pas : le joueur attaque le mot suivant, depuis son début.
+  if (sel.kind === 'word' && p.words[sel.w].codes.every((c) => isCorrect(s, c))) {
+    const w = nextUnsolved(s, sel.w);
+    if (w === null) return sel;
+    sel = { kind: 'word', w, i: 0 };
+    const c0 = p.words[w].codes[0];
+    if (letter === p.codeToLetter[c0] || !isCorrect(s, c0)) return sel;
+  }
+  return nextOpen(s, sel) ?? sel;
+}
+
+/** Saisie au clavier du joueur (le rejeu, lui, passe directement par typeLetter). */
+export function typeFlow(s: GameState, letter: string, now = Date.now()): GameState {
+  const sel = flowTarget(s, letter);
+  return sel ? typeLetter({ ...s, sel }, letter, now) : s;
 }
 
 function finish(s: GameState, now: number): GameState {

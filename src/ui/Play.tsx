@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Puzzle } from '../engine/types';
 import {
-  initGame, select, typeLetter, erase, revealSelected, revealWord, codeAt, isCorrect, isWrong,
+  initGame, select, typeLetter, typeFlow, flowTarget, erase, revealSelected, revealWord, codeAt, isCorrect, isWrong,
   wordSolved, progress, usedLetters, computeScore, stars, oracleSearch, wordPattern, failGame,
   livesLeft, isOver, addShield, revealPhraseLetters, selFor, type GameState, type Sel,
 } from '../engine/game';
@@ -195,10 +195,11 @@ export function Play(props: Props) {
   const press = (l: string) => {
     if (tuto >= 0 || props.keysLocked) return;
     sfx.key();
-    const mc = g.sel ? codeAt(puzzle, g.sel) : null;
+    const target = flowTarget(g, l);
+    const mc = target ? codeAt(puzzle, target) : null;
     if (props.onMove && mc !== null && !isOver(g)) props.onMove(mc, l);
     setG((s) => {
-      const next = typeLetter(s, l);
+      const next = typeFlow(s, l);
       if (next.mistakes > s.mistakes) {
         setShake(true);
         setTimeout(() => setShake(false), 340);
@@ -408,7 +409,7 @@ export function Play(props: Props) {
             const blot = !solved && !!props.blotted?.includes(wi);
             return (
               <div key={wi} className={`wrow ${selWord === wi ? 'active' : ''} ${solved ? 'done' : ''} ${flashWord === wi ? 'pop' : ''} ${sealed ? 'sealed' : ''} ${blot ? 'blot' : ''}`}>
-                <div className="clue">
+                <div className="clue" onClick={() => { if (!solved && !sealed && !isOver(g)) { sfx.tap(); setG((s) => select(s, { kind: 'word', w: wi, i: 0 })); } }}>
                   {sealed ? (
                     <span className="sealedclue"><Icon name="lock" size={14} />{t.chainLocked}</span>
                   ) : owner ? (
