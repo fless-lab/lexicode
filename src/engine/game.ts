@@ -90,11 +90,14 @@ export function progress(s: GameState): number {
   return cells.length ? ok / cells.length : 0;
 }
 
+/**
+ * Premier mot encore à trouver, curseur sur sa première case (même si elle est déjà donnée) : le joueur
+ * tape le mot depuis le début, et la saisie enjambe ensuite les lettres déjà en place.
+ */
 function firstEmpty(s: GameState): Sel | null {
   const p = s.puzzle;
   for (let w = 0; w < p.words.length; w++) {
-    const i = p.words[w].codes.findIndex((c) => !isCorrect(s, c));
-    if (i >= 0) return { kind: 'word', w, i };
+    if (p.words[w].codes.some((c) => !isCorrect(s, c))) return { kind: 'word', w, i: 0 };
   }
   const i = p.phrase.findIndex((c) => c.kind === 'letter' && !isCorrect(s, c.code));
   return i >= 0 ? { kind: 'phrase', i } : null;
