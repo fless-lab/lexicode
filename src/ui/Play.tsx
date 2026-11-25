@@ -78,6 +78,18 @@ export function fmt(ms: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
+/** Largeur à partir de laquelle on passe à la mise en page tablette (garder en phase avec styles.css). */
+export const TABLET = 700;
+/** Tablette en paysage : le clavier passe dans un panneau à droite. */
+const SIDE_DOCK = '(min-width: 1000px) and (orientation: landscape)';
+const DOCK_W = 440;
+
+/** Largeur disponible pour la grille. */
+function playWidth(vw: number): number {
+  if (vw >= TABLET && matchMedia(SIDE_DOCK).matches) return Math.min(vw, 1180) - DOCK_W;
+  return Math.min(vw, vw >= TABLET ? 760 : 520);
+}
+
 export function Play(props: Props) {
   const { puzzle, title, subtitle, t, tokens, premium, rules, deadline, boosters, useBooster, onFreeze, spend, onNeedTokens, onFinish, onFail, onMistake, onExit, overlay } = props;
   const perks = props.perks;
@@ -93,6 +105,13 @@ export function Play(props: Props) {
   const [oracle, setOracle] = useState<{ pattern: string; results: string[]; empty?: boolean } | null>(null);
   const [shake, setShake] = useState(false);
   const [flashWord, setFlashWord] = useState<number | null>(null);
+  // Rotation d'une tablette ou fenêtre redimensionnée : la taille des cases suit.
+  const [vw, setVw] = useState(() => window.innerWidth);
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
   const [tuto, setTuto] = useState(props.showTutorial ? 0 : -1);
   const [frozen, setFrozen] = useState<{ until: number; shown: number } | null>(null);
   const [bump, setBump] = useState(0);
@@ -204,8 +223,9 @@ export function Play(props: Props) {
       const r = el.getBoundingClientRect();
       const half = innerHeight / 2;
       const top = Math.max(0, ...[...root.querySelectorAll<HTMLElement>('.playbar, .race, .team, .rivals')].map((x) => x.getBoundingClientRect().bottom).filter((b) => b < half));
-      const dock = root.querySelector<HTMLElement>('.dock');
-      const bottom = dock ? dock.getBoundingClientRect().top : innerHeight;
+      // Sur tablette en paysage, le clavier est sur le côté : il ne masque rien en bas.
+      const dock = root.querySelector<HTMLElement>('.dock')?.getBoundingClientRect();
+      const bottom = dock && dock.top > half ? dock.top : innerHeight;
       const m = 12;
       let dy = 0;
       if (r.top < top + m) dy = r.top - top - m;
@@ -342,8 +362,8 @@ export function Play(props: Props) {
   const canFreeze = remaining !== null && !isFrozen;
   // Le mot le plus long doit tenir sur la largeur de l'écran.
   const longest = Math.max(...groups.map((gr) => gr.length));
-  const avail = Math.min(window.innerWidth, 520) - 28;
-  const base = puzzle.cryptogram ? 34 : 30;
+  const avail = playWidth(vw) - 28;
+  const base = (puzzle.cryptogram ? 34 : 30) + (vw >= TABLET ? 10 : 0);
   const cw = Math.max(20, Math.min(base, Math.floor((avail - (longest - 1) * 3) / longest)));
   const showBoosters = rules.boosters && !isOver(g);
   let li = 0;

@@ -231,11 +231,13 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
   });
 
   return (
-    <div className="screen">
+    <div className="screen home">
       <StatusBar t={t} save={save} day={day} go={go} />
 
       {event && <EventBanner ev={event} lang={lang} day={day} save={save} open={() => go('event')} />}
 
+      {/* Sur tablette en paysage, l'accueil passe sur deux colonnes ; ailleurs ces blocs restent transparents. */}
+      <div className="hcol">
       <section className="hero" aria-label={t.dailyHero}>
         <Scene kind={(save.equip.decor as 'home') ?? 'home'} decor={event?.decor === 'xmas' ? 'xmas' : null} />
         <HeroLoupi />
@@ -285,7 +287,9 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
       )}
 
       <AdventureCard t={t} save={save} lang={lang} onStart={onStart} open={() => go('adventure')} />
+      </div>
 
+      <div className="hcol">
       <section className="tiles" aria-label={t.arena}>
         <button className="tile t-violet" onClick={() => go('arena')}>
           <Icon name="flag" size={34} />
@@ -358,6 +362,7 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
           </div>
         </div>
       </section>
+      </div>
     </div>
   );
 }

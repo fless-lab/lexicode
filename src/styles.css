@@ -1384,3 +1384,76 @@ button.ptag { cursor: pointer; }
 .streaksheet .small { text-align: center; }
 .streaksheet .row { flex-direction: column; }
 .sk-stats small::first-letter { text-transform: uppercase; }
+
+/* ---------- Tablette ---------- */
+/* Seuils à garder en phase avec TABLET et SIDE_DOCK dans ui/Play.tsx. */
+.hcol { display: contents; }
+
+@media (min-width: 700px) {
+  .app { max-width: 760px; }
+  .tabs, .dock { max-width: 760px; }
+  .screen { padding: 22px 32px 130px; gap: 30px; }
+  .tab { font-size: 13px; gap: 4px; }
+  /* Les fenêtres s'ouvrent au centre plutôt qu'en bas de l'écran. */
+  .modal { align-items: center; padding: 24px; }
+  .sheet { max-width: 560px; border-radius: 26px; border: 1px solid var(--line); }
+  .toasts { max-width: 520px; }
+  .hero .scene { height: 190px; }
+  .tile { min-height: 150px; }
+  .tiles { grid-template-columns: repeat(4, 1fr); }
+  .tile.t-wide { grid-column: span 2; }
+
+  /* Jeu : cases, indices et clavier à la taille du doigt sur grand écran. */
+  .play { padding-bottom: 320px; }
+  .playbar { padding: 14px 24px 10px; }
+  .playbar .t1 { font-size: 21px; }
+  .words { padding: 6px 24px; gap: 4px; }
+  .wrow { padding: 12px 16px; }
+  .clue { font-size: 17px; margin-bottom: 9px; }
+  .wcells { gap: 5px; }
+  .words .cell, .words .cell .l { width: 42px; }
+  .words .cell .l { height: 50px; font-size: 27px; }
+  .cell .n { font-size: 13px; }
+  .dock { padding: 14px 16px calc(18px + env(safe-area-inset-bottom)); }
+  .tools { gap: 10px; margin-bottom: 12px; }
+  .tool { height: 50px; font-size: 15px; border-radius: 14px; }
+  .kb { gap: 12px; }
+  .kbrow { gap: 9px; }
+  .key { max-width: 60px; height: 62px; font-size: 25px; }
+  .key.wide { max-width: 90px; }
+}
+
+@media (min-width: 1000px) and (orientation: landscape) {
+  .app { max-width: 1180px; }
+  /* Onglets : barre latérale à gauche. */
+  .app:has(> .tabs) { padding-left: 104px; }
+  .tabs {
+    top: 0; bottom: 0; left: max(0px, calc(50% - 590px)); transform: none; width: 104px; max-width: none;
+    grid-template-columns: 1fr; grid-auto-rows: min-content; align-content: center; gap: 14px;
+    padding: env(safe-area-inset-top) 8px env(safe-area-inset-bottom) calc(8px + env(safe-area-inset-left));
+    border-top: 0; border-right: 1px solid var(--line);
+  }
+  .tab { padding: 10px 0; }
+  .tab.on::before { top: 50%; left: -8px; width: 3px; height: 28px; transform: translateY(-50%); border-radius: 0 3px 3px 0; }
+  .screen { padding-bottom: 40px; }
+
+  /* Accueil sur deux colonnes. */
+  .screen.home { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: 28px 32px; }
+  .screen.home > :not(.hcol) { grid-column: 1 / -1; }
+  .screen.home > .hcol { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+  .screen.home .tiles { grid-template-columns: 1fr 1fr; }
+  .screen.home .tile.t-wide { grid-column: auto; }
+
+  /* Jeu : la grille à gauche, le clavier dans un panneau à droite. */
+  .play { padding-bottom: 40px; padding-right: 440px; }
+  .dock {
+    top: 0; bottom: 0; left: auto; right: max(0px, calc(50% - 590px)); transform: none; width: 440px; max-width: none;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 20px 18px calc(20px + env(safe-area-inset-bottom)) 18px;
+    border-top: 0; border-left: 1px solid var(--line); border-radius: 0;
+    box-shadow: -18px 0 40px -24px rgba(0,0,0,.7);
+  }
+  .tools { flex-wrap: wrap; }
+  .key { height: 64px; }
+  .playbar { padding-right: 24px; }
+}
