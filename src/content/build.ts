@@ -13,6 +13,9 @@ import { LEX_FR_MORE, EXTRA_FR } from './lex-fr-2';
 import { LEX_EN_MORE, EXTRA_EN } from './lex-en-2';
 import { LEX_ES_MORE, EXTRA_ES } from './lex-es-2';
 import { applyReview } from './review';
+import { LEX_FR_NEW } from './lex-fr-3';
+import { LEX_EN_NEW } from './lex-en-3';
+import { LEX_ES_NEW } from './lex-es-3';
 
 /** Lit un lexique « MOT|facile|moyen|malin ». */
 export function parseLex(src: string): Entry[] {
@@ -65,9 +68,9 @@ function sources(base: LangPack, lex: string, extras = ''): Entry[] {
 /** Entrées brutes (avant validation) : le vérificateur s'assure que chaque indice a été relu. */
 export function sourceEntries(): Record<Lang, Entry[]> {
   return {
-    fr: sources(fr, LEX_FR + LEX_FR_MORE, EXTRA_FR),
-    en: sources(en, LEX_EN + LEX_EN_MORE, EXTRA_EN),
-    es: sources(es, LEX_ES + LEX_ES_MORE, EXTRA_ES),
+    fr: sources(fr, LEX_FR + LEX_FR_MORE + LEX_FR_NEW, EXTRA_FR),
+    en: sources(en, LEX_EN + LEX_EN_MORE + LEX_EN_NEW, EXTRA_EN),
+    es: sources(es, LEX_ES + LEX_ES_MORE + LEX_ES_NEW, EXTRA_ES),
   };
 }
 
@@ -87,9 +90,9 @@ function build(base: LangPack, lex: string, extras = ''): LangPack {
  */
 export function buildPacks(): Record<Lang, LangPack> {
   return {
-    fr: build(fr, LEX_FR + LEX_FR_MORE, EXTRA_FR),
-    en: build(en, LEX_EN + LEX_EN_MORE, EXTRA_EN),
-    es: build(es, LEX_ES + LEX_ES_MORE, EXTRA_ES),
+    fr: build(fr, LEX_FR + LEX_FR_MORE + LEX_FR_NEW, EXTRA_FR),
+    en: build(en, LEX_EN + LEX_EN_MORE + LEX_EN_NEW, EXTRA_EN),
+    es: build(es, LEX_ES + LEX_ES_MORE + LEX_ES_NEW, EXTRA_ES),
   };
 }
 
