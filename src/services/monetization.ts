@@ -64,5 +64,5 @@ export const billing: BillingService = {
 };
 
 /** Coûts en jetons. */
-export const COST = { letter: 1, oracle: 1, word: 3 } as const;
+export const COST = { letter: 2, oracle: 2, word: 5 } as const;
 export const REWARD = { daily: 3, level: 1, levelPerfect: 2, ad: 2, chest: [1, 2, 2, 3, 5] } as const;

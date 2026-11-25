@@ -348,8 +348,9 @@ export function computeScore(s: GameState): number {
 
 export function stars(s: GameState): 1 | 2 | 3 {
   const sc = computeScore(s);
-  if (sc >= 850 && s.hints === 0 && s.mistakes <= 1) return 3;
-  if (sc >= 550) return 2;
+  // Trois étoiles : sans indice ni erreur, et assez vite. Deux étoiles : une partie propre.
+  if (sc >= 900 && s.hints === 0 && s.mistakes === 0) return 3;
+  if (sc >= 650) return 2;
   return 1;
 }
 

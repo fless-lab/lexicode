@@ -44,14 +44,18 @@ export interface GameEvent {
   words?: number;
 }
 
+/**
+ * XP d'une partie. La difficulté pèse davantage que le score : une grille facile bien jouée
+ * rapporte moins qu'une grille difficile, et les indices coûtent de l'XP en plus des jetons.
+ */
 export function xpFor(e: GameEvent): number {
-  if (e.kind === 'marathon') return 20 + (e.run ?? 0) * 35;
+  if (e.kind === 'marathon') return 15 + (e.run ?? 0) * 25;
   // Expédition : chaque étage franchi rapporte un peu ; la fin de descente rapporte selon la profondeur.
-  if (e.kind === 'expedition') return e.won ? 12 + e.d * 4 : 20 + (e.run ?? 0) * 30;
-  if (!e.won) return 8;
-  const base = Math.round(e.score / 18) + e.d * 6;
-  const bonus: Partial<Record<ModeKind, number>> = { daily: 40, sudden: 25, hardcore: 80, timeattack: 15, survival: 10 };
-  return base + (bonus[e.kind] ?? 0) + (e.boss ? 40 : 0) + (e.stars === 3 ? 15 : 0);
+  if (e.kind === 'expedition') return e.won ? 8 + e.d * 3 : 15 + (e.run ?? 0) * 20;
+  if (!e.won) return 5;
+  const base = Math.round(e.score / 30) + e.d * 8 - Math.min(10, e.hints * 3);
+  const bonus: Partial<Record<ModeKind, number>> = { daily: 30, sudden: 20, hardcore: 60, timeattack: 12, survival: 8 };
+  return Math.max(5, base + (bonus[e.kind] ?? 0) + (e.boss ? 30 : 0) + (e.stars === 3 ? 12 : 0));
 }
 
 // ---------- Ligues hebdomadaires ----------
