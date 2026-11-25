@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import type { Difficulty, Lang, PhraseCell, Puzzle } from '../engine/types';
 import { PACKS, LANGS, detectLang } from '../content';
 import { STRINGS, COUNTRIES, type Strings } from '../i18n';
-import { liveStreak, emptySave, today, type Save } from '../storage';
+import { liveStreak, emptySave, today, practiceDifficulty, type Save } from '../storage';
 import { ranking, type RankRow, type Scope } from '../services/ranking';
 import { billing, REWARD } from '../services/monetization';
 import { rngFromSeed } from '../engine/rng';
@@ -208,6 +208,8 @@ interface HomeProps {
 export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQuest, claimQuestBonus, toast, event }: HomeProps) {
   const done = save.daily[lang]?.[day];
   const plv = playerLevel(save.xp);
+  // L'entraînement suit le niveau réel du joueur.
+  const practiceD = practiceDifficulty(save.rating);
   const quests = questsFor(day);
   const qs = freshQuests(day, save.quests);
   const allDone = quests.every((q) => qs.claimed.includes(q.id));
@@ -315,9 +317,9 @@ export function Home({ t, save, day, lang, daily, onStart, go, setSave, claimQue
           <Icon name="users" size={30} />
           <span><b>{MULTI_STRINGS[lang].hub}</b><small>{lang === 'fr' ? 'Duel, salon et enquête' : lang === 'es' ? 'Duelo, sala e investigación' : 'Duel, room and case'}</small></span>
         </button>
-        <button className="tile t-wide t-blue" onClick={() => onStart({ kind: 'practice', d: 2, nonce: String(Date.now()) })}>
+        <button className="tile t-wide t-blue" onClick={() => onStart({ kind: 'practice', d: practiceD, nonce: String(Date.now()) })}>
           <Icon name="target" size={30} />
-          <span><b>{t.practice}</b><small>{t.d[2]}</small></span>
+          <span><b>{t.practice}</b><small>{t.d[practiceD]}</small></span>
         </button>
       </section>
 

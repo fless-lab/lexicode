@@ -2,7 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } fro
 import type { Lang } from './engine/types';
 import { PACKS } from './content';
 import { STRINGS } from './i18n';
-import { loadSave, persist, today, bumpStreak, liveStreak, updateRating, bumpRecord, type Save } from './storage';
+import { loadSave, persist, today, bumpStreak, liveStreak, updateRating, bumpRecord, markSeen, type Save } from './storage';
 import { ranking } from './services/ranking';
 import { ads, REWARD } from './services/monetization';
 import { Play, fmt, type FinishInfo } from './ui/Play';
@@ -72,9 +72,8 @@ interface Toast {
 const MULTI_PAID = 3;
 const LEVEL_UP_TOKENS = 2;
 
-/** Mots des dernières grilles d'entraînement de la session : la suivante ne les ressert pas. */
-const recentWords: string[] = [];
-const RECENT_WORDS = 30;
+/** Part du lexique que l'entraînement évite parmi les mots déjà vus (au-delà, la grille aurait du mal à se construire). */
+const AVOID_SHARE = 0.6;
 
 const TAB_SCREENS: Screen[] = ['home', 'arena', 'season', 'ranking', 'profile'];
 const PREVIEWS: Screen[] = [...TAB_SCREENS, 'album', 'league', 'settings', 'premium', 'adventure', 'shop', 'wardrobe', 'event', 'packs', 'archive'];
@@ -199,10 +198,10 @@ export default function App() {
   }, [day]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const puzzle = useMemo(() => (mode ? puzzleFor(pack, mode) : null), [mode, pack]);
+  // Chaque grille jouée enrichit la liste des mots déjà vus : l'entraînement ira chercher les autres.
   useEffect(() => {
-    if (puzzle && (mode?.kind === 'practice' || mode?.kind === 'zen')) recentWords.push(...puzzle.words.map((w) => w.answer));
-    if (recentWords.length > 4 * RECENT_WORDS) recentWords.splice(0, recentWords.length - RECENT_WORDS);
-  }, [puzzle, mode?.kind]);
+    if (puzzle?.words.length) setSave((s) => markSeen(s, puzzle.lang, puzzle.words.map((w) => w.answer)));
+  }, [puzzle]); // eslint-disable-line react-hooks/exhaustive-deps
   const rules = useMemo(() => (mode ? rulesFor(mode) : null), [mode]);
 
   const start = (m: Mode, skipIntro = false) => {
@@ -230,7 +229,8 @@ export default function App() {
     launch(m);
   };
   const launch = (m0: Mode) => {
-    const m = m0.kind === 'practice' || m0.kind === 'zen' ? { ...m0, avoid: recentWords.slice(-RECENT_WORDS) } : m0;
+    const avoidN = Math.floor(pack.entries.length * AVOID_SHARE);
+    const m = m0.kind === 'practice' || m0.kind === 'zen' ? { ...m0, avoid: (saveRef.current.seen[lang] ?? []).slice(-avoidN) } : m0;
     const r = rulesFor(m);
     setMode(m);
     setEnd(null);

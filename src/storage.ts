@@ -55,6 +55,8 @@ export interface Save {
   starterBought: boolean;
   /** Jeu à plusieurs : jetons gagnés limités à quelques parties par jour (pas de ferme à jetons). */
   multi: { day: string; paid: number };
+  /** Mots déjà rencontrés en partie libre, par langue, du plus ancien au plus récent. */
+  seen: Record<string, string[]>;
 }
 
 export interface ModeRecord {
@@ -105,6 +107,7 @@ export function emptySave(): Save {
     packs: {},
     starterBought: false,
     multi: { day: '', paid: 0 },
+    seen: {},
   };
 }
 
@@ -273,6 +276,7 @@ export function sanitize(input: unknown, strict = false): { save: Save; fixes: n
     packs: dict(p.packs, objOr((x) => dict(x, numOrDrop))),
     starterBought: bool(p.starterBought, d.starterBought),
     multi: strict ? d.multi : { day: str(multi.day, d.multi.day), paid: num(multi.paid, d.multi.paid) },
+    seen: dict(p.seen, (x) => (Array.isArray(x) ? list(x, [], isStr).slice(-SEEN_MAX) : undefined)),
   };
   // Emplacements facultatifs : absents plutôt qu'à undefined, comme dans une sauvegarde d'origine.
   for (const k of ['hat', 'back', 'frame', 'title'] as const) if (save.equip[k] === undefined) delete save.equip[k];
@@ -456,6 +460,24 @@ export function bumpRecord(s: Save, lang: string, key: string, won: boolean, sco
 }
 
 /** Indice de réflexion façon Elo : gagner une grille difficile rapporte plus. */
+/** Mots retenus par langue : au-delà, les plus anciens peuvent revenir. */
+export const SEEN_MAX = 800;
+
+/** Ajoute les mots d'une grille à ceux déjà vus (sans doublon, le plus récent en dernier). */
+export function markSeen(s: Save, lang: string, words: string[]): Save {
+  const now = new Set(words);
+  const prev = (s.seen[lang] ?? []).filter((w) => !now.has(w));
+  return { ...s, seen: { ...s.seen, [lang]: [...prev, ...words].slice(-SEEN_MAX) } };
+}
+
+/**
+ * Difficulté de l'entraînement d'après l'indice de réflexion : celle dont la cote est la plus proche.
+ * Un joueur à 1000 (départ) reste en Normal ; il monte ou descend avec ses résultats.
+ */
+export function practiceDifficulty(rating: number): 1 | 2 | 3 | 4 | 5 {
+  return Math.min(5, Math.max(1, Math.round((rating - 700) / 150))) as 1 | 2 | 3 | 4 | 5;
+}
+
 export function updateRating(rating: number, puzzleRating: number, score: number): number {
   const expected = 1 / (1 + Math.pow(10, (puzzleRating - rating) / 400));
   const perf = Math.min(1, score / 1000);
