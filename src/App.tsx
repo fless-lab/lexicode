@@ -20,6 +20,8 @@ import { OutfitCtx } from './ui/mascot';
 import { grant as grantItems, grantUnlocks, outfitOf, item as catItem } from './catalog';
 import { loadPrices, entitlements } from './services/billing';
 import { SHOP_STRINGS, fmtS } from './i18n-shop';
+import { FRIEND_STRINGS } from './i18n-friends';
+import { decodeMessage } from './friendMessage';
 import { EVENTS } from './events';
 import { RANKED } from './modes';
 import { apiEnabled, openGame, finishGame, syncProfile, ensureSession, friends } from './services/api';
@@ -110,6 +112,11 @@ export default function App() {
   /** Lien ?ami=CODE : la demande d'ami part à l'ouverture de l'écran Amis. */
   const [friendLink, setFriendLink] = useState(() => new URLSearchParams(location.search).get('ami') ?? undefined);
   const [friendRequests, setFriendRequests] = useState(0);
+  /** Lien ?msg=… : message chiffré d'un ami, ouvert directement en partie. */
+  const [incomingMsg, setIncomingMsg] = useState(() => {
+    const raw = new URLSearchParams(location.search).get('msg');
+    return raw === null ? undefined : decodeMessage(raw);
+  });
   const saveRef = useRef(save);
   saveRef.current = save;
 
@@ -228,6 +235,14 @@ export default function App() {
     }
     launch(m);
   };
+  // Message chiffré reçu par lien : la partie s'ouvre dès que la langue est choisie.
+  useEffect(() => {
+    if (incomingMsg === undefined || !save.lang) return;
+    history.replaceState(null, '', location.pathname);
+    setIncomingMsg(undefined);
+    if (!incomingMsg) return toast(FRIEND_STRINGS[save.lang].msgBad, 'info', 'flag');
+    start({ kind: 'message', d: 2, nonce: 'msg', msg: incomingMsg });
+  }, [incomingMsg, save.lang]); // eslint-disable-line react-hooks/exhaustive-deps
   const launch = (m0: Mode) => {
     const avoidN = Math.floor(pack.entries.length * AVOID_SHARE);
     const m = m0.kind === 'practice' || m0.kind === 'zen' ? { ...m0, avoid: (saveRef.current.seen[lang] ?? []).slice(-avoidN) } : m0;
@@ -317,6 +332,12 @@ export default function App() {
   const onFinish = (info: FinishInfo) => {
     if (!mode || !puzzle || !rules) return;
     const s0 = saveRef.current;
+
+    // Message d'un ami : ni XP, ni jetons, ni cote (sinon on pourrait se fabriquer des grilles faciles).
+    if (mode.kind === 'message') {
+      setEnd({ type: 'win', score: info.score, stars: info.stars, ms: info.ms, mistakes: info.mistakes, hints: info.hints, timeBonus: 0, ratingDelta: 0, record: false, xp: 0, maxCombo: info.maxCombo, assisted: false });
+      return;
+    }
 
     if (mode.kind === 'marathon') {
       marathonLogs.current.push(info.log);
@@ -412,6 +433,10 @@ export default function App() {
   const onFail = (reason: 'time' | 'mistakes', info: FinishInfo) => {
     if (!mode || !puzzle) return;
     const s0 = saveRef.current;
+    if (mode.kind === 'message') {
+      setEnd({ type: 'fail', score: 0, stars: 0, ms: info.ms, mistakes: info.mistakes, hints: info.hints, timeBonus: 0, ratingDelta: 0, record: false, xp: 0, maxCombo: info.maxCombo, reason });
+      return;
+    }
     if (mode.kind === 'expedition') {
       const run = mode.exp!;
       const depth = run.depth;
@@ -531,6 +556,7 @@ export default function App() {
     if (m.kind === 'pack') return `${catItem(`pack:${m.ref}`)?.name[lang] ?? ''} ${(m.idx ?? 0) + 1}`;
     if (m.kind === 'archive') return `${SHOP_STRINGS[lang].archives}, ${new Date(m.date!).toLocaleDateString(lang, { day: 'numeric', month: 'long' })}`;
     if (m.kind === 'expedition') return floorName(lang, makeFloor(m.exp!.seed, m.exp!.depth));
+    if (m.kind === 'message') return fmtS(FRIEND_STRINGS[lang].msgFrom, { n: m.msg?.f || FRIEND_STRINGS[lang].msgSomeone });
     return (t[`mode_${m.kind}` as 'mode_zen'] as string[])[0];
   };
   const title = mode ? modeName(mode) : '';
@@ -544,6 +570,8 @@ export default function App() {
         ? [STORY[lang].chapters[levelI.chapter].name, t.d[puzzle.difficulty]]
         : mode?.kind === 'marathon'
       ? [t.d[marathonDifficulty(mode.run ?? 0)], `${mode.run ?? 0} ${t.grids}`]
+      : mode?.kind === 'message'
+      ? [t.d[puzzle.difficulty]]
       : [t.d[puzzle.difficulty], (t[`cat_${puzzle.category}` as 'cat_fact'] as string) ?? puzzle.category];
 
   const goHome = () => {
@@ -625,7 +653,7 @@ export default function App() {
           </div>
         )}
         <div className="gains">
-          <span className="gain xp"><Icon name="sparkle" size={14} />+{end.xp} {t.xp}</span>
+          {mode.kind !== 'message' && <span className="gain xp"><Icon name="sparkle" size={14} />+{end.xp} {t.xp}</span>}
           {end.timeBonus > 0 && <span className="gain time"><Icon name="hourglass" size={14} />+{end.timeBonus}</span>}
           {end.ratingDelta !== 0 && (
             <span className={`gain ${end.ratingDelta >= 0 ? 'up' : 'down'}`}><Icon name="brain" size={14} />{t.ratingLabel} {save.rating} ({end.ratingDelta >= 0 ? '+' : ''}{end.ratingDelta})</span>
@@ -643,6 +671,8 @@ export default function App() {
               if (idx >= max) { setEnd(null); setMode(null); setScreen(mode.kind === 'event' ? 'event' : 'packs'); return; }
               start({ ...mode, idx, d: mode.kind === 'event' ? eventDifficulty(idx) : mode.d, nonce: String(idx) });
             }}>{t.next}</button>
+          ) : end.type === 'win' && mode.kind === 'message' ? (
+            <button className="btn primary" onClick={() => { setEnd(null); setMode(null); setScreen('friends'); }}><Icon name="send" size={18} />{FRIEND_STRINGS[lang].msgReply}</button>
           ) : end.type === 'win' && mode.kind === 'level' ? (
             <button className="btn primary" onClick={nextLevel}>{levelI?.finale ? t.nextChapter : t.next}</button>
           ) : end.depth !== undefined ? (

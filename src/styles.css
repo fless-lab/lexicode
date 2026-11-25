@@ -1506,3 +1506,14 @@ button.ptag { cursor: pointer; }
   .key { height: 64px; }
   .playbar { padding-right: 24px; }
 }
+
+/* Message chiffré (écran Amis) */
+.msgbox { gap: 10px; }
+.msgbox h3 { display: flex; align-items: center; gap: 8px; }
+.msgbox textarea {
+  width: 100%; resize: none; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line);
+  background: var(--abyss); color: var(--bone); font: inherit; font-size: 16px; line-height: 1.35;
+}
+.msgbox textarea:focus { outline: 2px solid var(--brass-hi); outline-offset: 1px; }
+.msgrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.msgrow .err { color: var(--cinnabar); font-weight: 600; }

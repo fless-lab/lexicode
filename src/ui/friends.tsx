@@ -9,6 +9,8 @@ import { sfx } from '../sound';
 import { Icon } from './Icon';
 import { Avatar, fm } from './multi';
 import { Sub } from './screens';
+import { PACKS } from '../content/index';
+import { cleanMessage, encodeMessage, messageProblem, messagePuzzle, MSG_MAX } from '../friendMessage';
 
 type ToastFn = (text: string, kind?: 'info' | 'lvl' | 'ach', icon?: string, sub?: string) => void;
 
@@ -31,6 +33,38 @@ export function Friends({ lang, save, back, toast, initialCode, onCount }: {
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState<string | null>(null);
   const linkUsed = useRef(false);
+  const [msg, setMsg] = useState('');
+  const [msgErr, setMsgErr] = useState<string | null>(null);
+
+  // Message chiffré : on vérifie que la grille se construit avant de partager le lien.
+  const sendMessage = async () => {
+    const t = msg.trim();
+    if (messageProblem(t)) return setMsgErr(F.msgShort);
+    const m = { t, f: save.name.trim(), l: lang };
+    try {
+      messagePuzzle(PACKS[lang], m);
+    } catch {
+      return setMsgErr(F.msgFail);
+    }
+    setMsgErr(null);
+    const url = `${PUBLIC_URL}?msg=${encodeMessage(m)}`;
+    const text = fm(F.msgShare, { n: m.f || F.msgSomeone });
+    sfx.tap();
+    try {
+      if (navigator.share) {
+        await navigator.share({ text, url });
+        return;
+      }
+    } catch {
+      /* partage annulé */
+    }
+    try {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      toast(F.msgCopied, 'info', 'copy');
+    } catch {
+      /* presse-papiers indisponible */
+    }
+  };
 
   const load = async () => {
     try {
@@ -123,6 +157,21 @@ export function Friends({ lang, save, back, toast, initialCode, onCount }: {
   return (
     <Sub title={F.title} back={back} backLabel={t.back}>
       <p className="muted">{F.sub}</p>
+      <section className="sec msgbox">
+        <h3><Icon name="key" size={18} /> {F.msgTitle}</h3>
+        <p className="muted small">{F.msgSub}</p>
+        <textarea
+          value={msg}
+          rows={2}
+          maxLength={MSG_MAX}
+          placeholder={F.msgPh}
+          onChange={(e) => { setMsg(cleanMessage(e.target.value)); setMsgErr(null); }}
+        />
+        <div className="msgrow">
+          <small className={msgErr ? 'err' : 'muted'}>{msgErr ?? `${msg.length} / ${MSG_MAX}`}</small>
+          <button className="btn gold sm" disabled={!msg.trim()} onClick={() => void sendMessage()}><Icon name="send" size={16} /> {F.msgSend}</button>
+        </div>
+      </section>
       {offline ? (
         <p className="demo-note">{F.offline}</p>
       ) : (

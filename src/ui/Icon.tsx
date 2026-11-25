@@ -29,6 +29,7 @@ export const MODE_ICON: Record<string, string> = {
   zen: 'leaf',
   cryptogram: 'key',
   expedition: 'flag',
+  message: 'send',
 };
 
 export const BOOSTER_ICON: Record<string, string> = { freeze: 'snow', shield: 'shield', reveal: 'eye', double: 'double' };

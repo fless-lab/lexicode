@@ -1,6 +1,7 @@
 import type { Difficulty, LangPack, Puzzle } from './engine/types';
 import { dailyPuzzle, practicePuzzle, generatePuzzle, cryptogramPuzzle, reservedPuzzle } from './engine/generator';
-import { reservedIndices } from './content/index';
+import { reservedIndices, PACKS } from './content/index';
+import { messagePuzzle, type FriendMessage } from './friendMessage';
 import { levelInfo, adventurePuzzle, adventureLimits } from './chapters';
 import { makeFloor, floorPuzzle, count, type Run } from './expedition';
 
@@ -18,7 +19,8 @@ export type ModeKind =
   | 'expedition'
   | 'event'
   | 'pack'
-  | 'archive';
+  | 'archive'
+  | 'message';
 
 export interface Mode {
   kind: ModeKind;
@@ -35,6 +37,8 @@ export interface Mode {
   idx?: number;
   /** Entraînement et zen (modes non classés) : mots des dernières grilles, à ne pas resservir. */
   avoid?: string[];
+  /** Message chiffré reçu d'un ami. */
+  msg?: FriendMessage;
 }
 
 /** Modes classés : aucune aide payante n'y compte, une partie aidée sort du classement. */
@@ -129,6 +133,9 @@ export function puzzleFor(pack: LangPack, m: Mode): Puzzle {
       return cryptogramPuzzle(pack, m.nonce, m.d);
     case 'archive':
       return dailyPuzzle(pack, m.date!);
+    case 'message':
+      // Les mots indices sont pris dans la langue du message, pas dans celle du joueur.
+      return messagePuzzle(PACKS[m.msg!.l], m.msg!);
     case 'event':
     case 'pack': {
       const key = `${m.kind}:${m.ref}`;

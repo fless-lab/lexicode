@@ -28,6 +28,18 @@ const fr = {
   requests: '{n} demande(s) d\'ami',
   manage: 'Ajouter des amis',
   emptyBoard: 'Aucun ami sur ce classement pour l\'instant.',
+  msgTitle: 'Message chiffré',
+  msgSub: 'Écris une phrase : le jeu la chiffre en grille, ton ami la déchiffre.',
+  msgPh: 'Rendez-vous samedi au marché',
+  msgSend: 'Chiffrer et envoyer',
+  msgShort: 'Écris au moins 8 lettres.',
+  msgFail: 'Impossible de chiffrer cette phrase, essaie de la reformuler.',
+  msgShare: '{n} t\'a envoyé un message chiffré sur Lexicode. Sauras-tu le lire ?',
+  msgCopied: 'Lien copié, envoie-le à ton ami',
+  msgFrom: 'Message de {n}',
+  msgSomeone: 'un ami',
+  msgReply: 'Répondre',
+  msgBad: 'Ce lien de message est abîmé.',
 };
 export type FriendStrings = typeof fr;
 
@@ -59,6 +71,18 @@ const en: FriendStrings = {
   requests: '{n} friend request(s)',
   manage: 'Add friends',
   emptyBoard: 'None of your friends are on this board yet.',
+  msgTitle: 'Secret message',
+  msgSub: 'Write a sentence: the game turns it into a grid, your friend decodes it.',
+  msgPh: 'Meet me at the market on Saturday',
+  msgSend: 'Encode and send',
+  msgShort: 'Write at least 8 letters.',
+  msgFail: 'This sentence could not be encoded, try rewording it.',
+  msgShare: '{n} sent you a secret message on Lexicode. Can you read it?',
+  msgCopied: 'Link copied, send it to your friend',
+  msgFrom: 'Message from {n}',
+  msgSomeone: 'a friend',
+  msgReply: 'Reply',
+  msgBad: 'This message link is broken.',
 };
 
 const es: FriendStrings = {
@@ -89,6 +113,18 @@ const es: FriendStrings = {
   requests: '{n} solicitud(es) de amistad',
   manage: 'Añadir amigos',
   emptyBoard: 'Ninguno de tus amigos aparece aún en esta clasificación.',
+  msgTitle: 'Mensaje cifrado',
+  msgSub: 'Escribe una frase: el juego la cifra en una cuadrícula y tu amigo la descifra.',
+  msgPh: 'Nos vemos el sábado en el mercado',
+  msgSend: 'Cifrar y enviar',
+  msgShort: 'Escribe al menos 8 letras.',
+  msgFail: 'No se pudo cifrar esta frase, prueba a reformularla.',
+  msgShare: '{n} te ha enviado un mensaje cifrado en Lexicode. ¿Sabrás leerlo?',
+  msgCopied: 'Enlace copiado, envíaselo a tu amigo',
+  msgFrom: 'Mensaje de {n}',
+  msgSomeone: 'un amigo',
+  msgReply: 'Responder',
+  msgBad: 'Este enlace de mensaje está dañado.',
 };
 
 export const FRIEND_STRINGS: Record<Lang, FriendStrings> = { fr, en, es };
