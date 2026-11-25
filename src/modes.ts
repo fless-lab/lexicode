@@ -102,7 +102,8 @@ export function rulesFor(m: Mode): Rules {
     case 'expedition': {
       const run = m.exp!;
       const f = makeFloor(run.seed, run.depth);
-      return { ...base, lives: run.hearts, timeMs: f.timeMs !== null ? f.timeMs + count(run, 'hourglass') * HOURGLASS_MS : null, boosters: false };
+      // L'expédition du jour a son classement : atouts coupés. La descente libre les accepte.
+      return { ...base, lives: run.hearts, timeMs: f.timeMs !== null ? f.timeMs + count(run, 'hourglass') * HOURGLASS_MS : null, boosters: !run.daily };
     }
     default:
       return base;

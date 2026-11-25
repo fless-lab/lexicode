@@ -9,7 +9,7 @@ import { KEYBOARDS, type Strings } from '../i18n';
 import { PACKS } from '../content';
 import { COST } from '../services/monetization';
 import type { Rules } from '../modes';
-import { FREEZE_MS, REVEAL_N, type BoosterId } from '../meta';
+import { BOOSTER_CAP, FREEZE_MS, REVEAL_N, type BoosterId } from '../meta';
 import { sfx } from '../sound';
 import { Loupi } from './mascot';
 import { Icon, BOOSTER_ICON } from './Icon';
@@ -114,6 +114,14 @@ export function Play(props: Props) {
   }, []);
   const [tuto, setTuto] = useState(props.showTutorial ? 0 : -1);
   const [frozen, setFrozen] = useState<{ until: number; shown: number } | null>(null);
+  // Atouts déjà utilisés dans cette partie, et message bref quand un atout est refusé.
+  const [usedB, setUsedB] = useState<Partial<Record<BoosterId, number>>>({});
+  const [bNote, setBNote] = useState<string | null>(null);
+  useEffect(() => {
+    if (!bNote) return;
+    const id = setTimeout(() => setBNote(null), 2600);
+    return () => clearTimeout(id);
+  }, [bNote]);
   const [bump, setBump] = useState(0);
   const reported = useRef<string | null>(null);
   /** Coop : couleur du coéquipier qui a posé chaque lettre. */
@@ -321,8 +329,12 @@ export function Play(props: Props) {
     setOracle({ pattern, results: oracleSearch(pattern, lexicon) });
   };
 
+  const cap = premium ? BOOSTER_CAP.premium : BOOSTER_CAP.free;
   const boost = (id: BoosterId) => {
-    if (isOver(g) || !useBooster(id)) return;
+    if (isOver(g)) return;
+    if ((usedB[id] ?? 0) >= cap) return setBNote(t.boostersCap);
+    if (!useBooster(id)) return;
+    setUsedB((u) => ({ ...u, [id]: (u[id] ?? 0) + 1 }));
     sfx.booster();
     if (id === 'freeze' && remaining !== null) {
       setFrozen({ until: Date.now() + FREEZE_MS, shown: remaining });
@@ -365,7 +377,7 @@ export function Play(props: Props) {
   const avail = playWidth(vw) - 28;
   const base = (puzzle.cryptogram ? 34 : 30) + (vw >= TABLET ? 10 : 0);
   const cw = Math.max(20, Math.min(base, Math.floor((avail - (longest - 1) * 3) / longest)));
-  const showBoosters = rules.boosters && !isOver(g);
+  const showBoosters = !isOver(g);
   let li = 0;
 
   return (
@@ -499,21 +511,27 @@ export function Play(props: Props) {
               <button className="tool" onClick={hintLetter}><Icon name="bulb" size={17} />{t.hint}{freeLeft > 0 ? <small>{t.free} x{freeLeft}</small> : !premium && <small><Icon name="token" size={12} />{price(COST.letter)}</small>}</button>
               {!puzzle.cryptogram && <button className="tool" onClick={openOracle}><Icon name="search" size={17} />{t.oracle}{!premium && <small><Icon name="token" size={12} />{price(COST.oracle)}</small>}</button>}
               {!puzzle.cryptogram && <button className="tool" onClick={hintWord}><Icon name="sparkle" size={17} />{t.hintWord}{!premium && <small><Icon name="token" size={12} />{price(COST.word)}</small>}</button>}
-              {showBoosters && (['freeze', 'shield', 'reveal'] as BoosterId[]).map((id) => (
-                <button
-                  key={id}
-                  className={`tool boost ${(id === 'shield' && g.shield > 0) || (id === 'freeze' && isFrozen) ? 'active' : ''}`}
-                  disabled={!boosters[id] || (id === 'freeze' && !canFreeze)}
-                  onClick={() => boost(id)}
-                  aria-label={(t[`b_${id}` as 'b_freeze'] as string[])[0]}
-                  title={(t[`b_${id}` as 'b_freeze'] as string[])[1]}
-                >
-                  <Icon name={BOOSTER_ICON[id]} size={18} />
-                  {boosters[id] > 0 && <em>{boosters[id]}</em>}
-                </button>
-              ))}
+              {showBoosters && (['freeze', 'shield', 'reveal'] as BoosterId[]).map((id) => {
+                // Mode classé : l'atout reste visible mais grisé, un appui explique pourquoi.
+                const locked = !rules.boosters;
+                const spent = (usedB[id] ?? 0) >= cap;
+                return (
+                  <button
+                    key={id}
+                    className={`tool boost ${locked || spent ? 'off' : ''} ${(id === 'shield' && g.shield > 0) || (id === 'freeze' && isFrozen) ? 'active' : ''}`}
+                    disabled={!locked && !spent && (!boosters[id] || (id === 'freeze' && !canFreeze))}
+                    onClick={() => (locked ? setBNote(t.boostersRanked) : boost(id))}
+                    aria-label={(t[`b_${id}` as 'b_freeze'] as string[])[0]}
+                    title={locked ? t.boostersRanked : (t[`b_${id}` as 'b_freeze'] as string[])[1]}
+                  >
+                    <Icon name={BOOSTER_ICON[id]} size={18} />
+                    {locked ? <em className="lk"><Icon name="lock" size={10} /></em> : boosters[id] > 0 && <em>{boosters[id]}</em>}
+                  </button>
+                );
+              })}
             </div>
           )}
+          {bNote && <p className="nohints bnote" role="status"><Icon name="lock" size={15} />{bNote}</p>}
           <div className="kb">
             {KEYBOARDS[puzzle.lang].map((row, ri) => (
               <div className="kbrow" key={ri}>

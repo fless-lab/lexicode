@@ -10,6 +10,8 @@ export const BOOSTERS: BoosterId[] = ['freeze', 'shield', 'reveal', 'double'];
 /** Gel : arrête le chrono 15 s. Bouclier : absorbe une erreur. Révélation : 3 lettres. Double : XP x2 sur la partie. */
 export const FREEZE_MS = 15_000;
 export const REVEAL_N = 3;
+/** Atouts de chaque type utilisables dans une même partie (hors modes classés, où ils sont coupés pour tous). */
+export const BOOSTER_CAP = { free: 1, premium: 3 };
 
 // ---------- Quêtes du jour ----------
 

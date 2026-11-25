@@ -926,6 +926,9 @@ h1, h2, h3 { font-weight: 400; letter-spacing: .01em; text-shadow: 0 2px 0 rgba(
 .tools.compact .tool:not(.boost) { flex-direction: column; gap: 1px; height: 48px; font-size: 11.5px; line-height: 1.05; }
 .tools.compact .tool:not(.boost) small { font-size: 11px; }
 .tools.compact .tool.boost { height: 48px; }
+.tool.boost.off { opacity: .45; filter: saturate(.3); }
+.tool.boost em.lk { background: var(--tide-2); color: var(--mist); }
+.nohints.bnote { color: var(--mist); margin: -2px 0 8px; font-size: 12.5px; animation: fade .2s; }
 
 /* ---------- Finitions arcade ---------- */
 .btn.primary { box-shadow: inset 0 -5px 0 var(--go-lo), inset 0 3px 0 rgba(255,255,255,.2), 0 4px 0 var(--outline); }
