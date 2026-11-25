@@ -1,6 +1,6 @@
 // Loupi, le raton laveur d'Ada. Personnage original, dessiné en pièces séparées
 // (queue, corps, tête, oreilles, yeux, bras, loupe) pour être animé par humeur.
-import { createContext, useContext, useId, useRef } from 'react';
+import { createContext, useContext, useId, useRef, type CSSProperties } from 'react';
 import { useOffscreenPause } from './useOffscreenPause';
 
 export type Mood = 'idle' | 'happy' | 'sad' | 'think' | 'wow';
@@ -12,6 +12,26 @@ export type BackId = 'cape';
 export interface Outfit { hat?: HatId; neck?: NeckId; loupe?: LoupeId; back?: BackId }
 /** Tenue équipée par le joueur, portée par Loupi partout où aucune tenue n'est imposée. */
 export const OutfitCtx = createContext<Outfit>({});
+
+/**
+ * Geste que Loupi fait de temps en temps quand il attend, selon ce qu'il porte :
+ * le haut-de-forme salue, le détective inspecte, le chef de gare trépigne, etc.
+ */
+export type Gesture = 'bow' | 'sleuth' | 'chug' | 'admire' | 'sway' | 'fixtie' | 'twirl' | 'jump';
+export function gestureOf(o: Outfit): Gesture {
+  if (o.back === 'cape') return 'twirl';
+  switch (o.hat) {
+    case 'tophat': return 'bow';
+    case 'deerstalker': return 'sleuth';
+    case 'conductor': return 'chug';
+    case 'beret': return 'admire';
+    case 'santa': return 'sway';
+  }
+  if (o.neck === 'bowtie') return 'fixtie';
+  if (o.neck === 'scarf_xmas') return 'sway';
+  if (o.loupe && o.loupe !== 'gold') return 'sleuth';
+  return 'jump';
+}
 
 const LOUPE_STYLE: Record<LoupeId, { ring: string; edge: string; handle: string }> = {
   gold: { ring: '#ffb938', edge: '#c97f10', handle: '#8a5a2b' },
@@ -156,7 +176,7 @@ function Loupe({ x, y, angle, scale = 1, id, kind = 'gold' }: { x: number; y: nu
  * Loupi en pied ou en buste. Les poses changent avec l'humeur :
  * idle tient la loupe, think la colle à son œil (œil grossi), happy la brandit, sad la laisse pendre.
  */
-export function Loupi({ mood = 'idle', size = 120, bust = false, className = '', title, outfit: forced }: { mood?: Mood; size?: number; bust?: boolean; className?: string; title?: string; outfit?: Outfit }) {
+export function Loupi({ mood = 'idle', size = 120, bust = false, className = '', title, outfit: forced, gesture }: { mood?: Mood; size?: number; bust?: boolean; className?: string; title?: string; outfit?: Outfit; gesture?: Gesture | null }) {
   const worn = useContext(OutfitCtx);
   const outfit = forced ?? worn;
   const lk = outfit.loupe ?? 'gold';
@@ -167,8 +187,13 @@ export function Loupi({ mood = 'idle', size = 120, bust = false, className = '',
   const earTilt = mood === 'sad' ? 16 : mood === 'wow' ? -6 : 0;
   const ref = useRef<SVGSVGElement>(null);
   useOffscreenPause(ref);
+  const g = mood === 'idle' ? (gesture === undefined ? gestureOf(outfit) : gesture) : null;
+  // Décalage propre à chaque Loupi : côte à côte, ils ne font pas leur geste en même temps.
+  let h = 0;
+  for (const c of raw) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const delay = { '--gd': `${-((h % 60) / 10)}s` } as CSSProperties;
   return (
-    <svg ref={ref} className={`loupi m-${mood} ${className}`} viewBox={vb} width={size} height={bust ? size * (128 / 156) : size} role={title ? 'img' : undefined} aria-label={title} aria-hidden={title ? undefined : true}>
+    <svg ref={ref} style={delay} className={`loupi m-${mood} ${g ? `g-${g}` : ''} ${className}`} viewBox={vb} width={size} height={bust ? size * (128 / 156) : size} role={title ? 'img' : undefined} aria-label={title} aria-hidden={title ? undefined : true}>
       <defs>
         <radialGradient id={`${id}-lens`} cx=".35" cy=".35" r=".8">
           <stop offset="0" stopColor="#ffffff" stopOpacity=".55" />
@@ -206,7 +231,7 @@ export function Loupi({ mood = 'idle', size = 120, bust = false, className = '',
               <ellipse cx="79" cy="187" rx="15" ry="8" fill={FUR_DK} />
               <ellipse cx="121" cy="187" rx="15" ry="8" fill={FUR_DK} />
               {[73, 79, 85, 115, 121, 127].map((x) => <ellipse key={x} cx={x} cy="189" rx="2.6" ry="2" fill={MASK} opacity=".55" />)}
-              <Neck id={outfit.neck ?? 'scarf'} />
+              <g className="m-neck" style={{ transformOrigin: '100px 126px' }}><Neck id={outfit.neck ?? 'scarf'} /></g>
               {outfit.back === 'cape' && <circle cx="100" cy="121" r="5" fill={AMBER} stroke={AMBER_DK} strokeWidth="1.5" />}
               {/* Bras gauche posé sur le ventre */}
               <ellipse cx="80" cy="150" rx="9" ry="15" transform={`rotate(${mood === 'happy' ? -40 : 28} 80 150)`} fill={FUR_DK} />
@@ -232,9 +257,11 @@ export function Loupi({ mood = 'idle', size = 120, bust = false, className = '',
           <ellipse cx="125" cy="63" rx="13" ry="5.5" transform={`rotate(${mood === 'sad' ? -14 : mood === 'wow' ? 14 : 6} 125 63)`} fill={CREAM} />
           {/* Masque */}
           <path d="M44,84 C50,69 69,65 86,73 C92,76 96,79 100,79 C104,79 108,76 114,73 C131,65 150,69 156,84 C152,99 137,103 122,97 C114,93 106,93 100,97 C94,93 86,93 78,97 C63,103 48,99 44,84 Z" fill={MASK} />
-          <g className="m-blink" style={{ transformOrigin: '100px 85px' }}>
-            <Eye x={77} y={85} mood={mood} />
-            <Eye x={123} y={85} mood={mood} big={lens} />
+          <g className="m-look">
+            <g className="m-blink" style={{ transformOrigin: '100px 85px' }}>
+              <Eye x={77} y={85} mood={mood} />
+              <Eye x={123} y={85} mood={mood} big={lens} />
+            </g>
           </g>
           <ellipse cx="65" cy="106" rx="8" ry="4.5" fill="#ff8f9a" opacity={mood === 'happy' ? 0.55 : 0.3} />
           <ellipse cx="135" cy="106" rx="8" ry="4.5" fill="#ff8f9a" opacity={mood === 'happy' ? 0.55 : 0.3} />
@@ -242,7 +269,7 @@ export function Loupi({ mood = 'idle', size = 120, bust = false, className = '',
           <ellipse cx="97" cy="100" rx="3" ry="1.6" fill="#fff" opacity=".55" />
           <Mouth mood={mood} />
           {mood === 'sad' && <path className="m-tear" d="M80,98 q3,6 0,9 q-3,-3 0,-9 Z" fill="#9fd3ff" />}
-          {outfit.hat && <Hat id={outfit.hat} />}
+          {outfit.hat && <g className="m-hat" style={{ transformOrigin: '100px 44px' }}><Hat id={outfit.hat} /></g>}
         </g>
 
         {/* Bras droit et loupe, selon la pose */}

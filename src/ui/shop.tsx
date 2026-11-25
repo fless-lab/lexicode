@@ -4,7 +4,7 @@ import type { Lang } from '../engine/types';
 import type { Strings } from '../i18n';
 import type { Save } from '../storage';
 import { Icon } from './Icon';
-import { Loupi, type Outfit } from './mascot';
+import { Loupi, gestureOf, type Outfit } from './mascot';
 import { Scene, type SceneKind } from './scenes';
 import { daysLeft, type SeasonalEvent } from '../events';
 import { sfx } from '../sound';
@@ -245,7 +245,7 @@ export function Shop({ ctx, back, openWardrobe, openPacks }: { ctx: ShopCtx; bac
             )}
             {[...by('hat'), ...by('neck').filter((i) => !i.free), ...by('loupe').filter((i) => !i.free), ...by('back')].map((i) => (
               <article key={i.id} className={`icard ${i.unlock && !owns(save, i.id) ? 'locked' : ''}`}>
-                <Loupi size={92} outfit={{ ...outfitOf(save), [i.kind]: i.value }} />
+                <Loupi size={92} outfit={{ ...outfitOf(save), [i.kind]: i.value }} gesture={gestureOf({ [i.kind]: i.value } as Outfit)} />
                 <b>{i.name[lang]}</b>
                 <Action ctx={ctx} i={i} shop={shop} />
               </article>
