@@ -68,7 +68,7 @@ export interface ModeRecord {
 
 const KEY = 'lexicode.save.v1';
 /** Version du format, à augmenter avec une entrée dans MIGRATIONS à chaque changement incompatible. */
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export function emptySave(): Save {
   return {
@@ -124,7 +124,16 @@ const KEEP_CORRUPT = 3;
 type Obj = Record<string, unknown>;
 
 /** Changements de format, appliqués dans l'ordre : MIGRATIONS[n] passe de la version n à n + 1. */
-const MIGRATIONS: Record<number, (p: Obj) => Obj> = {};
+const MIGRATIONS: Record<number, (p: Obj) => Obj> = {
+  // 1 → 2 : nouvel équilibre des gains, la progression repart de zéro pour tout le monde.
+  // On garde ce qui a été acheté ou obtenu (premium, tuiles, tenues, objets équipés), le profil et les réglages.
+  1: (p) => {
+    const keep = ['lang', 'name', 'city', 'country', 'premium', 'settings', 'tutorialDone', 'skins', 'skin', 'owned', 'equip', 'starterBought', 'seen'];
+    const n: Obj = { v: 2 };
+    for (const k of keep) if (k in p) n[k] = p[k];
+    return n;
+  },
+};
 
 const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);
 const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
