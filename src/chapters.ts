@@ -22,12 +22,12 @@ export const LEVELS_PER_CHAPTER = 12;
 
 export const CHAPTERS: ChapterDef[] = [
   { theme: 'atelier', icon: 'gear', dFrom: 1, dTo: 2, tier: 1, mods: {} },
-  { theme: 'library', icon: 'book', dFrom: 2, dTo: 3, tier: 2, mods: {}, fewerGiven: 1 },
-  { theme: 'train', icon: 'clock', dFrom: 2, dTo: 3, tier: 2, mods: {}, timeMs: 170_000 },
-  { theme: 'archives', icon: 'flame', dFrom: 3, dTo: 3, tier: 2, mods: { ink: 0.35 } },
-  { theme: 'observatory', icon: 'star', dFrom: 3, dTo: 4, tier: 3, mods: { chain: true } },
+  { theme: 'library', icon: 'book', dFrom: 2, dTo: 3, tier: 2, mods: {}, fewerGiven: 1, lives: 5 },
+  { theme: 'train', icon: 'clock', dFrom: 2, dTo: 3, tier: 2, mods: {}, timeMs: 170_000, lives: 5 },
+  { theme: 'archives', icon: 'flame', dFrom: 3, dTo: 3, tier: 2, mods: { ink: 0.35 }, lives: 4 },
+  { theme: 'observatory', icon: 'star', dFrom: 3, dTo: 4, tier: 3, mods: { chain: true }, lives: 4 },
   { theme: 'machines', icon: 'gear', dFrom: 4, dTo: 4, tier: 'mix', mods: { ink: 0.3, smudge: true }, lives: 3 },
-  { theme: 'tower', icon: 'key', dFrom: 3, dTo: 5, tier: 3, mods: {}, cryptogram: true },
+  { theme: 'tower', icon: 'key', dFrom: 3, dTo: 5, tier: 3, mods: {}, cryptogram: true, lives: 4 },
   { theme: 'cabinet', icon: 'crown', dFrom: 4, dTo: 5, tier: 3, mods: { ink: 0.4, fog: true, chain: true }, timeMs: 240_000, lives: 3 },
 ];
 

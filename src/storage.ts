@@ -480,6 +480,7 @@ export function practiceDifficulty(rating: number): 1 | 2 | 3 | 4 | 5 {
 
 export function updateRating(rating: number, puzzleRating: number, score: number): number {
   const expected = 1 / (1 + Math.pow(10, (puzzleRating - rating) / 400));
-  const perf = Math.min(1, score / 1000);
+  // Une partie propre sans plus ne fait presque pas bouger la cote : il faut jouer vite, sans erreur ni indice.
+  const perf = Math.max(0, Math.min(1, (score - 500) / 800));
   return Math.round(rating + 40 * (perf - expected));
 }

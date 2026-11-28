@@ -72,7 +72,7 @@ interface Toast {
 
 /** Jetons : le jeu en donne peu, pour que les objets gardent leur valeur. */
 const MULTI_PAID = 3;
-const LEVEL_UP_TOKENS = 2;
+const LEVEL_UP_TOKENS = 1;
 
 /** Part du lexique que l'entraînement évite parmi les mots déjà vus (au-delà, la grille aurait du mal à se construire). */
 const AVOID_SHARE = 0.6;

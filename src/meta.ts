@@ -27,23 +27,23 @@ export interface QuestDef {
 const TIMED = new Set(['timeattack', 'marathon', 'hardcore']);
 
 export const QUESTS: QuestDef[] = [
-  { id: 'win3', target: 3, agg: 'sum', value: (e) => (e.won ? 1 : 0), reward: { tokens: 3, xp: 40 } },
-  { id: 'win5', target: 5, agg: 'sum', value: (e) => (e.won ? 1 : 0), reward: { tokens: 5, xp: 70, booster: 'reveal' } },
-  { id: 'timed2', target: 2, agg: 'sum', value: (e) => (e.won && TIMED.has(e.kind) ? 1 : e.kind === 'marathon' && (e.run ?? 0) > 0 ? 1 : 0), reward: { tokens: 4, xp: 60, booster: 'freeze' } },
-  { id: 'nohint2', target: 2, agg: 'sum', value: (e) => (e.won && e.hints === 0 ? 1 : 0), reward: { tokens: 4, xp: 50 } },
-  { id: 'combo12', target: 12, agg: 'max', value: (e) => e.maxCombo ?? 0, reward: { tokens: 4, xp: 50, booster: 'shield' } },
-  { id: 'combo25', target: 25, agg: 'max', value: (e) => e.maxCombo ?? 0, reward: { tokens: 6, xp: 80, booster: 'double' } },
-  { id: 'words15', target: 15, agg: 'sum', value: (e) => e.words ?? 0, reward: { tokens: 3, xp: 40 } },
-  { id: 'marathon4', target: 4, agg: 'max', value: (e) => (e.kind === 'marathon' ? e.run ?? 0 : 0), reward: { tokens: 6, xp: 80, booster: 'freeze' } },
-  { id: 'levels2', target: 2, agg: 'sum', value: (e) => (e.won && e.kind === 'level' ? 1 : 0), reward: { tokens: 3, xp: 40 } },
-  { id: 'stars2', target: 2, agg: 'sum', value: (e) => (e.won && e.stars === 3 ? 1 : 0), reward: { tokens: 5, xp: 60, booster: 'shield' } },
-  { id: 'crypto1', target: 1, agg: 'sum', value: (e) => (e.won && e.kind === 'cryptogram' ? 1 : 0), reward: { tokens: 5, xp: 70 } },
-  { id: 'survive1', target: 1, agg: 'sum', value: (e) => (e.won && (e.kind === 'survival' || e.kind === 'sudden') ? 1 : 0), reward: { tokens: 4, xp: 60 } },
-  { id: 'fast90', target: 1, agg: 'sum', value: (e) => (e.won && e.kind !== 'marathon' && e.ms < 90_000 && e.d >= 2 ? 1 : 0), reward: { tokens: 4, xp: 50 } },
-  { id: 'daily1', target: 1, agg: 'sum', value: (e) => (e.won && e.kind === 'daily' ? 1 : 0), reward: { tokens: 2, xp: 30 } },
+  { id: 'win3', target: 3, agg: 'sum', value: (e) => (e.won ? 1 : 0), reward: { tokens: 2, xp: 40 } },
+  { id: 'win5', target: 5, agg: 'sum', value: (e) => (e.won ? 1 : 0), reward: { tokens: 3, xp: 70, booster: 'reveal' } },
+  { id: 'timed2', target: 2, agg: 'sum', value: (e) => (e.won && TIMED.has(e.kind) ? 1 : e.kind === 'marathon' && (e.run ?? 0) > 0 ? 1 : 0), reward: { tokens: 3, xp: 60, booster: 'freeze' } },
+  { id: 'nohint2', target: 2, agg: 'sum', value: (e) => (e.won && e.hints === 0 ? 1 : 0), reward: { tokens: 3, xp: 50 } },
+  { id: 'combo12', target: 12, agg: 'max', value: (e) => e.maxCombo ?? 0, reward: { tokens: 3, xp: 50, booster: 'shield' } },
+  { id: 'combo25', target: 25, agg: 'max', value: (e) => e.maxCombo ?? 0, reward: { tokens: 4, xp: 80, booster: 'double' } },
+  { id: 'words15', target: 15, agg: 'sum', value: (e) => e.words ?? 0, reward: { tokens: 2, xp: 40 } },
+  { id: 'marathon4', target: 4, agg: 'max', value: (e) => (e.kind === 'marathon' ? e.run ?? 0 : 0), reward: { tokens: 4, xp: 80, booster: 'freeze' } },
+  { id: 'levels2', target: 2, agg: 'sum', value: (e) => (e.won && e.kind === 'level' ? 1 : 0), reward: { tokens: 2, xp: 40 } },
+  { id: 'stars2', target: 2, agg: 'sum', value: (e) => (e.won && e.stars === 3 ? 1 : 0), reward: { tokens: 3, xp: 60, booster: 'shield' } },
+  { id: 'crypto1', target: 1, agg: 'sum', value: (e) => (e.won && e.kind === 'cryptogram' ? 1 : 0), reward: { tokens: 3, xp: 70 } },
+  { id: 'survive1', target: 1, agg: 'sum', value: (e) => (e.won && (e.kind === 'survival' || e.kind === 'sudden') ? 1 : 0), reward: { tokens: 3, xp: 60 } },
+  { id: 'fast90', target: 1, agg: 'sum', value: (e) => (e.won && e.kind !== 'marathon' && e.ms < 90_000 && e.d >= 2 ? 1 : 0), reward: { tokens: 3, xp: 50 } },
+  { id: 'daily1', target: 1, agg: 'sum', value: (e) => (e.won && e.kind === 'daily' ? 1 : 0), reward: { tokens: 1, xp: 30 } },
 ];
 
-export const QUEST_BONUS = { tokens: 4, booster: 'double' as BoosterId };
+export const QUEST_BONUS = { tokens: 3, booster: 'double' as BoosterId };
 
 /** Trois quêtes par jour, les mêmes pour tous, dont toujours une facile. */
 export function questsFor(day: string): QuestDef[] {

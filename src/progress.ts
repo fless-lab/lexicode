@@ -120,7 +120,7 @@ export function rollLeague(s: Save, now = new Date()): { save: Save; result: 'up
     tier--;
     result = 'down';
   }
-  const reward = result === 'up' ? 10 + tier * 5 : rank <= 10 ? 3 : 0;
+  const reward = result === 'up' ? 6 + tier * 3 : rank <= 10 ? 2 : 0;
   return {
     save: { ...s, tokens: s.tokens + reward, league: { week: wk, tier, xp: 0, last: result, lastRank: rank } },
     result,
